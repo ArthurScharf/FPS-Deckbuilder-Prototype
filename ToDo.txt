@@ -1,0 +1,4 @@
+Figure out how to have the GameDamageStruct by a child of the engine damage struct
+
+Figure out how to create seperate header files for the GameDamageStruct
+
