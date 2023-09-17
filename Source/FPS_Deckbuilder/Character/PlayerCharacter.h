@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FPS_Deckbuilder/Weapon/Weapon.h"
 #include "GameCharacter.h"
 #include "PlayerCharacter.generated.h"
 
@@ -19,7 +20,8 @@ public:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
-
+	// -- Gameplay Methods -- //
+	void EquipWeapon(AWeapon* Weapon);
 
 private:
 	// -- Axis Bindngs & Action Bindings -- //
@@ -34,5 +36,13 @@ private:
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
 
+
 	
+
+
+	
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon;
 };

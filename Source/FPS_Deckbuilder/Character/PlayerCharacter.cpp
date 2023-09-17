@@ -53,12 +53,12 @@ void APlayerCharacter::LookRight(float AxisValue)
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::LeftMouseButton_Pressed"));
+	if (EquippedWeapon) EquippedWeapon->Fire();
 }
 
 void APlayerCharacter::LeftMouseButton_Released()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::LeftMouseButton_Released"));
+	if (EquippedWeapon) EquippedWeapon->StopFire();
 }
 
 void APlayerCharacter::RightMouseButton_Pressed()
@@ -73,3 +73,11 @@ void APlayerCharacter::RightMouseButton_Released()
 
 
 
+
+
+void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
+{
+	if (EquippedWeapon) { EquippedWeapon->StopFire(); }
+
+	EquippedWeapon = Weapon;
+}
