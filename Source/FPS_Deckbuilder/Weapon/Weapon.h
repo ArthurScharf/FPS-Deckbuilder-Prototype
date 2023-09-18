@@ -3,14 +3,17 @@
 
 #include "CoreMinimal.h"
 
-#include "Components/SkeletalMeshComponent.h"
-#include "Components/SphereComponent.h"
+#include "FPS_Deckbuilder/Interactable.h"
 
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
+class USkeletalMeshComponent;
+class USphereComponent;
+
+
 UCLASS()
-class FPS_DECKBUILDER_API AWeapon : public AActor
+class FPS_DECKBUILDER_API AWeapon : public AActor, public IInteractable
 {
 	GENERATED_BODY()
 	
@@ -25,9 +28,8 @@ public:
 
 	void StopFire();
 
-	UFUNCTION()
-	void OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
+	/* Equips the Weapon */
+	void Interact(APlayerCharacter* PlayerCharacter);
 
 
 

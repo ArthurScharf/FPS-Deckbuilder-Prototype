@@ -21,15 +21,3 @@ void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::EndPlay"));
 }
-
-
-void AGameCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-
-
-
-

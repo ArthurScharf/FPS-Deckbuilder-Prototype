@@ -1,9 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Engine/EngineTypes.h"
-
 #include "GameFramework/Character.h"
 #include "GameCharacter.generated.h"
 
@@ -25,8 +23,6 @@ protected:
 
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
 
 
 protected:

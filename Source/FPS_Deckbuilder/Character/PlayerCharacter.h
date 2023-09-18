@@ -2,9 +2,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "FPS_Deckbuilder/Weapon/Weapon.h"
 #include "GameCharacter.h"
 #include "PlayerCharacter.generated.h"
+
+class AWeapon;
+class IInteractable;
+class UCameraComponent;
+
 
 /**
  * Character controlled by the player
@@ -17,6 +21,8 @@ class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 
 public:
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
@@ -32,17 +38,22 @@ private:
 
 	void LeftMouseButton_Pressed();
 	void LeftMouseButton_Released();
-
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
+	void InteractButton_Pressed();
 
-
-	
-
-
-	
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	AWeapon* EquippedWeapon;
+
+	/* Set it Tick
+	 * Should always store something implementing IInteractable interface
+	 */
+
+
+	TScriptInterface<IInteractable> TargetInteractable;
+
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+	float InteractionDistance;
 };

@@ -2,3 +2,11 @@ Figure out how to have the GameDamageStruct by a child of the engine damage stru
 
 Figure out how to create seperate header files for the GameDamageStruct
 
+
+
+
+
+
+-- Possible bugs --
+APlayerCharacter::EquipWeapon has collision for both weapons active simultaneously.
+This might be a problem if weapons ever need to collide with one another

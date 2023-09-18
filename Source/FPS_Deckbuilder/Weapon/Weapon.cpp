@@ -1,18 +1,23 @@
 
 #include "Weapon.h"
 
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
+
 
 AWeapon::AWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
 	SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Skeletal Mesh Component"));
+	SkeletalMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	RootComponent = SkeletalMeshComponent;
-
+	
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
 	SphereComponent->SetSphereRadius(50.f);
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereComponentBeginOverlap);
+	SphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);\
 	SphereComponent->SetupAttachment(RootComponent);
 }
 
@@ -20,17 +25,6 @@ AWeapon::AWeapon()
 void AWeapon::BeginPlay()
 {
 	CurrentAmmo = MagazineCapacity;
-}
-
-
-void AWeapon::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
-	if (!PlayerCharacter) return; 
-
-	UE_LOG(LogTemp, Warning, TEXT("AWeapon::OnSphereComponentBeginOverlap"));
-
-	PlayerCharacter->EquipWeapon(this);
 }
 
 
@@ -59,3 +53,12 @@ void AWeapon::StopFire()
 	GetWorldTimerManager().ClearTimer(WeaponHandle);
 }
 
+
+
+
+
+void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AWeapon::Interact"));
+	PlayerCharacter->EquipWeapon(this);
+}
