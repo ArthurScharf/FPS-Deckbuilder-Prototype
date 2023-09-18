@@ -8,6 +8,7 @@
 class AWeapon;
 class IInteractable;
 class UCameraComponent;
+class USpringArmComponent;
 
 
 /**
@@ -17,6 +18,9 @@ UCLASS()
 class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 {
 	GENERATED_BODY()
+
+public:
+	APlayerCharacter();
 
 
 public:
@@ -44,6 +48,12 @@ private:
 
 
 private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UCameraComponent* CameraComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	USpringArmComponent* SpringArmComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	AWeapon* EquippedWeapon;
 

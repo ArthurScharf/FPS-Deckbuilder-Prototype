@@ -1,9 +1,22 @@
 
 #include "PlayerCharacter.h"
 
+
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
+
+
+APlayerCharacter::APlayerCharacter()
+{
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
+	CameraComponent->SetupAttachment(RootComponent);
+
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
+	SpringArmComponent->SetupAttachment(CameraComponent);
+}
 
 
 void APlayerCharacter::BeginPlay()
@@ -26,12 +39,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 		End,
 		ECollisionChannel::ECC_GameTraceChannel1
 	);
-
-	// NOTE: Alternative solution using object types. Not used to keep number of object types down. Each interactable might want to be their own object type
-	//FCollisionObjectQueryParams QueryParams;
-	//QueryParams.AddObjectTypesToQuery(ECollisionChannel::ECC_GameTraceChannel1);
-	//GetWorld()->LineTraceSingleByObjectType( HitResult, Start, End, QueryParams);
-
 
 	/* The default setting for ECCGameTraceChannel1 (ie Interactable) is NoCollision.
 	 * No check is done because the user must intentionally introduce a bug by setting
@@ -114,7 +121,7 @@ void APlayerCharacter::InteractButton_Pressed()
 
 void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 {
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, false);
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
 
 	if (EquippedWeapon)
 	{ 
@@ -126,11 +133,7 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	}
 
 	Weapon->SetActorEnableCollision(false);
-	Weapon->SetActorLocation(
-		GetActorLocation() + \
-		GetActorRightVector() * 50.f + \
-		GetActorForwardVector() * 50.f
-	);
-	Weapon->AttachToActor(this, AttachmentRules);
+	Weapon->SetActorRelativeLocation( FVector(0.f) );
+	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
 	EquippedWeapon = Weapon;
 }

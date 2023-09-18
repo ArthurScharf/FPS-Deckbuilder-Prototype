@@ -1,6 +1,14 @@
+RESEARCH HOW ENGINE DOES DAMAGE
+
+DAMAGE STRUCT SYSTEM
+
+
 Figure out how to have the GameDamageStruct by a child of the engine damage struct
 
-Figure out how to create seperate header files for the GameDamageStruct
+Figure out how to create seperate header files for the GameDamageStruct and redefinitions of GameTraceChannels
+
+C++ player controller ONLY DO IF YOU NEED TO WRITE C++ CONTROLLER
+ - Player controller should be attached to it's pawn
 
 
 
