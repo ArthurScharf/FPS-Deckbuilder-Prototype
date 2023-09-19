@@ -48,22 +48,21 @@ private:
 
 
 private:
+	// -- Non-Gameplay Members -- //
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	UCameraComponent* CameraComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	USpringArmComponent* SpringArmComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	AWeapon* EquippedWeapon;
-
-	/* Set it Tick
-	 * Should always store something implementing IInteractable interface
-	 */
-
-
 	TScriptInterface<IInteractable> TargetInteractable;
 
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	float InteractionDistance;
+
+
+
+	// -- Gameplay Members -- // 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	AWeapon* EquippedWeapon;
 };

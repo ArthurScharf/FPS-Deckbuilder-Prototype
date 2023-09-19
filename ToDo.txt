@@ -1,6 +1,5 @@
 RESEARCH HOW ENGINE DOES DAMAGE
 
-DAMAGE STRUCT SYSTEM
 
 
 Figure out how to have the GameDamageStruct by a child of the engine damage struct

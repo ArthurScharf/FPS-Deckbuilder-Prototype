@@ -7,6 +7,7 @@
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
+#include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -21,11 +22,10 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 
 	Health = MaxHealth;
 }
-
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -37,7 +37,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		HitResult,
 		Start,
 		End,
-		ECollisionChannel::ECC_GameTraceChannel1
+		ECC_Interactable
 	);
 
 	/* The default setting for ECCGameTraceChannel1 (ie Interactable) is NoCollision.
@@ -53,7 +53,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 	TargetInteractable = nullptr;
 }
-
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -133,7 +132,7 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	}
 
 	Weapon->SetActorEnableCollision(false);
-	Weapon->SetActorRelativeLocation( FVector(0.f) );
+	Weapon->SetActorRelativeLocation(FVector(0.f));
 	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
 	EquippedWeapon = Weapon;
 }

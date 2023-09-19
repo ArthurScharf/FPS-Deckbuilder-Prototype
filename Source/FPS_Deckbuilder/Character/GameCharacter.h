@@ -1,11 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
+
 #include "Engine/EngineTypes.h"
 #include "GameFramework/Character.h"
 #include "GameCharacter.generated.h"
-
-
 
 
 
@@ -22,6 +23,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+	virtual void ReceiveDamage(FDamageStruct& DamageStruct);
 
 
 
