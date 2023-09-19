@@ -5,9 +5,6 @@
 
 class AGameCharacter;
 
-
-
-
 UENUM(BlueprintType)
 enum EDamageType
 {
@@ -17,9 +14,6 @@ enum EDamageType
 	EDT_Shadow     UMETA(DisplayName = "Shadow"),
 	EDT_MAX        UMETA(DisplayName = "MAX")
 };
-
-
-
 
 USTRUCT(BlueprintType)
 struct FDamageStruct

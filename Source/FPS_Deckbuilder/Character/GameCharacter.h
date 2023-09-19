@@ -19,15 +19,14 @@ class FPS_DECKBUILDER_API AGameCharacter : public ACharacter
 public:
 	AGameCharacter();
 
+	virtual void ReceiveDamage(FDamageStruct& DamageStruct);
+
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
-	virtual void ReceiveDamage(FDamageStruct& DamageStruct);
-
-
-
+	
 protected:
 	UPROPERTY(VisibleAnywhere)
 	float Health;

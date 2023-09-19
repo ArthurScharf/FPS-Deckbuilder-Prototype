@@ -1,6 +1,17 @@
 RESEARCH HOW ENGINE DOES DAMAGE
 
 
+Why does recompiling code confuse it?
+
+
+Understand projectile construction helpers and how to implement them
+
+Properly Set Collision in C++ on character and weapon
+
+Understand the different ways to bind methods
+
+
+
 
 Figure out how to have the GameDamageStruct by a child of the engine damage struct
 
@@ -17,3 +28,14 @@ C++ player controller ONLY DO IF YOU NEED TO WRITE C++ CONTROLLER
 -- Possible bugs --
 APlayerCharacter::EquipWeapon has collision for both weapons active simultaneously.
 This might be a problem if weapons ever need to collide with one another
+
+
+
+
+
+
+
+
+AActor *,UPrimitiveComponent *,int32,bool,const FHitResult &                               what I gave them
+
+UPrimitiveComponent *,AActor *,UPrimitiveComponent *,int32,bool,const FHitResult &

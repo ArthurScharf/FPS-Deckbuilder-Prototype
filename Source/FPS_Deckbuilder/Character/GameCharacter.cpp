@@ -4,9 +4,7 @@
 
 AGameCharacter::AGameCharacter()
 {
-
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 
