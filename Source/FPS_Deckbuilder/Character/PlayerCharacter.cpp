@@ -1,13 +1,12 @@
 
 #include "PlayerCharacter.h"
 
-
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "FPS_Deckbuilder/Interactable.h"
-#include "FPS_Deckbuilder/Weapon/Weapon.h"
-
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
+#include "FPS_Deckbuilder/Interactable.h"
+#include "FPS_Deckbuilder/UI/HUDWidget.h"
+#include "FPS_Deckbuilder/Weapon/Weapon.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -23,6 +22,17 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
+
+	// -- UI -- // 
+	if (HUDWidgetClass)
+	{
+		HUDWidget = CreateWidget<UHUDWidget>(Cast<APlayerController>(GetController()), HUDWidgetClass);
+		HUDWidget->AddToViewport();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::BeginPlay -- !HUDWidgetClass"));
+	}
 
 	Health = MaxHealth;
 }
@@ -104,7 +114,8 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::RightMouseButton_Pressed"));
+	HUDWidget->UpdateCrosshairsSpread(20.f);
+	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::RightMouseButton_Pressed"));
 }
 
 void APlayerCharacter::RightMouseButton_Released()

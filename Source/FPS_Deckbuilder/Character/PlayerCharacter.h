@@ -8,6 +8,7 @@
 class AWeapon;
 class IInteractable;
 class UCameraComponent;
+class UHUDWidget;
 class USpringArmComponent;
 
 
@@ -49,20 +50,26 @@ private:
 
 private:
 	// -- Non-Gameplay Members -- //
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	UCameraComponent* CameraComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	USpringArmComponent* SpringArmComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter")
+	TSubclassOf<UHUDWidget> HUDWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter")
+	UHUDWidget* HUDWidget;
 
 	TScriptInterface<IInteractable> TargetInteractable;
 
-	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly)
 	float InteractionDistance;
 
 
 
 	// -- Gameplay Members -- // 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 };

@@ -4,12 +4,17 @@ RESEARCH HOW ENGINE DOES DAMAGE
 Why does recompiling code confuse it?
 
 
+Fix weapon bug that has them facing the wrong direction if they're facing the wrong direcion in the world
+
+
 Understand projectile construction helpers and how to implement them
 
 Properly Set Collision in C++ on character and weapon
 
 Understand the different ways to bind methods
 
+
+IMPORTANT: Don't use meta = ("AllowPrivateAccess"). Use methods instead
 
 
 
@@ -32,10 +37,3 @@ This might be a problem if weapons ever need to collide with one another
 
 
 
-
-
-
-
-AActor *,UPrimitiveComponent *,int32,bool,const FHitResult &                               what I gave them
-
-UPrimitiveComponent *,AActor *,UPrimitiveComponent *,int32,bool,const FHitResult &
