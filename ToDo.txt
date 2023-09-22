@@ -3,6 +3,8 @@ RESEARCH HOW ENGINE DOES DAMAGE
 
 Why does recompiling code confuse it?
 
+1. Seriously Consider removing custom collision channels. No point
+
 
 Fix weapon bug that has them facing the wrong direction if they're facing the wrong direcion in the world
 

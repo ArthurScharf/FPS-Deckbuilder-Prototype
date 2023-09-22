@@ -6,6 +6,7 @@
 #include "FPS_Deckbuilder/Character/EnemyCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
+#include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "Kismet/GameplayStatics.h"
 #include "Projectile.h"
 
@@ -41,8 +42,6 @@ void AWeapon::BeginPlay()
 // I don't like how many checks are in this tick function
 void AWeapon::Tick(float DeltaTime)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AWeapon::Tick"));
-
 	if (bIsFiring)
 	{
 		AccumulatedSpread -= FiringSpreadDecay * DeltaTime;
@@ -75,15 +74,14 @@ void AWeapon::Fire()
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
 
 
-	// Line trace to find location to be aimed at
 	FHitResult HitResult;
 	FVector Start;
+	FRotator EyeRotation;
+	EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
 
 	// Firing projectile, or performing line trace & applying damage
 	if (ProjectileClass)
 	{
-		FRotator EyeRotation;
-		EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
 		FVector End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
@@ -94,7 +92,7 @@ void AWeapon::Fire()
 
 		// TODO: Change spread to a circle instead of a square
 		float SpreadBound = BaseSpread + AccumulatedSpread;
-		Rotation = Rotation +  FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
+		Rotation = Rotation + FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
 
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
@@ -103,6 +101,12 @@ void AWeapon::Fire()
 	}
 	else
 	{
+		float SpreadBound = BaseSpread + AccumulatedSpread;
+		FRotator Rotation = FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
+		FVector End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
+
 		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (EnemyCharacter)
 		{
