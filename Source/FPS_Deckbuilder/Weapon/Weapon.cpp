@@ -3,10 +3,14 @@
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "FPS_Deckbuilder/Character/EnemyCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 #include "Kismet/GameplayStatics.h"
 #include "Projectile.h"
+
+
+#include "DrawDebugHelpers.h"
 
 AWeapon::AWeapon()
 {
@@ -19,64 +23,117 @@ AWeapon::AWeapon()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
 	SphereComponent->SetSphereRadius(50.f);
 	SphereComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);\
+	SphereComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel1, ECollisionResponse::ECR_Block);
 	SphereComponent->SetupAttachment(RootComponent);
 }
 
 
 void AWeapon::BeginPlay()
 {
+	Super::BeginPlay();
+
+	SetActorTickEnabled(true);
+
 	CurrentAmmo = MagazineCapacity;
 }
 
+
+// I don't like how many checks are in this tick function
+void AWeapon::Tick(float DeltaTime)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AWeapon::Tick"));
+
+	if (bIsFiring)
+	{
+		AccumulatedSpread -= FiringSpreadDecay * DeltaTime;
+	}
+	else 
+	{
+		AccumulatedSpread -= NotFiringSpreadDecay * DeltaTime;
+	}
+
+	if (AccumulatedSpread <= 0)
+	{
+		AccumulatedSpread = 0;
+		if (!EquippedPlayerCharacter) { UE_LOG(LogTemp, Warning, TEXT("AWeapon::Tick -- Disabling Tick")); SetActorTickEnabled(false); }// So weapons on the map don't continue to tick
+	}
+}
 
 
 
 void AWeapon::Fire()
 {
+	bIsFiring = true;
+
 	if (CurrentAmmo == 0)
 	{
 		// play sound and auto reload
 		return;
 	}
-
 	CurrentAmmo--;
+	AccumulatedSpread += SpreadGrowth;
+	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
 
 
+	// Line trace to find location to be aimed at
+	FHitResult HitResult;
+	FVector Start;
+
+	// Firing projectile, or performing line trace & applying damage
 	if (ProjectileClass)
 	{
-		FVector Location = GetActorLocation() + GetActorForwardVector() * 50.f; // TODO: Use MuzzleLocation socket on skeletal mesh for spawn
-		FRotator Rotation = GetActorRotation(); //  TODO: Set actor rotation such that it faces where the player character is facing
-		FTransform Transform = FTransform(Rotation, Location);
+		FRotator EyeRotation;
+		EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
+		FVector End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
+		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
+		FVector Location = GetActorLocation() + GetActorForwardVector() * 50.f;
+		FRotator Rotation;
+		if (HitResult.bBlockingHit) { Rotation = (HitResult.ImpactPoint - Location).Rotation(); }
+		else						{ Rotation = (End				    - Location).Rotation(); }
+
+		// TODO: Change spread to a circle instead of a square
+		float SpreadBound = BaseSpread + AccumulatedSpread;
+		Rotation = Rotation +  FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
+
+		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
 		Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &AWeapon::ApplyDamage);
 		UGameplayStatics::FinishSpawningActor(Projectile, Transform);
 	}
-	else // HitScan
+	else
 	{
-
+		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
+		if (EnemyCharacter)
+		{
+			FDamageStruct DamageStruct;
+			DamageStruct.Damage = Damage;
+			DamageStruct.DamageCauser = EquippedPlayerCharacter;
+			DamageStruct.DamageType = EDT_Physical;
+			EnemyCharacter->ReceiveDamage(DamageStruct);
+		}
+		// TODO: Tracer Particle effect
 	}
 
-
-	if (bIsAutomatic) GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true);
+	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
 }
 
 
 
 void AWeapon::StopFire()
 {
+	bIsFiring = false;
 	GetWorldTimerManager().ClearTimer(WeaponHandle);
 }
 
 
+
 void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AWeapon::Interact"));
 	PlayerCharacter->EquipWeapon(this);
 	EquippedPlayerCharacter = PlayerCharacter;
+	SetActorTickEnabled(true);
 }
-
 
 
 

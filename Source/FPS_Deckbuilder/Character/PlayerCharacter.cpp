@@ -1,7 +1,7 @@
 
 #include "PlayerCharacter.h"
 
-#include "Camera/CameraComponent.h"
+
 #include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "FPS_Deckbuilder/Interactable.h"
@@ -39,19 +39,18 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
+	// -- Target Interactable -- // 
 	FHitResult HitResult;
 	FVector Start = GetActorLocation() + FVector(0.f, 0.f, BaseEyeHeight);
 	FVector End = Start + GetController()->GetDesiredRotation().Vector() * InteractionDistance;
-
 	GetWorld()->LineTraceSingleByChannel(
 		HitResult,
 		Start,
 		End,
 		ECC_Interactable
 	);
-
-	/* The default setting for ECCGameTraceChannel1 (ie Interactable) is NoCollision.
-	 * No check is done because the user must intentionally introduce a bug by setting
+	/* The default setting for ECC_Interactable is NoCollision.
+	 * No check is done for correct type of actor because the user must intentionally introduce a bug by setting
 	 * the trace response on a component or actor to something other than no collision. 
 	 * This should only be done intentionally, for objects that implemenent IInteractable
 	 */
@@ -62,6 +61,9 @@ void APlayerCharacter::Tick(float DeltaTime)
 		return;
 	}
 	TargetInteractable = nullptr;
+
+	// -- Weapon Spread -- //
+	HUDWidget->UpdateCrosshairsSpread( EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -114,13 +116,12 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	HUDWidget->UpdateCrosshairsSpread(20.f);
-	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::RightMouseButton_Pressed"));
+	
 }
 
 void APlayerCharacter::RightMouseButton_Released()
 {
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::RightMouseButton_Released"));
+
 }
 
 void APlayerCharacter::InteractButton_Pressed()
@@ -140,10 +141,12 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 		EquippedWeapon->SetActorLocation(Weapon->GetActorLocation());
 		EquippedWeapon->SetActorRotation(FRotator(0.f));
 		EquippedWeapon->SetActorEnableCollision(true);
+		EquippedWeapon->SetEquippedPlayerCharacter(nullptr);
 	}
 
 	Weapon->SetActorEnableCollision(false);
 	Weapon->SetActorRelativeLocation(FVector(0.f));
 	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
+	Weapon->SetEquippedPlayerCharacter(this);
 	EquippedWeapon = Weapon;
 }

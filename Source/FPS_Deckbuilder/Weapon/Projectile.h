@@ -36,17 +36,7 @@ private:
 		bool bFromSweep,
 		const FHitResult& SweepResult
 	);
-	
-
-	/*
-	* UPrimitiveComponent* OtherComp, 
-		AActor* OtherActor,  
-		int32 OtherBodyIndex, 
-		bool bFromSweep, 
-		const FHitResult& SweepResul
-	*/
-	// UPrimitiveComponent OnComponentBeginOverlap, 
-		
+			
 
 public:
 	/* Using an event (instead of a delegate) to allow projectile spawning classes have an easier time binding 

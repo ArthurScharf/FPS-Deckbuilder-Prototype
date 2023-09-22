@@ -2,12 +2,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Camera/CameraComponent.h"
+
 #include "GameCharacter.h"
 #include "PlayerCharacter.generated.h"
 
 class AWeapon;
 class IInteractable;
-class UCameraComponent;
 class UHUDWidget;
 class USpringArmComponent;
 
@@ -49,7 +51,7 @@ private:
 
 
 private:
-	// -- Non-Gameplay Members -- //
+
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	UCameraComponent* CameraComponent;
 
@@ -67,9 +69,9 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float InteractionDistance;
 
-
-
-	// -- Gameplay Members -- // 
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
+
+public:
+	FORCEINLINE void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
 };
