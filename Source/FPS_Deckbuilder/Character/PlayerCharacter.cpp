@@ -9,6 +9,7 @@
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
 
+
 APlayerCharacter::APlayerCharacter()
 {
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
@@ -35,6 +36,7 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	Health = MaxHealth;
+	HUDWidget->SetHealthPercent(1.f);
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -63,7 +65,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	TargetInteractable = nullptr;
 
 	// -- Weapon Spread -- //
-	HUDWidget->UpdateCrosshairsSpread( EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
+	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -116,7 +118,7 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	
+	HUDWidget->SetHealthPercent(0.5);
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -142,11 +144,13 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 		EquippedWeapon->SetActorRotation(FRotator(0.f));
 		EquippedWeapon->SetActorEnableCollision(true);
 		EquippedWeapon->SetEquippedPlayerCharacter(nullptr);
+		EquippedWeapon->SetAmmoTextBlock(nullptr);
 	}
 
 	Weapon->SetActorEnableCollision(false);
 	Weapon->SetActorRelativeLocation(FVector(0.f));
 	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
 	Weapon->SetEquippedPlayerCharacter(this);
+	Weapon->SetAmmoTextBlock(HUDWidget->GetCurrentAmmoText());
 	EquippedWeapon = Weapon;
 }

@@ -2,15 +2,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "Components/TextBlock.h"
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
-
+#include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "GameFramework/Actor.h"
 #include "Weapon.generated.h"
 
 
 class AProjectile;
+class UCurveFloat; // TODO: implement or remove
 class USkeletalMeshComponent;
 class USphereComponent;
 
@@ -25,6 +26,7 @@ public:
 
 	virtual void BeginPlay() override;
 
+	// Decays AccumulatedSpread, sets it's movement innacuracy from it's character, and deactivates it's own tick when it's not needed
 	virtual void Tick(float DeltaTime) override;
 
 	void Fire();
@@ -63,8 +65,7 @@ private:
 
 	bool bIsFiring;
 
-	// -- Spread -- //
-	// Spread is the angle between the line being aimed down and the cone whose center is colinear to that line
+	// -- Spread -- //	Spread is the angle between the line being aimed down and the cone whose center is colinear to that line 
 
 	// The amount of spread the weapon always has
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
@@ -74,9 +75,23 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float MaxSpread;
 
+	/* [EquippedPlayerCharacter->Velocity.Size(), EquippedPlayerCharacter->MaxWalkingSpeed] --> [0, MaxMovementSpread] */
+	float MovementSpread;
+
+	// Maximum amount of spread that can be incurred as a consequence of moving.
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float MaxMovementSpread;
+
+	// Spread Applied while jumping
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float JumpSpread;
+
 	// Rate at which spread grows per a calling of Fire()
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float SpreadGrowth;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
 
 	// degrees per second the weapon decays while firing
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
@@ -90,6 +105,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Firing Properties")
 	float AccumulatedSpread;
 
+	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	int MagazineCapacity;
 
@@ -100,13 +117,21 @@ private:
 
 	APlayerCharacter* EquippedPlayerCharacter;	// PlayerCharacter the weapon is equipped to
 
+	UTextBlock* AmmoTextBlock; // Stored on weapon equip so weapon can update it's values
+	
 
 public:
-	FORCEINLINE float GetSpread() { return BaseSpread + AccumulatedSpread; }
+	FORCEINLINE float GetSpread() { return BaseSpread + AccumulatedSpread + MovementSpread + (JumpSpread * EquippedPlayerCharacter->GetCharacterMovement()->IsFalling()); }
 
 	FORCEINLINE void SetEquippedPlayerCharacter(APlayerCharacter* _EquippedPlayerCharacter) 
 	{
 		EquippedPlayerCharacter = _EquippedPlayerCharacter;
 		SetActorTickEnabled(true);
+	}
+
+	FORCEINLINE void SetAmmoTextBlock(UTextBlock* _AmmoTextBlock) 
+	{  
+		AmmoTextBlock = _AmmoTextBlock; 
+		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
 	}
 };

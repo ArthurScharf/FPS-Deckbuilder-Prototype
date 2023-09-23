@@ -3,15 +3,16 @@
 
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Curves/CurveFloat.h" // TODO: Implement or remove
 #include "FPS_Deckbuilder/Character/EnemyCharacter.h"
-#include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "Kismet/GameplayStatics.h"
 #include "Projectile.h"
 
-
 #include "DrawDebugHelpers.h"
+
+
 
 AWeapon::AWeapon()
 {
@@ -33,8 +34,6 @@ void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorTickEnabled(true);
-
 	CurrentAmmo = MagazineCapacity;
 }
 
@@ -49,6 +48,11 @@ void AWeapon::Tick(float DeltaTime)
 	else 
 	{
 		AccumulatedSpread -= NotFiringSpreadDecay * DeltaTime;
+	}
+
+	if (EquippedPlayerCharacter) 
+	{ 
+		MovementSpread = EquippedPlayerCharacter->GetPercentOfMaxWalkingSpeed() * MaxMovementSpread;
 	}
 
 	if (AccumulatedSpread <= 0)
@@ -70,9 +74,7 @@ void AWeapon::Fire()
 		return;
 	}
 	CurrentAmmo--;
-	AccumulatedSpread += SpreadGrowth;
-	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
-
+	if (AmmoTextBlock) AmmoTextBlock->SetText( FText::FromString(FString::FromInt(CurrentAmmo)) );
 
 	FHitResult HitResult;
 	FVector Start;
@@ -80,6 +82,7 @@ void AWeapon::Fire()
 	EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
 
 	// Firing projectile, or performing line trace & applying damage
+	// TODO: Clean this up
 	if (ProjectileClass)
 	{
 		FVector End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
@@ -90,10 +93,10 @@ void AWeapon::Fire()
 		if (HitResult.bBlockingHit) { Rotation = (HitResult.ImpactPoint - Location).Rotation(); }
 		else						{ Rotation = (End				    - Location).Rotation(); }
 
-		// TODO: Change spread to a circle instead of a square
-		float SpreadBound = BaseSpread + AccumulatedSpread;
-		Rotation = Rotation + FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
 
+		float Spread = GetSpread();
+		// TODO: Change spread to a circle instead of a square
+		Rotation = Rotation + FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
 		Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &AWeapon::ApplyDamage);
@@ -101,8 +104,9 @@ void AWeapon::Fire()
 	}
 	else
 	{
-		float SpreadBound = BaseSpread + AccumulatedSpread;
-		FRotator Rotation = FRotator(FMath::RandRange(-SpreadBound, SpreadBound), FMath::RandRange(-SpreadBound, SpreadBound), 0.f);
+		float Spread = GetSpread();
+		// TODO: Change spread to a circle instead of a square
+		FRotator Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		FVector End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
@@ -110,14 +114,14 @@ void AWeapon::Fire()
 		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (EnemyCharacter)
 		{
-			FDamageStruct DamageStruct;
-			DamageStruct.Damage = Damage;
-			DamageStruct.DamageCauser = EquippedPlayerCharacter;
-			DamageStruct.DamageType = EDT_Physical;
-			EnemyCharacter->ReceiveDamage(DamageStruct);
+			ApplyDamage(EnemyCharacter);
 		}
 		// TODO: Tracer Particle effect
 	}
+
+	// Accumulating Spread
+	AccumulatedSpread += SpreadGrowth;
+	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
 
 	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
 }
@@ -135,7 +139,6 @@ void AWeapon::StopFire()
 void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
 {
 	PlayerCharacter->EquipWeapon(this);
-	EquippedPlayerCharacter = PlayerCharacter;
 	SetActorTickEnabled(true);
 }
 

@@ -1,10 +1,10 @@
 #include "HUDWidget.h"
 
 #include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "Components/NamedSlot.h"
 
 
-#include "Components/CanvasPanelSlot.h"
 
 void UHUDWidget::NativeConstruct()
 {
@@ -13,7 +13,6 @@ void UHUDWidget::NativeConstruct()
 	SlotBottom = Cast<UCanvasPanelSlot>(CrosshairBottom->Slot);
 	SlotLeft = Cast<UCanvasPanelSlot>(CrosshairLeft->Slot);
 	SlotRight= Cast<UCanvasPanelSlot>(CrosshairRight->Slot);
-
 }
 
 

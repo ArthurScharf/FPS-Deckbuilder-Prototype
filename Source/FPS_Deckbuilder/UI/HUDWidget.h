@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FPS_Deckbuilder/UI/LazyHealthBar.h"
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
@@ -8,6 +9,7 @@
 class UCanvasPanel;
 class UCanvasPanelSlot;
 class UNamedSlot;
+class UTextBlock;
 
 
 /**
@@ -25,8 +27,12 @@ public:
 	void UpdateCrosshairsSpread(float Spread);
 
 private:
+	// TODO: Do I need this declared here or can I just implement it in the Blueprint?
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UCanvasPanel* CanvasPanel;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	ULazyHealthBar* LazyHealthBar;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UNamedSlot* CrosshairTop;
@@ -44,10 +50,19 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float BaseCrosshairOffset = 20;
 
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UTextBlock* CurrentAmmoText;
 
+
+	/* Stores crosshairs slots so their position can be changed to reflect crosshair spread */
 	UCanvasPanelSlot* SlotTop;
 	UCanvasPanelSlot* SlotBottom;
 	UCanvasPanelSlot* SlotLeft;
 	UCanvasPanelSlot* SlotRight;
 
+public:
+	// TODO: Apparently I don't need a force inline?
+	UTextBlock* GetCurrentAmmoText() { return CurrentAmmoText; }
+
+	void SetHealthPercent(float Percent) { LazyHealthBar->SetPercent(Percent); }
 };

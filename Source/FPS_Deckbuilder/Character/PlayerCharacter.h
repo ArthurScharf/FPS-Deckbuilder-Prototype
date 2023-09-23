@@ -5,6 +5,8 @@
 
 #include "Camera/CameraComponent.h"
 
+#include "GameFramework/CharacterMovementComponent.h" // I'm using this in a getter. Is there no other way to do this?
+
 #include "GameCharacter.h"
 #include "PlayerCharacter.generated.h"
 
@@ -74,4 +76,12 @@ private:
 
 public:
 	FORCEINLINE void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
+
+	// returns value [0, 1]
+	FORCEINLINE float GetPercentOfMaxWalkingSpeed() 
+	{
+		UCharacterMovementComponent* CharMovement = GetCharacterMovement();
+		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
+	}
+
 };
