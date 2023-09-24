@@ -34,6 +34,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
 	
 	// -- Gameplay Methods -- //
 	void EquipWeapon(AWeapon* Weapon);
@@ -50,6 +52,9 @@ private:
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
 	void InteractButton_Pressed();
+
+	// -- Gameplay Methods -- // 
+	virtual void Die();
 
 
 private:

@@ -33,6 +33,7 @@ void ULazyHealthBar::SetPercent(float Percent)
 	else
 	{ //  Healing
 		HealthBar->SetPercent(ClampedPercent);
-		SlowHealthBar->SetPercent(ClampedPercent);
+		if (ClampedPercent > TargetPercent) { TargetPercent = ClampedPercent; }
+		if (ClampedPercent > SlowHealthBar->Percent) { SlowHealthBar->SetPercent(ClampedPercent); }
 	}
 }

@@ -33,4 +33,6 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	AGameCharacter* DamageReceiver;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bWasLethal;
 };

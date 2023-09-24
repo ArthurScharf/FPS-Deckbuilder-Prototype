@@ -22,8 +22,6 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
-	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
-
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -35,8 +33,9 @@ void APlayerCharacter::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::BeginPlay -- !HUDWidgetClass"));
 	}
 
-	Health = MaxHealth;
-	HUDWidget->SetHealthPercent(1.f);
+	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
+
+	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
@@ -85,6 +84,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
 }
 
+void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
+{
+
+
+	Super::ReceiveDamage(DamageStruct);
+}
+
+
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
@@ -118,7 +125,7 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	HUDWidget->SetHealthPercent(0.5f);
+
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -129,6 +136,13 @@ void APlayerCharacter::RightMouseButton_Released()
 void APlayerCharacter::InteractButton_Pressed()
 {
 	if (TargetInteractable) TargetInteractable->Interact(this);
+}
+
+
+void APlayerCharacter::Die()
+{
+
+	Destroy();
 }
 
 

@@ -64,5 +64,5 @@ public:
 	// TODO: Apparently I don't need a force inline?
 	UTextBlock* GetCurrentAmmoText() { return CurrentAmmoText; }
 
-	void SetHealthPercent(float Percent) { LazyHealthBar->SetPercent(Percent); }
+	ULazyHealthBar* GetLazyHealthBar() { return LazyHealthBar; }
 };
