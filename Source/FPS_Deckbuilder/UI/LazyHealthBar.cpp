@@ -10,13 +10,14 @@ void ULazyHealthBar::NativeConstruct()
 
 	HealthBar->SetPercent(1.f);
 	SlowHealthBar->SetPercent(1.f);
+	TargetPercent = 1.f;
 }
 
 void ULazyHealthBar::NativeTick(const FGeometry& Geometry, float InDeltaTime)
 {
 	Super::NativeTick(Geometry, InDeltaTime);
 
-	if (HealthBar->Percent < SlowHealthBar->Percent) { SlowHealthBar->SetPercent(SlowHealthBar->Percent - (DecayPerSecond * InDeltaTime)); }
+	if (TargetPercent < SlowHealthBar->Percent) { SlowHealthBar->SetPercent(SlowHealthBar->Percent - (DecayPerSecond * InDeltaTime)); }
 }
 
 
@@ -27,6 +28,7 @@ void ULazyHealthBar::SetPercent(float Percent)
 	if (ClampedPercent < HealthBar->Percent)
 	{ // Damage dealt
 		HealthBar->SetPercent(Percent);
+		GetWorld()->GetTimerManager().SetTimer( TimerHandle, [&](){ TargetPercent = HealthBar->Percent; }, DecayDelaySeconds, false ); // Starting delayed timer before beginning decay
 	}
 	else
 	{ //  Healing

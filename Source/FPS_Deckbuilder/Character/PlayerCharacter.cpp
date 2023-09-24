@@ -118,7 +118,7 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	HUDWidget->SetHealthPercent(0.5);
+	HUDWidget->SetHealthPercent(0.5f);
 }
 
 void APlayerCharacter::RightMouseButton_Released()
