@@ -3,6 +3,11 @@
 #include "Card.h"
 
 
+UCard::UCard()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UCard::UCard"));
+
+}
 
 
 void UCard::Use()

@@ -40,7 +40,7 @@ void APlayerCharacter::BeginPlay()
 	ShuffleDeck();
 	for (int i = 0; i < TraySize; i++) { Tray.Add(nullptr);		} // Initializing the tray's slots
 	for (int i = 0; i < TraySize; i++) { Tray[i] = DrawCard();  }
-	Resource_A = Resource_B = Resource_C = 0;
+	Resources = { 0, 0, 0 };
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -220,6 +220,31 @@ void APlayerCharacter::UseCardInTray(int Index)
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Index: %i"), Index);
 	if (Tray[Index] == nullptr) { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]")); return; }
+	
+	FCost Cost = Tray[Index]->GetCost();
+
+	// Keeping this check here, instead of in the card allows the use of card effects that can use cards for free
+	if (Resources.X < Cost.Resource_X ||
+		Resources.Y < Cost.Resource_Y ||
+		Resources.Z < Cost.Resource_Z ||
+		GetHealth() <= Cost.Health ||
+		Money < Cost.Money)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Insufficient Resources to use card"));
+		return;
+	}
+
+	Resources -= FIntVector(Cost.Resource_X, Cost.Resource_Y, Cost.Resource_Z);
+	HUDWidget->SetResourceText(Resources);
+	Money -= Cost.Money;
+	HUDWidget->SetMoneyText(Money);
+	if (Cost.Health != 0.f)
+	{
+		FDamageStruct DamageStruct;
+		DamageStruct.Damage = Cost.Health;
+		DamageStruct.DamageType = EDT_MAX; // TODO: Consider implementing self damage type, or that cards should specify how damage is dealt
+		ReceiveDamage(DamageStruct);
+	}
 	
 	Tray[Index]->Use();
 	DiscardPile.Add(Tray[Index]);

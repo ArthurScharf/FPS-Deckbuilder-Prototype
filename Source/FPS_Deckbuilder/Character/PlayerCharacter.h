@@ -4,10 +4,9 @@
 #include "CoreMinimal.h"
 
 #include "Camera/CameraComponent.h"
-
 #include "GameFramework/CharacterMovementComponent.h" // I'm using this in a getter. Is there no other way to do this?
-
 #include "GameCharacter.h"
+#include "Math/IntVector.h"
 #include "PlayerCharacter.generated.h"
 
 class AWeapon;
@@ -43,16 +42,11 @@ public:
 
 public:
 	virtual void BeginPlay() override;
-
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
-
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
-	
 	// -- Gameplay Methods -- //
 	void EquipWeapon(AWeapon* Weapon);
 
@@ -72,14 +66,12 @@ private:
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 
-
 	// -- Card Methods -- //
 	UCard* DrawCard();
 	void ShuffleDeck();
-
 	void UseCardInTray(int Index);
 	
-	
+
 
 
 public:
@@ -129,11 +121,8 @@ private:
 
 	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding 1
 
-	float Resource_A;
-	float Resource_B;
-	float Resource_C;
-
-
+	/* The count of each type of resource. Resources are spent on cards to use them */
+	FIntVector Resources;
 
 
 public:
@@ -145,4 +134,5 @@ public:
 		UCharacterMovementComponent* CharMovement = GetCharacterMovement();
 		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
 	}
+
 };

@@ -37,17 +37,22 @@ private:
 	virtual void Die() PURE_VIRTUAL(AGameCharacter::Die, );
 
 
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	int32 Money;
+
 private:
+	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive
 	UPROPERTY(VisibleAnywhere)
 	float Health;
-	
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;
-
 	ULazyHealthBar* LazyHealthBar;
 
 
 // -- Getters & Setters -- //
 protected:
+	FORCEINLINE float GetHealth() { return Health; }
+
 	FORCEINLINE void SetLazyHealthBar(ULazyHealthBar* _LazyHealthBar) { LazyHealthBar = _LazyHealthBar; }
 };

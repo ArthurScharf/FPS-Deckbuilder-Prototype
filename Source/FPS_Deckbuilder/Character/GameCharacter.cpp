@@ -45,9 +45,10 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 	{
 		DamageStruct.bWasLethal = true;
 
-		// TODO: Notify of damage dealt
+		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 		Die(); 
 	}
 
+	if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 	LazyHealthBar->SetPercent(Health / MaxHealth);
 }
