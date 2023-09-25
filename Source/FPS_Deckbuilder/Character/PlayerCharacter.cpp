@@ -2,6 +2,7 @@
 
 
 #include "GameFramework/SpringArmComponent.h"
+#include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
@@ -33,6 +34,13 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
+
+	// -- Cards -- //
+	for (int i = 0; i < StartingDeck.Num(); i++) { Deck.Add(NewObject<UCard>(this, StartingDeck[i])); }
+	ShuffleDeck();
+	for (int i = 0; i < TraySize; i++) { Tray.Add(nullptr);		} // Initializing the tray's slots
+	for (int i = 0; i < TraySize; i++) { Tray[i] = DrawCard();  }
+	Resource_A = Resource_B = Resource_C = 0;
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -81,6 +89,17 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("RightMouseButton"), IE_Released, this, &ThisClass::RightMouseButton_Released);
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
+
+	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
+	FName ActionName;
+	for (int i = 0; i < TraySize; i++)
+	{
+		ActionName = FName(*(FString("UseCardInTray") + FString::FromInt(i + 1)));
+
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::SetupPlayerInputComponent -- %s"), *(ActionName.ToString()));
+
+		PlayerInputComponent->BindAction<FInputUseCardInTrayDelegate>(ActionName, IE_Pressed, this, &ThisClass::UseCardInTray, i);
+	}
 }
 
 void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
@@ -174,3 +193,47 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	Weapon->SetAmmoTextBlock(HUDWidget->GetCurrentAmmoText());
 	EquippedWeapon = Weapon;
 }
+
+
+UCard* APlayerCharacter::DrawCard()
+{
+	if (Deck.Num() == 0) 
+	{
+		Deck = DiscardPile;
+		ShuffleDeck();
+		DiscardPile.RemoveAll([this](const UCard* c) {return c;});
+	}
+
+	if (Deck.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::DrawCard -- No Cards in Deck"));
+		return nullptr;
+	}
+
+	UCard* Card = Deck.Pop();
+	Card->SetPlayerCharacter(this);
+	return Card;
+}
+
+
+void APlayerCharacter::UseCardInTray(int Index)
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Index: %i"), Index);
+	if (Tray[Index] == nullptr) { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]")); return; }
+	
+	Tray[Index]->Use();
+	DiscardPile.Add(Tray[Index]);
+	Tray[Index] = DrawCard();
+}
+
+
+void APlayerCharacter::ShuffleDeck()
+{
+	for (int32 i = Deck.Num() - 1; i > 0; i--) {
+		int32 j = FMath::FloorToInt(FMath::SRand() * (i + 1)) % Deck.Num();
+		UCard* temp = Deck[i];
+		Deck[i] = Deck[j];
+		Deck[j] = temp;
+	}
+}
+

@@ -12,14 +12,19 @@
 
 class AWeapon;
 class IInteractable;
+class UCard;
 class UHUDWidget;
 class USpringArmComponent;
 
 
 
-// -- Events -- //		Used mostly for notifying cards
+
+
+// -- Events -- //
 DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
 DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
+
+
 
 
 /**
@@ -29,6 +34,8 @@ UCLASS()
 class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 {
 	GENERATED_BODY()
+
+	DECLARE_DELEGATE_OneParam(FInputUseCardInTrayDelegate, const int32) // For using card's in slots
 
 public:
 	APlayerCharacter();
@@ -66,13 +73,21 @@ private:
 	virtual void Die();
 
 
+	// -- Card Methods -- //
+	UCard* DrawCard();
+	void ShuffleDeck();
+
+	void UseCardInTray(int Index);
+	
+	
+
+
 public:
 	// NOTE: These events can be public because only this class can call them. Makes binding simple
 	FOnDamageDealtEvent OnDamagDealt;
 	FOnDamageReceivedEvent OnDamageReceived;
 
 private:
-
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	UCameraComponent* CameraComponent;
 
@@ -93,6 +108,34 @@ private:
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
+	// -- Card Members -- //
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")
+	TArray<TSubclassOf<UCard>> StartingDeck;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
+	TArray<UCard*> Deck;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")
+	int DeckSize;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
+	TArray<UCard*> DiscardPile;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
+	TArray<UCard*> Tray;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards", meta=(UIMin=1, UIMax=9))
+	int TraySize;
+
+	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding 1
+
+	float Resource_A;
+	float Resource_B;
+	float Resource_C;
+
+
+
+
 public:
 	FORCEINLINE void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
 
@@ -102,5 +145,4 @@ public:
 		UCharacterMovementComponent* CharMovement = GetCharacterMovement();
 		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
 	}
-
 };

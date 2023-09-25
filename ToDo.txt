@@ -1,13 +1,16 @@
 RESEARCH HOW ENGINE DOES DAMAGE
 
+Can I read which key was pressed to toggle an input event?
+ - Would be better than having many events
 
 Why does recompiling code confuse it?
 
 1. Seriously Consider removing custom collision channels. No point
+2. Fix slight offset on HUD crosshairs
+3. Why is reopening the editor causin the Enemy LazyHealthBar widget to load
 
 
 Fix weapon bug that has them facing the wrong direction if they're facing the wrong direcion in the world
-
 
 Understand projectile construction helpers and how to implement them
 
@@ -15,17 +18,12 @@ Properly Set Collision in C++ on character and weapon
 
 Understand the different ways to bind methods
 
-
-IMPORTANT: Don't use meta = ("AllowPrivateAccess"). Use methods instead
-
-
-
 Figure out how to have the GameDamageStruct by a child of the engine damage struct
 
-Figure out how to create seperate header files for the GameDamageStruct and redefinitions of GameTraceChannels
 
-C++ player controller ONLY DO IF YOU NEED TO WRITE C++ CONTROLLER
- - Player controller should be attached to it's pawn
+
+ -- NOTES -- 
+IMPORTANT: Don't use meta = ("AllowPrivateAccess"). Use methods instead
 
 
 
@@ -38,4 +36,8 @@ This might be a problem if weapons ever need to collide with one another
 
 
 
+
+
+-- Card Ideas --
+ A card that uses the top card in your discard pile
 
