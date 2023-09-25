@@ -16,6 +16,12 @@ class UHUDWidget;
 class USpringArmComponent;
 
 
+
+// -- Events -- //		Used mostly for notifying cards
+DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
+DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
+
+
 /**
  * Character controlled by the player
  */
@@ -36,6 +42,9 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
+
+	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+
 	
 	// -- Gameplay Methods -- //
 	void EquipWeapon(AWeapon* Weapon);
@@ -56,6 +65,11 @@ private:
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 
+
+public:
+	// NOTE: These events can be public because only this class can call them. Makes binding simple
+	FOnDamageDealtEvent OnDamagDealt;
+	FOnDamageReceivedEvent OnDamageReceived;
 
 private:
 

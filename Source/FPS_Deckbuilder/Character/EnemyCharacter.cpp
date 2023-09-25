@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "EnemyCharacter.h"
 
 #include "Components/WidgetComponent.h"
@@ -17,6 +14,7 @@ AEnemyCharacter::AEnemyCharacter()
 	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WidgetComponent->SetupAttachment(RootComponent);
 }
+
 
 
 void AEnemyCharacter::BeginPlay()
@@ -38,17 +36,23 @@ void AEnemyCharacter::BeginPlay()
 
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
+
+	AGameCharacter::ReceiveDamage(DamageStruct);
+}
 
 
 
-	Super::ReceiveDamage(DamageStruct);
+void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
 }
 
 
 
 void AEnemyCharacter::Die()
 {
-	// TODO: Ragdoll and/or spawned debri
+	// TODO: Ragdoll and/or spawned debris
 	
 	Destroy();
 }

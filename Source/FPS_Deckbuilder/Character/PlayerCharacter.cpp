@@ -1,4 +1,3 @@
-
 #include "PlayerCharacter.h"
 
 
@@ -86,11 +85,18 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
+	OnDamageReceived.Broadcast(DamageStruct);
 
-
-	Super::ReceiveDamage(DamageStruct);
+	AGameCharacter::ReceiveDamage(DamageStruct);
 }
 
+
+void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
+{
+	OnDamagDealt.Broadcast(DamageStruct);
+
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
+}
 
 
 void APlayerCharacter::MoveForward(float AxisValue)

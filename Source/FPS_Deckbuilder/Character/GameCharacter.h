@@ -29,6 +29,8 @@ protected:
 
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
+	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) PURE_VIRTUAL(AGameCharacter::NotifyOfDamageDealt);
+
 	
 private:
 	// Kills the game character and initiates cleanup effects on the game (effects can be delayed, in the case of Enemies)
@@ -43,6 +45,7 @@ private:
 	float MaxHealth;
 
 	ULazyHealthBar* LazyHealthBar;
+
 
 // -- Getters & Setters -- //
 protected:

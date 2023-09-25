@@ -19,6 +19,8 @@ public:
 
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
 
+	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -12,19 +12,23 @@ AGameCharacter::AGameCharacter()
 
 
 void AGameCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-	
+{	
 	if (MaxHealth <= 0) MaxHealth = 1; // Avoids divide by zero errors
 	
 	Health = MaxHealth;
+	
+	Super::BeginPlay();
 }
+
 
 
 void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::EndPlay"));
 }
+
+
+
 
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
