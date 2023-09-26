@@ -150,7 +150,7 @@ void AWeapon::ApplyDamage(AGameCharacter* DamageReceiver)
 
 	FDamageStruct DamageStruct;
 	DamageStruct.Damage = Damage;
-	DamageStruct.DamageReceiver = DamageReceiver;
+	DamageStruct.DamageCauser = EquippedPlayerCharacter;
 	DamageStruct.DamageType = DamageType;
 
 	DamageReceiver->ReceiveDamage(DamageStruct);

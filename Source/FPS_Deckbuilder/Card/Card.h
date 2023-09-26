@@ -52,11 +52,20 @@ class FPS_DECKBUILDER_API UCard : public UObject
 public:
 	UCard();
 
-	UFUNCTION(BlueprintCallable) // BlueprintImplementableEvent
+	UFUNCTION(BlueprintImplementableEvent)
 	void Use();
 
 private:
+	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.
+	   This is a workaround to allow the code that card uses to spawn actors to belong to 
+	   the card class, rather than the player, or some other actor
+	   */
+	UFUNCTION(BlueprintCallable)
+	AActor* SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location);
+
+private:
 	// PlayerCharacter this is held by
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as having a blueprint only getter
 	APlayerCharacter* PlayerCharacter;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Card")

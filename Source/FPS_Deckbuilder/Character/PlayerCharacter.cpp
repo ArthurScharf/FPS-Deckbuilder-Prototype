@@ -104,16 +104,17 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
-	OnDamageReceived.Broadcast(DamageStruct);
+	// if (OnDamageReceived.IsBound()) 
 
+	OnDamageReceived.Broadcast(DamageStruct);
 	AGameCharacter::ReceiveDamage(DamageStruct);
 }
 
 
 void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
-	OnDamagDealt.Broadcast(DamageStruct);
-
+	// if (OnDamageDealt.IsBound()) 
+	OnDamageDealt.Broadcast(DamageStruct);
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
 }
 

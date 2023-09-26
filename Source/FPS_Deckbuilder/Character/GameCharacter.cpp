@@ -37,6 +37,8 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
+	DamageStruct.DamageReceiver = this;
+
 	// TODO: HandleSpecialDamageConditions (ie hit certain bones for crits, or other effects)
 
 	Health -= DamageStruct.Damage;

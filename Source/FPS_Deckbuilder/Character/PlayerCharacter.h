@@ -76,7 +76,7 @@ private:
 
 public:
 	// NOTE: These events can be public because only this class can call them. Makes binding simple
-	FOnDamageDealtEvent OnDamagDealt;
+	FOnDamageDealtEvent OnDamageDealt;
 	FOnDamageReceivedEvent OnDamageReceived;
 
 private:
