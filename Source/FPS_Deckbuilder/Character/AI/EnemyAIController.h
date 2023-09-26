@@ -31,6 +31,7 @@ public:
 	AEnemyAIController();
 
 private:
+	/* controls the blackboard variables responsible for setting the Enemy AI's state. */
 	UFUNCTION()
 	void HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus Stimulus); 
 
@@ -40,6 +41,11 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	UAISenseConfig_Sight* SightConfig;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SecondsToLoseTargetPlayer;
+
+	FTimerHandle SearchHandle;
 
 public:
 	FORCEINLINE void SetBlackboardTargetPlayerCharacter(APlayerCharacter* PlayerCharacter) { Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), PlayerCharacter); }

@@ -1,6 +1,9 @@
 #include "EnemyCharacter.h"
-
 #include "Components/WidgetComponent.h"
+#include "AIController.h"
+
+
+class UBehaviorTree;
 
 
 AEnemyCharacter::AEnemyCharacter()
@@ -21,15 +24,11 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (WidgetComponent)
-	{
-		SetLazyHealthBar(Cast<ULazyHealthBar>(WidgetComponent->GetWidget()));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !WidgetComponent"));
-	}
+	if (!WidgetComponent) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !WidgetComponent")); return;  }
+	if (!BehaviorTree) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !BehaviorTree")); return; }
 	
+	SetLazyHealthBar(Cast<ULazyHealthBar>(WidgetComponent->GetWidget()));
+	Cast<AAIController>(GetController())->RunBehaviorTree(BehaviorTree);
 }
 
 

@@ -7,6 +7,7 @@
 
 
 class UWidgetComponent;
+class UBehaviorTree;
 
 
 UCLASS()
@@ -31,4 +32,7 @@ private:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	UWidgetComponent* WidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* BehaviorTree;
 };
