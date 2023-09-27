@@ -75,8 +75,16 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Card")
 	FCost Cost;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter
+	float Progress; // Progress to card completion. TODO: Will later be replaced by progression behavior
+
+	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
+	UTexture2D* Texture; 
+
 public:
 	FORCEINLINE FCost GetCost() { return Cost; }
+
+	FORCEINLINE UTexture2D* GetTexture() { return Texture; }
 
 	FORCEINLINE void SetPlayerCharacter(APlayerCharacter* _PlayerCharacter) { PlayerCharacter = _PlayerCharacter; }
 };

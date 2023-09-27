@@ -6,6 +6,7 @@
 
 
 
+
 void UHUDWidget::NativeConstruct()
 {
 	// TODO: Is this method needed?
@@ -27,3 +28,28 @@ void UHUDWidget::UpdateCrosshairsSpread(float Spread)
 	SlotLeft->SetPosition(  FVector2D( -(BaseCrosshairOffset + Spread * 20.f) , 0.f                                  ));
 	SlotRight->SetPosition( FVector2D(   BaseCrosshairOffset + Spread * 20.f,   0.f                                  ));
 }
+
+
+void UHUDWidget::AddTraySlot()
+{
+	UTraySlot* TraySlot = CreateWidget<UTraySlot>(this, TraySlotBlueprintClass);
+	TraySlot->Padding = FMargin(5.f);
+	TrayHorizontalBox->AddChildToHorizontalBox(TraySlot);
+}
+
+
+void UHUDWidget::RemoveTraySlot()
+{
+	TrayHorizontalBox->RemoveChildAt(TrayHorizontalBox->GetChildrenCount() - 1);
+}
+
+void UHUDWidget::SetCardForSlotAtIndex(int Index, UCard* Card)
+{
+	if (Index >= TrayHorizontalBox->GetChildrenCount()) { UE_LOG(LogTemp, Error, TEXT("UHUDWidget::SetCardForSlotAtIndex -- Index too big")); return; }
+	if (!Card) { UE_LOG(LogTemp, Error, TEXT("UHUDWidget::SetCardForSlotAtIndex -- !Card")); return; }
+
+	UTraySlot* TraySlot = Cast<UTraySlot>(TrayHorizontalBox->GetChildAt(Index));
+	TraySlot->SetCard(Card);
+	TraySlot->SetTexture(Card->GetTexture());
+}
+

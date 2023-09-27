@@ -27,13 +27,13 @@ void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus
 	{	/* Enemy has lost line of sight of PlayerCharacter */
 		if (Blackboard->GetValueAsBool(FName("bCanSeePlayer")))
 		{ /* Losing sight of the player */
-			//UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Lost sight of player"));
+			UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Lost sight of player"));
 			SetFocus(nullptr);
 			Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);	// Behavior tree reacts
 			GetWorldTimerManager().SetTimer(	/* Setting timer to lose player character and return to roaming state */
 				SearchHandle,
 				[&]() {
-					//UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Returning to roaming behavior"));
+					UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Returning to roaming behavior"));
 					Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);
 					Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), nullptr);
 				},
@@ -43,7 +43,7 @@ void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus
 		}
 		else
 		{ /* Regaining sight of the player */
-			//UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Regained sight of player"));
+			UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Regained sight of player"));
 			SetFocus(PlayerCharacter);
 			Blackboard->SetValueAsBool(FName("bCanSeePlayer"), true);	// Behavior tree reacts
 			GetWorldTimerManager().ClearTimer(SearchHandle);
@@ -51,7 +51,7 @@ void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus
 	}
 	else	
 	{	/* Seeing player for the first time */
-		// UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- First time detecting player"));
+		UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- First time detecting player"));
 		SetFocus(PlayerCharacter);
 		Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), PlayerCharacter);
 		Blackboard->SetValueAsBool(FName("bCanSeePlayer"), true);

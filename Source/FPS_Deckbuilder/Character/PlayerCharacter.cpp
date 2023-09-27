@@ -38,7 +38,11 @@ void APlayerCharacter::BeginPlay()
 	// -- Cards -- //
 	for (int i = 0; i < StartingDeck.Num(); i++) { Deck.Add(NewObject<UCard>(this, StartingDeck[i])); }
 	ShuffleDeck();
-	for (int i = 0; i < TraySize; i++) { Tray.Add(nullptr);		} // Initializing the tray's slots
+	for (int i = 0; i < TraySize; i++) 
+	{  // Initializing the Tray and corresponding tray's slots
+		Tray.Add(nullptr);
+		HUDWidget->AddTraySlot();
+	} 
 	for (int i = 0; i < TraySize; i++) { Tray[i] = DrawCard();  }
 	Resources = { 0, 0, 0 };
 
@@ -151,7 +155,7 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-
+	HUDWidget->RemoveTraySlot();
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -198,19 +202,21 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 
 UCard* APlayerCharacter::DrawCard()
 {
-	if (Deck.Num() == 0) 
+	// Checking if deck needs reshuffling
+	if (Deck.Num() == 0)
 	{
 		Deck = DiscardPile;
 		ShuffleDeck();
 		DiscardPile.RemoveAll([this](const UCard* c) {return c;});
 	}
-
+	// If deck is still empty then there are no cards in the deck
 	if (Deck.Num() == 0)
 	{
 		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::DrawCard -- No Cards in Deck"));
 		return nullptr;
 	}
 
+	// Drawing card 
 	UCard* Card = Deck.Pop();
 	Card->SetPlayerCharacter(this);
 	return Card;
@@ -235,6 +241,7 @@ void APlayerCharacter::UseCardInTray(int Index)
 		return;
 	}
 
+	// Spending resources
 	Resources -= FIntVector(Cost.Resource_X, Cost.Resource_Y, Cost.Resource_Z);
 	HUDWidget->SetResourceText(Resources);
 	Money -= Cost.Money;
@@ -247,9 +254,12 @@ void APlayerCharacter::UseCardInTray(int Index)
 		ReceiveDamage(DamageStruct);
 	}
 	
+	// TODO: not appropriate for DrawCard() to sometimes return nullptr;
+	// Using Card, updating tray & updating tray slot
 	Tray[Index]->Use();
 	DiscardPile.Add(Tray[Index]);
 	Tray[Index] = DrawCard();
+	HUDWidget->SetCardForSlotAtIndex(Index, Tray[Index]);
 }
 
 

@@ -2,18 +2,18 @@
 
 #include "CoreMinimal.h"
 #include "Components/TextBlock.h"
+#include "Components/HorizontalBox.h"
+#include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
+#include "FPS_Deckbuilder/UI/TraySlot.h"
 #include "Math/IntVector.h"
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
 
-
 class UCanvasPanel;
 class UCanvasPanelSlot;
 class UNamedSlot;
-
-
 
 /**
  * The HUD widget class for the player character.
@@ -30,6 +30,18 @@ public:
 	virtual void NativeConstruct() override;
 	
 	void UpdateCrosshairsSpread(float Spread);
+
+	/* Adds a tray slot to the end of the tray 
+	 * WARNING: This method doesn't know anything about the underlying data structure the TraySlot or TrayHorizontalBox is representing. 
+	 */
+	void AddTraySlot();
+
+	/* Removes a tray slot from the end of the tray
+	 * WARNING: This method doesn't know anything about the underlying data structure the TraySlot or TrayHorizontalBox is representing. 
+	 */
+	void RemoveTraySlot();
+
+	void SetCardForSlotAtIndex(int Index, UCard* Card);
 
 private:
 	// TODO: Do I need this declared here or can I just implement it in the Blueprint?
@@ -70,6 +82,14 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UTextBlock* MoneyText;
 
+	/* Stores TraySlot widgets representing the cards in the tray */
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UHorizontalBox* TrayHorizontalBox;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UTraySlot> TraySlotBlueprintClass;
+
+
 	/* Stores crosshairs slots so their position can be changed to reflect crosshair spread */
 	UCanvasPanelSlot* SlotTop;
 	UCanvasPanelSlot* SlotBottom;
@@ -78,9 +98,9 @@ private:
 
 public:
 	// TODO: Apparently I don't need a force inline?
-	UTextBlock* GetCurrentAmmoText() { return CurrentAmmoText; }
+	FORCEINLINE UTextBlock* GetCurrentAmmoText() { return CurrentAmmoText; }
 
-	ULazyHealthBar* GetLazyHealthBar() { return LazyHealthBar; }
+	FORCEINLINE ULazyHealthBar* GetLazyHealthBar() { return LazyHealthBar; }
 
 	FORCEINLINE void SetResourceText(FIntVector& Resources) 
 	{
@@ -91,4 +111,6 @@ public:
 	}
 
 	FORCEINLINE void SetMoneyText(int Money) { MoneyText->SetText(FText::FromString(FString::FromInt(Money))); }
+
+	
 };
