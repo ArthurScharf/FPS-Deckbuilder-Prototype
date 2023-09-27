@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 
+#include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 
 #include "UObject/NoExportTypes.h"
@@ -38,7 +39,7 @@ public:
 
 
 
-
+class AProjectile;
 
 
 /**
@@ -50,10 +51,12 @@ class FPS_DECKBUILDER_API UCard : public UObject
 	GENERATED_BODY()
 
 public:
-	UCard();
-
 	UFUNCTION(BlueprintImplementableEvent)
 	void Use();
+
+	/* To be bound to spawned actors when those actors instigate the card's effect. */
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnedActorCallback(AGameCharacter* GameCharacter);
 
 private:
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.
@@ -62,6 +65,11 @@ private:
 	   */
 	UFUNCTION(BlueprintCallable)
 	AActor* SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location);
+	
+	/* WARNING: MUST have given a blueprint definition to `SpawnedActorCallback` to use this method */
+	UFUNCTION(BlueprintCallable)
+	AProjectile* SpawnProjectile(TSubclassOf<AProjectile> ProjectileClass, const FRotator Rotation, const FVector Location);
+
 
 private:
 	// PlayerCharacter this is held by

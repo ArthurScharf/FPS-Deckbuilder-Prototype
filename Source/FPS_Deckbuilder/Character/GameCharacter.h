@@ -22,7 +22,8 @@ class FPS_DECKBUILDER_API AGameCharacter : public ACharacter
 public:
 	AGameCharacter();
 
-	virtual void ReceiveDamage(FDamageStruct& DamageStruct);
+	UFUNCTION(BlueprintCallable)
+	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct);
 
 protected:
 	virtual void BeginPlay() override;

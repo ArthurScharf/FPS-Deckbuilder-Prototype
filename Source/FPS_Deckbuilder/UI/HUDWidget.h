@@ -111,6 +111,4 @@ public:
 	}
 
 	FORCEINLINE void SetMoneyText(int Money) { MoneyText->SetText(FText::FromString(FString::FromInt(Money))); }
-
-	
 };

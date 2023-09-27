@@ -14,8 +14,7 @@ class UProjectileMovementComponent;
 class USphereComponent;
 struct FDamageStruct;
 
-
-// DECLARE_DELEGATE_OneParam(FOnBeginOverlapNotifyDelegate, FDamageStruct)
+/*  */
 DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifyEvent, AGameCharacter*)
 
 UCLASS(Abstract, Blueprintable, BlueprintType)

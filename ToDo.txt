@@ -6,6 +6,7 @@ Can I read which key was pressed to toggle an input event?
 
 1. Seriously Consider removing custom collision channels. No point
 2. Fix slight offset on HUD crosshairs
+3. UCard::SpawnedActorCallback on Card_TEST isn't always applying damage despite always being called
 
 
 Fix weapon bug that has them facing the wrong direction if they're facing the wrong direcion in the world
@@ -18,10 +19,6 @@ Understand the different ways to bind methods
 
 Figure out how to have the GameDamageStruct by a child of the engine damage struct
 
-
-
- -- NOTES -- 
-IMPORTANT: Don't use meta = ("AllowPrivateAccess"). Use methods instead
 
 
 
@@ -38,4 +35,6 @@ This might be a problem if weapons ever need to collide with one another
 
 -- Card Ideas --
  A card that uses the top card in your discard pile
+ 
+ A card that spawns an allied turret
 
