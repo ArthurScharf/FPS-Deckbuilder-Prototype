@@ -93,7 +93,6 @@ void AWeapon::Fire()
 		if (HitResult.bBlockingHit) { Rotation = (HitResult.ImpactPoint - Location).Rotation(); }
 		else						{ Rotation = (End				    - Location).Rotation(); }
 
-
 		float Spread = GetSpread();
 		// TODO: Change spread to a circle instead of a square
 		Rotation = Rotation + FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);

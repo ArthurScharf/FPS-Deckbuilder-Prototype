@@ -10,6 +10,7 @@ class UWidgetComponent;
 class UBehaviorTree;
 
 
+
 UCLASS()
 class FPS_DECKBUILDER_API AEnemyCharacter : public AGameCharacter
 {
@@ -27,7 +28,6 @@ protected:
 
 private:
 	virtual void Die();
-
 
 private:
 	UPROPERTY(EditDefaultsOnly)

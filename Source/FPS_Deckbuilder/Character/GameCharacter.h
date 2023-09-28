@@ -57,3 +57,5 @@ protected:
 
 	FORCEINLINE void SetLazyHealthBar(ULazyHealthBar* _LazyHealthBar) { LazyHealthBar = _LazyHealthBar; }
 };
+
+

@@ -25,6 +25,29 @@ Figure out how to have the GameDamageStruct by a child of the engine damage stru
 
 
 
+
+// -- Enemy Attack notification Design -- // 
+
+Behavior tree task get's the enemies AttackCompleteDelegate and binds the FinishExecute method to it. it then calls that enemies attack method.
+The attack method runs the animation.
+the animation notifies the skeleton which in turn notifies the enemy which it is bound to.
+the attack completes and the animation is free to continue to work as it peleases
+
+
+BehaviorTree 
+ Attack Node
+  Binds "Finish Execute" to EnemyAnimInstance's "OnAttackAnimationCompleteDelegate" then starts the Enemy's attack animation through the appropriate attack method
+  Attack animation triggers AttackAnimationComplete notify on the skeleton
+  AnimInstance blueprint receives notification and calls Broadcasts "OnAttackAnimationCompleteDelegate"
+  Behavior tree node receives FinishExecute and continues process
+  
+
+
+
+
+
+
+
 -- Possible bugs --
 APlayerCharacter::EquipWeapon has collision for both weapons active simultaneously.
 This might be a problem if weapons ever need to collide with one another
@@ -38,3 +61,31 @@ This might be a problem if weapons ever need to collide with one another
  
  A card that spawns an allied turret
 
+ A card that makes you puke something up. Maybe a nasty energy drink?
+
+ Shit or get off the pot
+  : doesn't summon allie or summons better ally
+
+ Break times over
+  : spawns a few weaker enemies
+
+ Red rez or heal is crystal defibrelator
+
+
+
+
+
+-- World Ideas --
+
+You're the union buster
+ - Shareholder
+
+An 'Engineer' is someone who's willing to throw stuff at the wall to see what sticks
+
+You're the LEAST qualified person in the ball pit
+
+Nothing is OSHA approved
+
+Crystals ACT
+Goo REACTS inconsistently
+spirits are always acting
