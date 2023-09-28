@@ -40,6 +40,10 @@ BehaviorTree
   Attack animation triggers AttackAnimationComplete notify on the skeleton
   AnimInstance blueprint receives notification and calls Broadcasts "OnAttackAnimationCompleteDelegate"
   Behavior tree node receives FinishExecute and continues process
+
+
+Each AnimInstance blueprint + skeleton must implement their own AttackDamageEvent[n]'s
+Each AnimInstance must use it's "BlueprintInitializeAnimation" to set the C++ variable "EnemyCharacter" to the owner pawn of animation. I'd like to be done in C++, since it's repeated with each blueprint instance of EnemyAnimInstance
   
 
 

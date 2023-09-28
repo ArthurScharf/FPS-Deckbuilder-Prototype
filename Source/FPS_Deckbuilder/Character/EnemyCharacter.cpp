@@ -1,6 +1,10 @@
 #include "EnemyCharacter.h"
-#include "Components/WidgetComponent.h"
 #include "AIController.h"
+#include "Animation/AnimMontage.h"
+#include "Components/WidgetComponent.h"
+#include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
+
+
 
 
 class UBehaviorTree;
@@ -28,6 +32,10 @@ void AEnemyCharacter::BeginPlay()
 	if (!BehaviorTree) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !BehaviorTree")); return; }
 	
 	SetLazyHealthBar(Cast<ULazyHealthBar>(WidgetComponent->GetWidget()));
+	
+	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
+	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
+
 	Cast<AAIController>(GetController())->RunBehaviorTree(BehaviorTree);
 }
 
@@ -45,6 +53,12 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
+}
+
+
+void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
+{
+	EnemyAnimInstance->Montage_Play(AttackMontage);
 }
 
 
