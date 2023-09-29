@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FPS_Deckbuilder/Character/AI/EnemyAIController.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "EnemyCharacter.generated.h"
 
@@ -24,6 +25,12 @@ public:
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
 
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+
+	/* overridden to force sight cone facing to align with the character's facing 
+	 * NOTE: I wasn't able to understand where this method was being called in the engine code such that overriding it does this, but it works. Wouldn't mind understanding better 
+	 */
+	virtual FRotator GetViewRotation() const override;
+
 
 	/*
 	* the intention is that each enemy can implement their own attack behavior's in a switch statement.
@@ -64,4 +71,6 @@ private:
 	UBehaviorTree* BehaviorTree;
 
 	UEnemyAnimInstance* EnemyAnimInstance;
+
+	AEnemyAIController* EnemyAIController;
 };

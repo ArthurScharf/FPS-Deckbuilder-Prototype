@@ -2,10 +2,11 @@
 #include "AIController.h"
 #include "Animation/AnimMontage.h"
 #include "Components/WidgetComponent.h"
+
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
 
 
-
+#include "DrawDebugHelpers.h"
 
 class UBehaviorTree;
 
@@ -20,6 +21,10 @@ AEnemyCharacter::AEnemyCharacter()
 	WidgetComponent->SetWidgetSpace(EWidgetSpace::World);
 	WidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WidgetComponent->SetupAttachment(RootComponent);
+
+	// Setting for smooth rotation
+	bUseControllerRotationYaw = false; 
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 }
 
 
@@ -36,7 +41,8 @@ void AEnemyCharacter::BeginPlay()
 	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
 
-	Cast<AAIController>(GetController())->RunBehaviorTree(BehaviorTree);
+	EnemyAIController = Cast<AEnemyAIController>(GetController());
+	EnemyAIController->RunBehaviorTree(BehaviorTree);
 }
 
 
@@ -45,14 +51,33 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
+	// Being attacked while in roaming state
+	if (!EnemyAIController->GetBlackboardComponent()->GetValueAsBool(FName("TargetPlayerCharacter")) && DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
+	{	// Entering searching behavior
+		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
+		EnemyAIController->SetTimerToClearBlackboardTargetPlayer();
+		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
+		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
+	}
 	AGameCharacter::ReceiveDamage(DamageStruct);
 }
-
 
 
 void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
+}
+
+
+FRotator AEnemyCharacter::GetViewRotation() const
+{
+	if (EnemyAIController->GetFocusActor())
+	{   // Locked on to player character
+		return Controller->GetControlRotation();
+	}
+
+	// Facing the same direction as the pawn
+	return GetActorForwardVector().Rotation();
 }
 
 

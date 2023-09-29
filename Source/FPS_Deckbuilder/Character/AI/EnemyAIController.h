@@ -30,6 +30,9 @@ class FPS_DECKBUILDER_API AEnemyAIController : public AAIController
 public:
 	AEnemyAIController();
 
+	/* Should this be public? */
+	void SetTimerToClearBlackboardTargetPlayer();
+
 private:
 	/* controls the blackboard variables responsible for setting the Enemy AI's state. */
 	UFUNCTION()
@@ -48,6 +51,8 @@ private:
 	FTimerHandle SearchHandle;
 
 public:
-	FORCEINLINE void SetBlackboardTargetPlayerCharacter(APlayerCharacter* PlayerCharacter) { Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), PlayerCharacter); }
+	void SetBlackboardTargetPlayerCharacter(APlayerCharacter* _PlayerCharacter) { Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), _PlayerCharacter); }
 	
+	void SetBlackboardTargetLocation(FVector _TargetLocation) { Blackboard->SetValueAsVector(FName("TargetLocation"), _TargetLocation); }
+
 };

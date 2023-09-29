@@ -16,6 +16,22 @@ AEnemyAIController::AEnemyAIController()
 	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ThisClass::HandleTargetPerceptionUpdate);
 }
 
+
+void AEnemyAIController::SetTimerToClearBlackboardTargetPlayer()
+{
+	GetWorldTimerManager().SetTimer(	/* Setting timer to lose player character and return to roaming state */
+		SearchHandle,
+		[&]() {
+			UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::SetTimerToClearBlackboardTargetPlayer -- Returning to roaming behavior"));
+			Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);
+			Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), nullptr);
+		},
+		SecondsToLoseTargetPlayer,
+		false
+	);
+}
+
+
 /* NOTE: This method might be too complex */
 void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus Stimulus)
 {
@@ -30,16 +46,7 @@ void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus
 			UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Lost sight of player"));
 			SetFocus(nullptr);
 			Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);	// Behavior tree reacts
-			GetWorldTimerManager().SetTimer(	/* Setting timer to lose player character and return to roaming state */
-				SearchHandle,
-				[&]() {
-					UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Returning to roaming behavior"));
-					Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);
-					Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), nullptr);
-				},
-				SecondsToLoseTargetPlayer,
-				false
-			);
+			SetTimerToClearBlackboardTargetPlayer();
 		}
 		else
 		{ /* Regaining sight of the player */
