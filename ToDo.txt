@@ -47,12 +47,40 @@ Each AnimInstance must use it's "BlueprintInitializeAnimation" to set the C++ va
   
 
 
+// -- PersistentEffect Design -- // 
+
+StatusEffect : attached to character. Have impact on many things
+ - Lifetime
+ - active (poison, HoT) 
+	- frequency (how often effect is enabled)
+
+
+CharacterModifier : Binds to certain events within the character
+ - Lifetime or number of triggers. (Maybe number of triggers is blueprint specific?)
+ - reactive (responds to delegates broadcasting)
+
+
+CharacterModifier & StatusEffect
+  - Can be combination of both (charged shots if not fired frequently, this is GOOD idea)
+
+
+
+KEY FEATURES
+ - Lifetime
+ - MaxTriggers
+ - Frequency (seconds betweeen Affects)
+ - AffectGameCharacter(AGameCharacter* GameCharacter) : Does it's thing. Should be implemented in blueprints
+ - Init(AGameCharacter* GameCharacter);
+	- Binds to the appropriate delegates. Should be `BlueprintNativeEvent` since we won't be always implementing a need for binding in each effect
+	- Uses GameCharacter to set timer for lifetime.
+
+ - OnHitEffects can bind to event in GameCharacter
 
 
 
 
 
--- Possible bugs --
+// -- Possible bugs -- // 
 APlayerCharacter::EquipWeapon has collision for both weapons active simultaneously.
 This might be a problem if weapons ever need to collide with one another
 
@@ -60,7 +88,7 @@ This might be a problem if weapons ever need to collide with one another
 
 
 
--- Card Ideas --
+// -- Card Ideas -- //
  A card that uses the top card in your discard pile
  
  A card that spawns an allied turret
@@ -79,7 +107,7 @@ This might be a problem if weapons ever need to collide with one another
 
 
 
--- World Ideas --
+ // -- World Ideas -- // 
 
 You're the union buster
  - Shareholder
