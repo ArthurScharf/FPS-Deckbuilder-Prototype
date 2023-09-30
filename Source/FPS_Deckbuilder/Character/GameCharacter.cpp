@@ -1,8 +1,7 @@
 
 #include "GameCharacter.h"
 
-
-
+#include "FPS_Deckbuilder/Character/StatusEffect.h"
 
 
 AGameCharacter::AGameCharacter()
@@ -53,4 +52,32 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 	if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 	LazyHealthBar->SetPercent(Health / MaxHealth);
+}
+
+
+
+
+void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class)
+{
+	// Searching for stackable duplicate
+	for (UStatusEffect* Effect : StatusEffects)
+	{
+		if (Effect->GetClass() == Class && Effect->IsStackable())
+		{
+			Effect->IncrementNumInstances();
+			return;
+		}
+	}
+
+	// No Stackable instance. Creating and adding new instance of of type Class
+	UStatusEffect* Effect = NewObject<UStatusEffect>(this, Class);
+	StatusEffects.Add(Effect);
+	Effect->Init(this);
+}
+
+
+
+void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)
+{
+	int NumRemoved = StatusEffects.Remove(StatusEffect);
 }

@@ -13,7 +13,7 @@ class AGameCharacter;
 /**
  * 
  */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(Abstract, BlueprintType, Blueprintable)
 class FPS_DECKBUILDER_API UStatusEffect : public UObject
 {
 	GENERATED_BODY()
@@ -42,16 +42,6 @@ class FPS_DECKBUILDER_API UStatusEffect : public UObject
 
 
 public:
-	// The business logic of the StatusEffect. Meant to be overridden in blueprints
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void Trigger(AGameCharacter* _GameCharacter);
-
-	// Specific enough that a unique trigger is required here. Must less time expensive than writing another class
-	// Should only be called by Trigger
-	UFUNCTION(BlueprintImplementableEvent)
-	void Trigger_OnDamageDealt(FDamageStruct& DamageStruct);
-	
-
 	/* 1. (Native) : Adds icon to the GameCharacter's Widget..
 	 * 2. (BPs)    : Binds Trigger to the appropriate event in the GameCharacter
 	 * 3. (BPs)    : Uses GameCharacter to Init EffectTimer.
@@ -59,7 +49,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Init(AGameCharacter* _GameCharacter);
 
-	
 
 	/* -- NOTE -- 
 	* Cleanup process must begin in blueprints, but is being called in C++.
@@ -72,11 +61,33 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void Cleanup();
 
-	/* 1. Removes icon to the GameCharacter's Widget.
+	/* WARNING: Only call this within the BP implementation of `Cleanup`
+	 * 1. Removes icon to the GameCharacter's Widget.
 	 * 2. Removes reference to GameCharacter so instance is flagged for garbage collection
 	 */
 	UFUNCTION(BlueprintCallable)
 	void Cleanup_Native();
+
+	UFUNCTION(BlueprintCallable)
+	void DecrementNumTriggers();
+
+	/* Remember when implementing to decrement NumTriggers */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void Trigger(AGameCharacter* _GameCharacter);
+
+	// Specific enough that a unique trigger is required here. Must less time expensive than writing another class
+	// Should only be called by Trigger
+	UFUNCTION(BlueprintImplementableEvent)
+	void Trigger_OnDamageDealt(FDamageStruct& DamageStruct);
+
+
+	void IncrementNumInstances();
+	
+
+
+private:
+	/* Sets or resets lifetime timer, including whether or not timer does*/
+	void SetLifetimeTimer();
 
 
 protected:
@@ -89,7 +100,15 @@ protected:
 	*  2. Handles the recurrent timer that applies effects at an interval. In this case, the lifetime of the effect is EffectFrequency * MaxTriggers
 	*/ 
 	
-	
+	/* Decides whether or not repeated attempts to add instances to a game character result in multiplied strength of effect or several unique stacks of an effect */
+	UPROPERTY(EditDefaultsOnly)
+	bool bIsStackable;
+
+	int NumInstances;
+
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition = "bIsStackable"))
+	bool bResetLifetimeOnStack;
+
 	FTimerHandle EffectHandle;
 
 	/* Either a lifetime, or the frequency between triggers */
@@ -100,6 +119,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0"))
 	int NumTriggers;
 
+	// Stored so NumTriggers can be reset if bResetLifetimeOnStack == true
+	int InitialNumTriggers;
+
 	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0", EditCondition = "NumTriggers != 0", EditConditionHides))
 	float FirstDelaySeconds;
+
+
+
+
+public:
+	FORCEINLINE bool IsStackable() { return bIsStackable; }
 };

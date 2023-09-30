@@ -9,6 +9,8 @@
 #include "GameFramework/Character.h"
 #include "GameCharacter.generated.h"
 
+class UStatusEffect;
+
 
 /* An abstract class used by all characters in the game 
  * 
@@ -24,6 +26,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct);
+
+	/* Adds a status effect to the list of those attached to this character.
+	 * Will either add a new effect, or increase the stack value of one if a stackable instance of Class is already on the character 
+	 */
+	UFUNCTION(BlueprintCallable)
+	void InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveStatusEffect(UStatusEffect* StatusEffect);
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,6 +61,10 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;
 	ULazyHealthBar* LazyHealthBar;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<UStatusEffect*> StatusEffects;
+
 
 
 // -- Getters & Setters -- //
