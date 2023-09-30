@@ -7,8 +7,8 @@
 #include "UObject/NoExportTypes.h"
 #include "StatusEffect.generated.h"
 
-
 class AGameCharacter;
+class UTexture2D;
 
 /**
  * 
@@ -125,7 +125,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0", EditCondition = "NumTriggers != 0", EditConditionHides))
 	float FirstDelaySeconds;
 
-
+	UTexture2D* Texture;
 
 
 public:
