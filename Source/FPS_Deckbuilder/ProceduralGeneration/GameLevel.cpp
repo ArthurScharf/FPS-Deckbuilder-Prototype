@@ -1,23 +1,13 @@
 
-/** NOTES **
-A Triangle rendered face is the one that follows the right hand rule on the order it's vertices were passed
-
-for the first cell (upper left most cell) red is the upper left, green is the bottom left, and blue is the top right
-
-
-
-
-*/
-
-
-
-
-
-
 
 #include "GameLevel.h"
 
+
+
 #include "DrawDebugHelpers.h"
+
+
+
 
 AGameLevel::AGameLevel()
 {
@@ -55,10 +45,128 @@ void AGameLevel::BeginPlay()
 	CreateShapeFromMatrix(Matrix);
 	*/
 
+	// Partition();
 
-	LevelScale = 100.f;
-	Partition();
+
+	FNode n1;
+	n1.Location = FVector(0, 0, 0); // Where the actor is
+	n1.Width = 2.f;
+	n1.ID = FString("n1");
+	//DrawDebugSphere(GetWorld(), GetActorLocation() + (n1.Location * Scale), 5, 12, FColor::Cyan, true);
+
+	FNode n2;
+	n2.Location = FVector(7, 10, 0);
+	n2.Width = 2.f;
+	n2.ID = FString("n2");
+	//DrawDebugSphere(GetWorld(), GetActorLocation() + (n2.Location * Scale), 5, 12, FColor::Cyan, true);
+
+
+	FNode n3;
+	n3.Location = FVector(20, 15, 0);
+	n3.Width = 1.f;
+	n3.ID = FString("n3");
+
+	FNode n4;
+	n4.Location = FVector(20, 0, 0);
+	n4.Width = 2.f;
+	n4.ID = FString("n4");
+
+	n1.Adjacent.Add(&n2);
+	n2.Adjacent.Add(&n3);
+	n3.Adjacent.Add(&n4);
+
+	GenerateGeometry(&n1);
 }
+
+
+
+// Uses node data to generate the level geometry
+void AGameLevel::GenerateGeometry(FNode* Node)
+{
+	// NOTE: Number of vertices should depend on the edge generation function and the subdivion setting (Neither are implemented yet)
+	TArray<FVector> vertices;
+	TArray<int32> triangles;
+	TArray<FVector> normals;
+	TArray<FVector2D> UV0;
+	TArray<FProcMeshTangent> tangents;
+	TArray<FLinearColor> vertexColors;
+
+	FNode* Current = Node;
+	FNode* Next;
+	int Counter = 0; // counts which section we're on
+	DrawDebugSphere(GetWorld(), GetActorLocation() + (Current->Location * Scale), 5, 12, FColor::Cyan, true);
+	do 
+	{
+		Next = Current->Adjacent[0];
+
+		// -- Calculating locations of vertices -- //
+		FVector DirVector = (Next->Location - Current->Location);
+
+		DrawDebugLine(GetWorld(), GetActorLocation() + Current->Location * Scale, GetActorLocation() + (Current->Location + DirVector)*Scale, FColor::White, true);
+
+		// Orthogonal vector to  DirVector and (0,0,1). Position of upper left vertex
+		FVector OrthVector = FVector::CrossProduct(FVector(0, 0, 1), DirVector).GetSafeNormal() * Current->Width;
+		
+		DrawDebugLine(GetWorld(), GetActorLocation() + Current->Location * Scale, GetActorLocation() + (Current->Location + OrthVector) * Scale, FColor::Orange, true);
+
+
+		vertices.Add((Current->Location + -OrthVector) * Scale);
+		vertices.Add((Current->Location + OrthVector) * Scale); // NOTE: I think this is wrong
+		vertices.Add((Next->Location + -OrthVector) * Scale);
+		vertices.Add((Next->Location + OrthVector) * Scale);
+
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (Current->Location + -OrthVector) * Scale, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (Current->Location + OrthVector) * Scale, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (Next->Location + -OrthVector) * Scale, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (Next->Location + OrthVector) * Scale, 5, 12, FColor::Orange, true);
+
+
+		triangles.Add(0 + Counter * 4);
+		triangles.Add(1 + Counter * 4);
+		triangles.Add(2 + Counter * 4);
+
+		triangles.Add(2 + Counter * 4);
+		triangles.Add(1 + Counter * 4);
+		triangles.Add(3 + Counter * 4);
+
+		normals.Add(FVector(0, 0, 1));
+		normals.Add(FVector(0, 0, 1));
+		normals.Add(FVector(0, 0, 1));
+		normals.Add(FVector(0, 0, 1));
+
+		// TODO: UV's aren't quite right
+		float Ratio = DirVector.Size() / Current->Width;
+		UV0.Add(FVector2D(0, 0));
+		UV0.Add(FVector2D(Current->Width, 0));
+		UV0.Add(FVector2D(0, DirVector.Size() * Ratio));
+		UV0.Add(FVector2D(Current->Width, DirVector.Size() * Ratio));
+
+		tangents.Add(FProcMeshTangent(0, 1, 0));
+		tangents.Add(FProcMeshTangent(0, 1, 0));
+		tangents.Add(FProcMeshTangent(0, 1, 0));
+		tangents.Add(FProcMeshTangent(0, 1, 0));
+
+		vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+
+		Current = Next;
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (Current->Location * Scale), 5, 12, FColor::Cyan, true);
+		++Counter;
+
+	} while (Current->Adjacent.Num());
+
+	// NOTE: I'm assuming that by having all parts as one mesh we ave fewer draw calls
+	Mesh->CreateMeshSection_LinearColor(0, vertices, triangles, normals, UV0, vertexColors, tangents, true);
+
+	// Enable collision data
+	Mesh->ContainsPhysicsTriMeshData(true);
+}
+
+
+
+
 
 
 void AGameLevel::CreateShape()
@@ -175,7 +283,6 @@ void AGameLevel::CreateShapeWithDimension()
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
-
 void AGameLevel::CreateShapeFromMatrix(const TArray<int>& Matrix)
 {
 
@@ -202,8 +309,6 @@ void AGameLevel::CreateShapeFromMatrix(const TArray<int>& Matrix)
 		}
 	}
 }
-
-
 
 void AGameLevel::Partition()
 {

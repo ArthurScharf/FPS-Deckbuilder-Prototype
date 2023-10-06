@@ -2,14 +2,12 @@
 
 #include "CoreMinimal.h"
 
-#include "ProceduralMeshComponent.h"
 #include "Components/SceneComponent.h"
+#include "Node.h"
+#include "ProceduralMeshComponent.h"
 
 #include "GameFramework/Actor.h"
 #include "GameLevel.generated.h"
-
-
-// class UProceduralMeshComponent;
 
 
 UCLASS()
@@ -31,6 +29,8 @@ protected:
 
 	void Partition();
 
+	// `Node` is the starting node for generation
+	void GenerateGeometry(FNode* Node);
 
 
 private:
@@ -45,7 +45,6 @@ private:
 		return IndexMap((int)Coordinates[0], (int)Coordinates[1], (int)Coordinates[2]);
 	}
 
-
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* SceneComponent;
@@ -53,11 +52,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 	UProceduralMeshComponent* Mesh;
 
-
-
 	UPROPERTY(EditDefaultsOnly)
 	float Scale;
 
+	/* Level Dimensions */
 	UPROPERTY(EditDefaultsOnly)
 	int X;
 	UPROPERTY(EditDefaultsOnly)
@@ -65,10 +63,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	int Z;
 
-
-	// Size of a single level 1 cell in units
-	UPROPERTY(EditDefaultsOnly)
-	float LevelScale;
 
 
 	// Integers. Dimensions of the level measured in level 1 cells
