@@ -7,7 +7,8 @@
 #include "Grammar.generated.h"
 
 /**
- * 
+ * Efficiently query graph structure for matching patterns.
+ * Replace those patterns with other patterns
  */
 UCLASS()
 class FPS_DECKBUILDER_API UGrammar : public UObject

@@ -9,6 +9,8 @@
 
 
 
+
+
 AGameLevel::AGameLevel()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -51,31 +53,33 @@ void AGameLevel::BeginPlay()
 	FNode n1;
 	n1.Location = FVector(0, 0, 0); // Where the actor is
 	n1.Width = 2.f;
+	n1.TypeName = "hallway";
 	n1.ID = FString("n1");
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + (n1.Location * Scale), 5, 12, FColor::Cyan, true);
 
 	FNode n2;
 	n2.Location = FVector(7, 10, 0);
 	n2.Width = 2.f;
+	n2.TypeName = "hallway";
 	n2.ID = FString("n2");
-	//DrawDebugSphere(GetWorld(), GetActorLocation() + (n2.Location * Scale), 5, 12, FColor::Cyan, true);
-
 
 	FNode n3;
 	n3.Location = FVector(20, 15, 0);
 	n3.Width = 1.f;
+	n3.TypeName = "hallway";
 	n3.ID = FString("n3");
 
 	FNode n4;
 	n4.Location = FVector(20, 0, 0);
 	n4.Width = 2.f;
+	n4.TypeName = "hallway";
 	n4.ID = FString("n4");
 
 	n1.Adjacent.Add(&n2);
 	n2.Adjacent.Add(&n3);
 	n3.Adjacent.Add(&n4);
 
-	GenerateGeometry(&n1);
+	GenerateTree(&n4); // Extending the test tree
+	GenerateGeometry(&n1); // Constructing geometry for the tree
 }
 
 
@@ -164,8 +168,45 @@ void AGameLevel::GenerateGeometry(FNode* Node)
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
+void AGameLevel::GenerateTree(FNode* Tail)
+{
+	TMap<FName, TFunctionRef<FNode* (FNode* Node)>> GeneratorMap;
+	GeneratorMap.Add( 
+		TTuple<FName, TFunctionRef<FNode* (FNode* Node)>>(
+			FString("hallway"), [&](FNode* Node) -> FNode*
+			{				
+				FNode* Next = new FNode(); // Will this cause a memory leak?
+				Next->TypeName = "hallway";
+				Next->Width = 2.f;
 
+				// Angle of next hallway
+				float Theta = FMath::FRand() * PI;
+				float Size = (FMath::Rand() % 6) + 7; // 10 +- 3
+				Next->Location = FVector(
+					FMath::Cos(Theta) * Size,
+					FMath::Sin(Theta) * Size,
+					FMath::RandBool() ? -2 : 2
+				) + Node->Location;
 
+				Node->Adjacent.Add(Next);
+				return Next;
+			}
+		) 
+	);
+	TFunctionRef<FNode* (FNode* Node)>* Generator;
+
+	int Counter = 0; // Max depth limit
+	while (true && Counter < 10)
+	{
+		Generator = GeneratorMap.Find(Tail->TypeName);
+		if (Generator) { Tail = (*Generator)(Tail); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameLevel::GenerateTree -- Tail->TypeName !exist")); return; }
+		
+		if (FMath::Rand() % 5 > 3) break; // escape condition;
+		++Counter;
+	}
+
+}
 
 
 

@@ -10,6 +10,10 @@
 #include "GameLevel.generated.h"
 
 
+
+
+
+
 UCLASS()
 class FPS_DECKBUILDER_API AGameLevel : public AActor
 {
@@ -17,6 +21,10 @@ class FPS_DECKBUILDER_API AGameLevel : public AActor
 	
 public:	
 	AGameLevel();
+
+	/* Declaring a function ptr belonging to this class */
+	// Left here for learning purposes
+	// typedef void (AGameLevel::* GenerateFunction) (FNode Node);
 
 protected:
 	virtual void BeginPlay() override;
@@ -31,6 +39,9 @@ protected:
 
 	// `Node` is the starting node for generation
 	void GenerateGeometry(FNode* Node);
+
+	// Tail : Tail of graph that's already been created
+	void GenerateTree(FNode* Tail);
 
 
 private:
