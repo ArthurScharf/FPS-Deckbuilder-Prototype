@@ -5,6 +5,9 @@
 #include "Components/SceneComponent.h"
 #include "Node.h"
 #include "ProceduralMeshComponent.h"
+#include "Shape.h"
+
+
 
 #include "GameFramework/Actor.h"
 #include "GameLevel.generated.h"
@@ -44,6 +47,11 @@ protected:
 	void GenerateTree(FNode* Tail);
 
 
+	
+	void MakeMeshFromShape(UShape* Shape);
+	
+
+
 private:
 	// converts the grid coordinates of a vertex to it's index in the vertex array
 	FORCEINLINE int IndexMap(int column, int row, int aisle)
@@ -60,7 +68,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* SceneComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere) // TODO: Remove BLueprintReadWrite once we have set the texture appropriately
 	UProceduralMeshComponent* Mesh;
 
 	UPROPERTY(EditDefaultsOnly)

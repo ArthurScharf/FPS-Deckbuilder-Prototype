@@ -49,39 +49,152 @@ void AGameLevel::BeginPlay()
 
 	// Partition();
 
+	/*
+	FNode* n1 = new FNode();
+	n1->Location = FVector(0, 0, 0); // Where the actor is
+	n1->Width = 2.f;
+	n1->TypeName = "hallway";
+	n1->ID = FString("n1");
 
-	FNode n1;
-	n1.Location = FVector(0, 0, 0); // Where the actor is
-	n1.Width = 2.f;
-	n1.TypeName = "hallway";
-	n1.ID = FString("n1");
+	GenerateTree(n1); // Extending the test tree
+	GenerateGeometry(n1); // Constructing geometry for the tree
 
-	FNode n2;
-	n2.Location = FVector(7, 10, 0);
-	n2.Width = 2.f;
-	n2.TypeName = "hallway";
-	n2.ID = FString("n2");
+	// Deleting tree
+	FNode* Current = n1;
+	FNode* Next;
+	while (Current->Adjacent.Num())
+	{
+		Next = Current->Adjacent[0];
+		FNode* Temp = Current;
+		Current = Next;
+		delete Temp;
+	} 
+	*/
 
-	FNode n3;
-	n3.Location = FVector(20, 15, 0);
-	n3.Width = 1.f;
-	n3.TypeName = "hallway";
-	n3.ID = FString("n3");
 
-	FNode n4;
-	n4.Location = FVector(20, 0, 0);
-	n4.Width = 2.f;
-	n4.TypeName = "hallway";
-	n4.ID = FString("n4");
+	// -- Making Test Shape -- //
+	UShape* Shape = NewObject<UShape>(this);
 
-	n1.Adjacent.Add(&n2);
-	n2.Adjacent.Add(&n3);
-	n3.Adjacent.Add(&n4);
+	FVertex* v1 = new FVertex();
+	v1->Location = FVector(0, 0, 0);
+	FVertex* v2 = new FVertex();
+	v2->Location = FVector(0, 1, 0) * Scale;
+	FVertex* v3 = new FVertex();
+	v3->Location = FVector(1, 1, 0) * Scale;
+	FVertex* v4 = new FVertex();
+	v4->Location = FVector(1, 0, 0) * Scale;
+	
+	FVertex* v5 = new FVertex();
+	v5->Location = FVector(0, 0, 1) * Scale;
+	FVertex* v6 = new FVertex();
+	v6->Location = FVector(0, 1, 1) * Scale;
+	FVertex* v7 = new FVertex();
+	v7->Location = FVector(1, 1, 1) * Scale;
+	FVertex* v8 = new FVertex();
+	v8->Location = FVector(1, 0, 1) * Scale;
 
-	GenerateTree(&n4); // Extending the test tree
-	GenerateGeometry(&n1); // Constructing geometry for the tree
+	v1->Adjacent = { v2, v4, v5 }; 
+	v2->Adjacent = { v1, v3, v6 };
+	v3->Adjacent = { v2, v4, v7 };
+	v4->Adjacent = { v3, v1, v8 };
+	
+	v5->Adjacent = { v6, v8, v1 };
+	v6->Adjacent = { v5, v7, v2 };
+	v7->Adjacent = { v6, v8, v3 };
+	v8->Adjacent = { v5, v7, v4 };
+
+	// TODO: consider having the adjacency set when faces are constructed
+	FFace* f1 = new FFace();  // Front
+	f1->Vertices.Add(v1);
+	f1->Vertices.Add(v2);
+	f1->Vertices.Add(v3);
+	f1->Vertices.Add(v4);
+
+	FFace* f2 = new FFace(); // Back
+	f2->Vertices.Add(v5);
+	f2->Vertices.Add(v6);
+	f2->Vertices.Add(v7);
+	f2->Vertices.Add(v8);
+
+	FFace* f3 = new FFace(); // Top
+	f3->Vertices.Add(v1);
+	f3->Vertices.Add(v4);
+	f3->Vertices.Add(v8);
+	f3->Vertices.Add(v5);
+
+	FFace* f4 = new FFace(); // Bottom
+	f4->Vertices.Add(v2);
+	f4->Vertices.Add(v3);
+	f4->Vertices.Add(v7);
+	f4->Vertices.Add(v6);
+
+	FFace* f5 = new FFace(); // Left
+	f5->Vertices.Add(v1);
+	f5->Vertices.Add(v2);
+	f5->Vertices.Add(v6);
+	f5->Vertices.Add(v5);
+
+	FFace* f6 = new FFace(); // Right
+	f6->Vertices.Add(v4);
+	f6->Vertices.Add(v3);
+	f6->Vertices.Add(v7);
+	f6->Vertices.Add(v8);
+
+	Shape->Faces = { f1, f2, f3, f4, f5, f6 };
+
+
+	// -- Modifying Shape -- // 
+	FFace* OutFace1 = new FFace();
+	FFace* OutFace2 = new FFace();
+
+	EFaceAxis Axis = EFaceAxis::X;
+
+	Shape->SubdivideFace(Shape->Faces[2], EFaceAxis::X, 0.5, OutFace1, OutFace2);
+
+	Shape->MoveFace(OutFace1, FVector(0, -1, 0) * Scale * 0.38);
+
+
+	MakeMeshFromShape(Shape);
 }
 
+void AGameLevel::GenerateTree(FNode* Tail)
+{
+	TMap<FName, TFunctionRef<FNode* (FNode* Node)>> GeneratorMap;
+	GeneratorMap.Add(
+		TTuple<FName, TFunctionRef<FNode* (FNode* Node)>>(
+			FString("hallway"), [&](FNode* Node) -> FNode*
+			{
+				FNode* Next = new FNode();
+				Next->TypeName = "hallway";
+				Next->Width = 2.f;
+
+				// Angle of next hallway
+				float Theta = ((FMath::Rand() % 4) + 1) * (PI / 2.f);
+				float Size = (FMath::Rand() % 7) + 7; // 10 +- 3
+				Next->Location = FVector(
+					FMath::Cos(Theta) * Size,
+					FMath::Sin(Theta) * Size,
+					FMath::RandBool() ? -2 : 2
+				) + Node->Location;
+
+				Node->Adjacent.Add(Next);
+				return Next;
+			}
+			)
+	);
+	TFunctionRef<FNode* (FNode* Node)>* Generator;
+
+	int Counter = 0; // Max depth limit
+	while (true && Counter < 10)
+	{
+		Generator = GeneratorMap.Find(Tail->TypeName);
+		if (Generator) { Tail = (*Generator)(Tail); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameLevel::GenerateTree -- Tail->TypeName !exist")); return; }
+
+		if (FMath::Rand() % 5 > 3) break; // escape condition;
+		++Counter;
+	}
+}
 
 
 // Uses node data to generate the level geometry
@@ -168,44 +281,73 @@ void AGameLevel::GenerateGeometry(FNode* Node)
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
-void AGameLevel::GenerateTree(FNode* Tail)
+
+
+
+void AGameLevel::MakeMeshFromShape(UShape* Shape)
 {
-	TMap<FName, TFunctionRef<FNode* (FNode* Node)>> GeneratorMap;
-	GeneratorMap.Add( 
-		TTuple<FName, TFunctionRef<FNode* (FNode* Node)>>(
-			FString("hallway"), [&](FNode* Node) -> FNode*
-			{				
-				FNode* Next = new FNode(); // Will this cause a memory leak?
-				Next->TypeName = "hallway";
-				Next->Width = 2.f;
+	TArray<FVector> Vertices;
+	TArray<int32> Triangles;
+	TArray<FVector> Normals;
+	TArray<FVector2D> UV0;
+	TArray<FProcMeshTangent> Tangents;
+	TArray<FLinearColor> VertexColors;
 
-				// Angle of next hallway
-				float Theta = FMath::FRand() * PI;
-				float Size = (FMath::Rand() % 6) + 7; // 10 +- 3
-				Next->Location = FVector(
-					FMath::Cos(Theta) * Size,
-					FMath::Sin(Theta) * Size,
-					FMath::RandBool() ? -2 : 2
-				) + Node->Location;
+	int Counter = 0;
 
-				Node->Adjacent.Add(Next);
-				return Next;
-			}
-		) 
-	);
-	TFunctionRef<FNode* (FNode* Node)>* Generator;
-
-	int Counter = 0; // Max depth limit
-	while (true && Counter < 10)
+	// TODO: Use a set to reuse verts that are already in the procedural mesh
+	for (FFace* Face : Shape->Faces)
 	{
-		Generator = GeneratorMap.Find(Tail->TypeName);
-		if (Generator) { Tail = (*Generator)(Tail); }
-		else { UE_LOG(LogTemp, Error, TEXT("AGameLevel::GenerateTree -- Tail->TypeName !exist")); return; }
+		Vertices.Add(Face->Vertices[0]->Location);
+		Vertices.Add(Face->Vertices[1]->Location);
+		Vertices.Add(Face->Vertices[2]->Location);
+		Vertices.Add(Face->Vertices[3]->Location);
+
+
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
+
+
+		Triangles.Add(0 + Counter * 4); // Upper Left
+		Triangles.Add(1 + Counter * 4); // Bottom Left
+		Triangles.Add(3 + Counter * 4); // Upper Right
+
+		Triangles.Add(3 + Counter * 4); // Upper Right
+		Triangles.Add(1 + Counter * 4); // Bottom Left
+		Triangles.Add(2 + Counter * 4); // Bottom Right
+
+		// TODO: Face->Normal needs to be set
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+
+		UV0.Add(FVector2D(0,0));
+		UV0.Add(FVector2D(10, 0));
+		UV0.Add(FVector2D(10, 10));
+		UV0.Add(FVector2D(0, 10));
+
+		// TODO
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+
+		// TODO: Remove?
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 		
-		if (FMath::Rand() % 5 > 3) break; // escape condition;
 		++Counter;
 	}
 
+	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+
+	// Enable collision data
+	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
 
