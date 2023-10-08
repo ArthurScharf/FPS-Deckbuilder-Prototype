@@ -74,85 +74,29 @@ void AGameLevel::BeginPlay()
 
 	// -- Making Test Shape -- //
 	UShape* Shape = NewObject<UShape>(this);
-
-	FVertex* v1 = new FVertex();
-	v1->Location = FVector(0, 0, 0);
-	FVertex* v2 = new FVertex();
-	v2->Location = FVector(0, 1, 0) * Scale;
-	FVertex* v3 = new FVertex();
-	v3->Location = FVector(1, 1, 0) * Scale;
-	FVertex* v4 = new FVertex();
-	v4->Location = FVector(1, 0, 0) * Scale;
-	
-	FVertex* v5 = new FVertex();
-	v5->Location = FVector(0, 0, 1) * Scale;
-	FVertex* v6 = new FVertex();
-	v6->Location = FVector(0, 1, 1) * Scale;
-	FVertex* v7 = new FVertex();
-	v7->Location = FVector(1, 1, 1) * Scale;
-	FVertex* v8 = new FVertex();
-	v8->Location = FVector(1, 0, 1) * Scale;
-
-	v1->Adjacent = { v2, v4, v5 }; 
-	v2->Adjacent = { v1, v3, v6 };
-	v3->Adjacent = { v2, v4, v7 };
-	v4->Adjacent = { v3, v1, v8 };
-	
-	v5->Adjacent = { v6, v8, v1 };
-	v6->Adjacent = { v5, v7, v2 };
-	v7->Adjacent = { v6, v8, v3 };
-	v8->Adjacent = { v5, v7, v4 };
-
-	// TODO: consider having the adjacency set when faces are constructed
-	FFace* f1 = new FFace();  // Front
-	f1->Vertices.Add(v1);
-	f1->Vertices.Add(v2);
-	f1->Vertices.Add(v3);
-	f1->Vertices.Add(v4);
-
-	FFace* f2 = new FFace(); // Back
-	f2->Vertices.Add(v5);
-	f2->Vertices.Add(v6);
-	f2->Vertices.Add(v7);
-	f2->Vertices.Add(v8);
-
-	FFace* f3 = new FFace(); // Top
-	f3->Vertices.Add(v1);
-	f3->Vertices.Add(v4);
-	f3->Vertices.Add(v8);
-	f3->Vertices.Add(v5);
-
-	FFace* f4 = new FFace(); // Bottom
-	f4->Vertices.Add(v2);
-	f4->Vertices.Add(v3);
-	f4->Vertices.Add(v7);
-	f4->Vertices.Add(v6);
-
-	FFace* f5 = new FFace(); // Left
-	f5->Vertices.Add(v1);
-	f5->Vertices.Add(v2);
-	f5->Vertices.Add(v6);
-	f5->Vertices.Add(v5);
-
-	FFace* f6 = new FFace(); // Right
-	f6->Vertices.Add(v4);
-	f6->Vertices.Add(v3);
-	f6->Vertices.Add(v7);
-	f6->Vertices.Add(v8);
-
-	Shape->Faces = { f1, f2, f3, f4, f5, f6 };
-
+	UShape::InitCube(Shape);
+	Shape->SetScale(Scale);
 
 	// -- Modifying Shape -- // 
-	FFace* OutFace1 = new FFace();
-	FFace* OutFace2 = new FFace();
+	// NOTE: 
 
-	EFaceAxis Axis = EFaceAxis::X;
+	FFace* FPtr1 = new FFace();
 
-	Shape->SubdivideFace(Shape->Faces[2], EFaceAxis::X, 0.5, OutFace1, OutFace2);
+	Shape->SubdivideFace(*Shape->Faces[4], EFaceAxis::X, 0.5, FPtr1, new FFace());
 
-	Shape->MoveFace(OutFace1, FVector(0, -1, 0) * Scale * 0.38);
+	FFace* FPtr2 = new FFace();
 
+	Shape->SubdivideFace(*FPtr1, EFaceAxis::X, 0.5, FPtr2, new FFace());
+
+	Shape->MoveFace(*FPtr2, FVector(-1, 0, 0) * Scale * 0.38);
+
+	Shape->ExtrudeFace(*FPtr2, 0.5 * Scale, new FFace());
+
+
+	for (FVertex* Vertex : FPtr1->Vertices)
+	{
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Vertex->Location, 10, 12, FColor::Orange, true);
+	}
 
 	MakeMeshFromShape(Shape);
 }
@@ -304,10 +248,10 @@ void AGameLevel::MakeMeshFromShape(UShape* Shape)
 		Vertices.Add(Face->Vertices[3]->Location);
 
 
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
 
 
 		Triangles.Add(0 + Counter * 4); // Upper Left
