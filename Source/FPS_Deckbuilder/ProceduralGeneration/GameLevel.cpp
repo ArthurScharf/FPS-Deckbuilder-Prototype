@@ -74,32 +74,125 @@ void AGameLevel::BeginPlay()
 
 	// -- Making Test Shape -- //
 	UShape* Shape = NewObject<UShape>(this);
+	Shape->MyActor = this;
 	UShape::InitCube(Shape);
 	Shape->SetScale(Scale);
 
 	// -- Modifying Shape -- // 
 	// NOTE: 
 
+	/*
 	FFace* FPtr1 = new FFace();
-
 	Shape->SubdivideFace(*Shape->Faces[4], EFaceAxis::X, 0.5, FPtr1, new FFace());
-
 	FFace* FPtr2 = new FFace();
-
 	Shape->SubdivideFace(*FPtr1, EFaceAxis::X, 0.5, FPtr2, new FFace());
-
 	Shape->MoveFace(*FPtr2, FVector(-1, 0, 0) * Scale * 0.38);
-
 	Shape->ExtrudeFace(*FPtr2, 0.5 * Scale, new FFace());
+	*/
 
 
-	for (FVertex* Vertex : FPtr1->Vertices)
+	//FFace* FPtr1 = new FFace();
+	//Shape->SubdivideFace(*Shape->Faces[4], EFaceAxis::X, 0.5, FPtr1, new FFace());
+	//Shape->ExtrudeFace(*FPtr1, 1 * Scale, new FFace());
+	//FFace* FPtr3 = new FFace();
+	//Shape->SubdivideFace(*Shape->Faces[Shape->Faces.Num()-1], EFaceAxis::X, 0.5, FPtr3, new FFace());
+
+
+
+
+	Shape->ExtrudeFace(*Shape->Faces[FMath::Rand() % Shape->Faces.Num()], 1 * Scale, new FFace());
+	MakeMeshFromShape(Shape);
+
+	FVector t1;
+	FVector t2;
+	for (FFace* f : Shape->Faces)
 	{
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Vertex->Location, 10, 12, FColor::Orange, true);
+		t1 = f->Vertices[1]->Location - f->Vertices[0]->Location;
+		t2 = f->Vertices[3]->Location - f->Vertices[0]->Location;
+		f->Normal = FVector::CrossProduct(t1, t2);
+		f->Normal.Normalize();
+		DrawDebugLine(GetWorld(), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f) + f->Normal * 100.f, FColor::Cyan, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), 12, 12, FColor::Cyan, true);
+
 	}
 
-	MakeMeshFromShape(Shape);
 }
+
+
+
+void AGameLevel::MakeMeshFromShape(UShape* Shape)
+{
+	TArray<FVector> Vertices;
+	TArray<int32> Triangles;
+	TArray<FVector> Normals;
+	TArray<FVector2D> UV0;
+	TArray<FProcMeshTangent> Tangents;
+	TArray<FLinearColor> VertexColors;
+
+	int Counter = 0;
+
+	// TODO: Use a set to reuse verts that are already in the procedural mesh
+	for (FFace* Face : Shape->Faces)
+	{
+		Vertices.Add(Face->Vertices[0]->Location);
+		Vertices.Add(Face->Vertices[1]->Location);
+		Vertices.Add(Face->Vertices[2]->Location);
+		Vertices.Add(Face->Vertices[3]->Location);
+
+
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
+
+
+		Triangles.Add(0 + Counter * 4); // Upper Left
+		Triangles.Add(1 + Counter * 4); // Bottom Left
+		Triangles.Add(3 + Counter * 4); // Upper Right
+
+		Triangles.Add(3 + Counter * 4); // Upper Right
+		Triangles.Add(1 + Counter * 4); // Bottom Left
+		Triangles.Add(2 + Counter * 4); // Bottom Right
+
+		// TODO: Face->Normal needs to be set
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+
+		UV0.Add(FVector2D(0, 0));
+		UV0.Add(FVector2D(10, 0));
+		UV0.Add(FVector2D(10, 10));
+		UV0.Add(FVector2D(0, 10));
+
+		// TODO
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+
+		// TODO: Remove?
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+
+		++Counter;
+	}
+
+	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+
+	// Enable collision data
+	Mesh->ContainsPhysicsTriMeshData(true);
+}
+
+
+
+
+
+
+
+
 
 void AGameLevel::GenerateTree(FNode* Tail)
 {
@@ -228,71 +321,6 @@ void AGameLevel::GenerateGeometry(FNode* Node)
 
 
 
-void AGameLevel::MakeMeshFromShape(UShape* Shape)
-{
-	TArray<FVector> Vertices;
-	TArray<int32> Triangles;
-	TArray<FVector> Normals;
-	TArray<FVector2D> UV0;
-	TArray<FProcMeshTangent> Tangents;
-	TArray<FLinearColor> VertexColors;
-
-	int Counter = 0;
-
-	// TODO: Use a set to reuse verts that are already in the procedural mesh
-	for (FFace* Face : Shape->Faces)
-	{
-		Vertices.Add(Face->Vertices[0]->Location);
-		Vertices.Add(Face->Vertices[1]->Location);
-		Vertices.Add(Face->Vertices[2]->Location);
-		Vertices.Add(Face->Vertices[3]->Location);
-
-
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
-
-
-		Triangles.Add(0 + Counter * 4); // Upper Left
-		Triangles.Add(1 + Counter * 4); // Bottom Left
-		Triangles.Add(3 + Counter * 4); // Upper Right
-
-		Triangles.Add(3 + Counter * 4); // Upper Right
-		Triangles.Add(1 + Counter * 4); // Bottom Left
-		Triangles.Add(2 + Counter * 4); // Bottom Right
-
-		// TODO: Face->Normal needs to be set
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
-
-		UV0.Add(FVector2D(0,0));
-		UV0.Add(FVector2D(10, 0));
-		UV0.Add(FVector2D(10, 10));
-		UV0.Add(FVector2D(0, 10));
-
-		// TODO
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
-
-		// TODO: Remove?
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		
-		++Counter;
-	}
-
-	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
-
-	// Enable collision data
-	Mesh->ContainsPhysicsTriMeshData(true);
-}
 
 
 

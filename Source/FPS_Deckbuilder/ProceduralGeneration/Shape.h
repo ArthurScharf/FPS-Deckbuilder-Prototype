@@ -138,4 +138,6 @@ public:
 public:
 	TArray<FFace*> Faces;
 
+	AActor* MyActor;
+
 };

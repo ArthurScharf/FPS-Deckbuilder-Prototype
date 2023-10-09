@@ -2,6 +2,10 @@
 
 
 
+#include "DrawDebugHelpers.h"
+
+
+
 // --  Static Functions -- //
 void UShape::InitCube(UShape* Shape)
 {
@@ -118,6 +122,7 @@ void UShape::SubdivideFace(FFace& Face, EFaceAxis Axis, float Percent, FFace* Ou
 		FVertex* v1 = new FVertex();
 		FVertex* v2 = new FVertex();
 
+		// Constructing 2 new vertices necessary for the subdivision
 		v1->Location = Face.Vertices[0]->Location + (Face.Vertices[3]->Location - Face.Vertices[0]->Location) * Percent;
 		v1->Adjacent.Add(Face.Vertices[0]);
 		v1->Adjacent.Add(Face.Vertices[3]);
@@ -157,7 +162,7 @@ void UShape::SubdivideFace(FFace& Face, EFaceAxis Axis, float Percent, FFace* Ou
 
 void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 {
-	// -- Creating Extruded -- // 
+	// -- Creating Extruded Face -- // 
 	FVertex* NewVertex;
 	for (FVertex* Vertex : Face.Vertices)
 	{
@@ -167,13 +172,76 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 		Vertex->Adjacent.Add(NewVertex);
 		OutFace->Vertices.Add(NewVertex);
 	}
-	
 	OutFace->SetAdjacency(); // Set's the adjacency of the faces within the face
 	OutFace->Normal = Face.Normal;
 	Faces.Add(OutFace);
 
+	// -- Setting Adjacencies Manually since some of them are already set -- //
+	OutFace->Vertices[0]->Adjacent.Add(Face.Vertices[0]);
+	Face.Vertices[0]->Adjacent.Add(OutFace->Vertices[0]);
+
+	OutFace->Vertices[1]->Adjacent.Add(Face.Vertices[1]);
+	Face.Vertices[1]->Adjacent.Add(OutFace->Vertices[1]);
+
+	OutFace->Vertices[2]->Adjacent.Add(Face.Vertices[2]);
+	Face.Vertices[2]->Adjacent.Add(OutFace->Vertices[2]);
+
+	OutFace->Vertices[3]->Adjacent.Add(Face.Vertices[3]);
+	Face.Vertices[3]->Adjacent.Add(OutFace->Vertices[3]);
+
+	
 	// -- Creating side faces -- //
-	// TODO
+	FFace* f1 = new FFace();
+	f1->Vertices.Add(Face.Vertices[0]);
+	f1->Vertices.Add(Face.Vertices[1]);
+	f1->Vertices.Add(OutFace->Vertices[1]);
+	f1->Vertices.Add(OutFace->Vertices[0]);
+
+	FFace* f2 = new FFace();
+	f2->Vertices.Add(Face.Vertices[1]);
+	f2->Vertices.Add(Face.Vertices[2]);
+	f2->Vertices.Add(OutFace->Vertices[2]);
+	f2->Vertices.Add(OutFace->Vertices[1]);
+	
+	FFace* f3 = new FFace();
+	f3->Vertices.Add(Face.Vertices[2]);
+	f3->Vertices.Add(Face.Vertices[3]);
+	f3->Vertices.Add(OutFace->Vertices[3]);
+	f3->Vertices.Add(OutFace->Vertices[2]);
+
+	FFace* f4 = new FFace();
+	f4->Vertices.Add(Face.Vertices[3]);
+	f4->Vertices.Add(Face.Vertices[0]);
+	f4->Vertices.Add(OutFace->Vertices[0]);
+	f4->Vertices.Add(OutFace->Vertices[3]);
+
+	Faces.Append({ f1, f2, f3, f4 });
+
+	// -- Using face verts to construct vectors which are then used to find the normal -- //
+	FVector t1;
+	FVector t2;
+
+	t1 = f1->Vertices[1]->Location - f1->Vertices[0]->Location;
+	t2 = f1->Vertices[3]->Location - f1->Vertices[0]->Location;
+	f1->Normal = FVector::CrossProduct(t1, t2);
+	f1->Normal.Normalize();
+	//DrawDebugLine(MyActor->GetWorld(), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f) + f1->Normal * 100.f, FColor::Cyan, true);
+	//DrawDebugSphere(MyActor->GetWorld(), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), 12, 12, FColor::Cyan, true);
+
+	t1 = f2->Vertices[0]->Location - f2->Vertices[1]->Location;
+	t2 = f2->Vertices[0]->Location - f2->Vertices[3]->Location;
+	f2->Normal = FVector::CrossProduct(t1, t2);
+	f2->Normal.Normalize();
+
+	t1 = f3->Vertices[0]->Location - f3->Vertices[1]->Location;
+	t2 = f3->Vertices[0]->Location - f3->Vertices[3]->Location;
+	f3->Normal = FVector::CrossProduct(t1, t2);
+	f3->Normal.Normalize();
+
+	t1 = f4->Vertices[0]->Location - f4->Vertices[1]->Location;
+	t2 = f4->Vertices[0]->Location - f4->Vertices[3]->Location;
+	f4->Normal = FVector::CrossProduct(t1, t2);
+	f4->Normal.Normalize();
 
 	Faces.Remove(&Face);
 }
