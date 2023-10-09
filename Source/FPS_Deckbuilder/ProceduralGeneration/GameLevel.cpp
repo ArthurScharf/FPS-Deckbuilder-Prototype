@@ -78,44 +78,49 @@ void AGameLevel::BeginPlay()
 	UShape::InitCube(Shape);
 	Shape->SetScale(Scale);
 
-	// -- Modifying Shape -- // 
-	// NOTE: 
 
-	/*
-	FFace* FPtr1 = new FFace();
-	Shape->SubdivideFace(*Shape->Faces[4], EFaceAxis::X, 0.5, FPtr1, new FFace());
-	FFace* FPtr2 = new FFace();
-	Shape->SubdivideFace(*FPtr1, EFaceAxis::X, 0.5, FPtr2, new FFace());
-	Shape->MoveFace(*FPtr2, FVector(-1, 0, 0) * Scale * 0.38);
-	Shape->ExtrudeFace(*FPtr2, 0.5 * Scale, new FFace());
-	*/
-
-
-	//FFace* FPtr1 = new FFace();
-	//Shape->SubdivideFace(*Shape->Faces[4], EFaceAxis::X, 0.5, FPtr1, new FFace());
-	//Shape->ExtrudeFace(*FPtr1, 1 * Scale, new FFace());
-	//FFace* FPtr3 = new FFace();
-	//Shape->SubdivideFace(*Shape->Faces[Shape->Faces.Num()-1], EFaceAxis::X, 0.5, FPtr3, new FFace());
-
-
-
-
-	Shape->ExtrudeFace(*Shape->Faces[FMath::Rand() % Shape->Faces.Num()], 1 * Scale, new FFace());
-	MakeMeshFromShape(Shape);
-
-	FVector t1;
-	FVector t2;
-	for (FFace* f : Shape->Faces)
-	{
-		t1 = f->Vertices[1]->Location - f->Vertices[0]->Location;
-		t2 = f->Vertices[3]->Location - f->Vertices[0]->Location;
-		f->Normal = FVector::CrossProduct(t1, t2);
-		f->Normal.Normalize();
-		DrawDebugLine(GetWorld(), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f) + f->Normal * 100.f, FColor::Cyan, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), 12, 12, FColor::Cyan, true);
-
+	TArray<FFace*> BaseFaces;
+	for (FFace* Face : Shape->Faces)
+	{	
+		BaseFaces.Add(Face);
 	}
 
+
+	/*
+	// -- Test 1 -- //
+	while (true)
+	{
+		if (BaseFaces.Num() == 0) break;
+
+		FFace* Face = BaseFaces.Pop();
+		Shape->ExtrudeFace(*Face, 0.5 * Scale, new FFace());
+	}
+	Shape->ExtrudeFace(*Shape->Faces[Shape->Faces.Num()-5], 0.5 * Scale, new FFace());
+	
+	FFace* Face1 = new FFace();
+	Shape->SubdivideFace(*Shape->Faces[Shape->Faces.Num() - 5], EFaceAxis::X, 0.5, Face1, new FFace());
+	FFace* Face2 = new FFace();
+	Shape->ExtrudeFace(*Shape->Faces[Shape->Faces.Num() - 1], 0.5 * Scale, Face2);
+	Shape->MoveFace(*Face2, -FVector(0.25,0.25,1) * Scale);
+	*/
+
+	// -- Test 2 -- //
+	for (int i = 0; i < 5; i++)
+	{
+		if ((FMath::Rand() % 10) > 3) {
+			Shape->ExtrudeFace(
+				*Shape->Faces[ FMath::Rand() % Shape->Faces.Num() ], 
+				((FMath::FRand() / 2.f) + 1.f) * Scale, 
+				new FFace()
+			);
+		}
+		else {
+			Shape->SubdivideFace(*Shape->Faces[FMath::Rand() % Shape->Faces.Num()], EFaceAxis::X,  0.75, new FFace(), new FFace());
+		}
+	}
+
+
+	MakeMeshFromShape(Shape);
 }
 
 

@@ -102,6 +102,7 @@ void UShape::SetScale(float Scale)
 
 }
 
+
 void UShape::MoveFace(FFace& Face, const FVector& DeltaLocation)
 {
 	for (FVertex* Vertex : Face.Vertices)
@@ -216,30 +217,29 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	f4->Vertices.Add(OutFace->Vertices[3]);
 
 	Faces.Append({ f1, f2, f3, f4 });
+	
 
 	// -- Using face verts to construct vectors which are then used to find the normal -- //
 	FVector t1;
 	FVector t2;
-
-	t1 = f1->Vertices[1]->Location - f1->Vertices[0]->Location;
-	t2 = f1->Vertices[3]->Location - f1->Vertices[0]->Location;
+	
+	t1 = f1->Vertices[3]->Location - f1->Vertices[0]->Location;
+	t2 = f1->Vertices[1]->Location - f1->Vertices[0]->Location;
 	f1->Normal = FVector::CrossProduct(t1, t2);
 	f1->Normal.Normalize();
-	//DrawDebugLine(MyActor->GetWorld(), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f) + f1->Normal * 100.f, FColor::Cyan, true);
-	//DrawDebugSphere(MyActor->GetWorld(), MyActor->GetActorLocation() + (t1 / 2.f) + (t2 / 2.f), 12, 12, FColor::Cyan, true);
 
-	t1 = f2->Vertices[0]->Location - f2->Vertices[1]->Location;
-	t2 = f2->Vertices[0]->Location - f2->Vertices[3]->Location;
+	t1 = f2->Vertices[3]->Location - f2->Vertices[0]->Location;
+	t2 = f2->Vertices[1]->Location - f2->Vertices[0]->Location;
 	f2->Normal = FVector::CrossProduct(t1, t2);
 	f2->Normal.Normalize();
 
-	t1 = f3->Vertices[0]->Location - f3->Vertices[1]->Location;
-	t2 = f3->Vertices[0]->Location - f3->Vertices[3]->Location;
+	t1 = f3->Vertices[3]->Location - f3->Vertices[0]->Location;
+	t2 = f3->Vertices[1]->Location - f3->Vertices[0]->Location;
 	f3->Normal = FVector::CrossProduct(t1, t2);
 	f3->Normal.Normalize();
 
-	t1 = f4->Vertices[0]->Location - f4->Vertices[1]->Location;
-	t2 = f4->Vertices[0]->Location - f4->Vertices[3]->Location;
+	t1 = f4->Vertices[3]->Location - f4->Vertices[0]->Location;
+	t2 = f4->Vertices[1]->Location - f4->Vertices[0]->Location;
 	f4->Normal = FVector::CrossProduct(t1, t2);
 	f4->Normal.Normalize();
 
