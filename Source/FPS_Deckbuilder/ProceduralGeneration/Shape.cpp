@@ -6,26 +6,35 @@
 
 
 
+
+
+
+//UShape::UShape()
+//{
+//	ID = NextShapeID++;
+//}
+
+
 // --  Static Functions -- //
 void UShape::InitCube(UShape* Shape)
 {
 	FVertex* v1 = new FVertex();
-	v1->Location = FVector(0, 0, 0);
+	v1->Location = FVector(-0.5, -0.5, -0.5);
 	FVertex* v2 = new FVertex();
-	v2->Location = FVector(0, 1, 0);
+	v2->Location = FVector(-0.5, 0.5, -0.5);
 	FVertex* v3 = new FVertex();
-	v3->Location = FVector(1, 1, 0);
+	v3->Location = FVector(0.5, 0.5, -0.5);
 	FVertex* v4 = new FVertex();
-	v4->Location = FVector(1, 0, 0);
+	v4->Location = FVector(0.5, -0.5, -0.5);
 
 	FVertex* v5 = new FVertex();
-	v5->Location = FVector(0, 0, 1);
+	v5->Location = FVector(-0.5, -0.5, 0.5);
 	FVertex* v6 = new FVertex();
-	v6->Location = FVector(0, 1, 1);
+	v6->Location = FVector(-0.5, 0.5, 0.5);
 	FVertex* v7 = new FVertex();
-	v7->Location = FVector(1, 1, 1);
+	v7->Location = FVector(0.5, 0.5, 0.5);
 	FVertex* v8 = new FVertex();
-	v8->Location = FVector(1, 0, 1);
+	v8->Location = FVector(0.5, -0.5, 0.5);
 
 	// NOTE: SetAdjacency was written after this. No sense making more work for myself
 	v1->Adjacent = { v2, v4, v5 };
@@ -41,6 +50,7 @@ void UShape::InitCube(UShape* Shape)
 	// TODO: consider having the adjacency set when faces are constructed
 	FFace* f1 = new FFace();  // bottom (-Z)
 	f1->Normal = FVector(0, 0, -1);
+	f1->Label = FString("floor");
 	f1->Vertices.Add(v4);
 	f1->Vertices.Add(v3);
 	f1->Vertices.Add(v2);
@@ -48,6 +58,7 @@ void UShape::InitCube(UShape* Shape)
 
 	FFace* f2 = new FFace(); // top (+Z)
 	f2->Normal = FVector(0, 0, 1);
+	f2->Label = FString("roof");
 	f2->Vertices.Add(v5);
 	f2->Vertices.Add(v6);
 	f2->Vertices.Add(v7);
@@ -55,6 +66,7 @@ void UShape::InitCube(UShape* Shape)
 
 	FFace* f3 = new FFace(); // Back (-Y)
 	f3->Normal = FVector(0, -1, 0);
+	f3->Label = FString("back");
 	f3->Vertices.Add(v5);
 	f3->Vertices.Add(v8);
 	f3->Vertices.Add(v4);
@@ -62,6 +74,7 @@ void UShape::InitCube(UShape* Shape)
 
 	FFace* f4 = new FFace(); // Front (+Y)
 	f4->Normal = FVector(0, 1, 0);
+	f4->Label = FString("forward");
 	f4->Vertices.Add(v2);
 	f4->Vertices.Add(v3);
 	f4->Vertices.Add(v7);
@@ -69,6 +82,7 @@ void UShape::InitCube(UShape* Shape)
 
 	FFace* f5 = new FFace(); // Left (-X)
 	f5->Normal = FVector(-1, 0, 0);
+	f5->Label = FString("left");
 	f5->Vertices.Add(v1);
 	f5->Vertices.Add(v2);
 	f5->Vertices.Add(v6);
@@ -76,6 +90,7 @@ void UShape::InitCube(UShape* Shape)
 
 	FFace* f6 = new FFace(); // Right (+X)
 	f6->Normal = FVector(1, 0, 0);
+	f6->Label = FString("right");
 	f6->Vertices.Add(v8);
 	f6->Vertices.Add(v7);
 	f6->Vertices.Add(v3);
@@ -90,7 +105,7 @@ void UShape::InitCube(UShape* Shape)
 void UShape::SetScale(float Scale)
 {
 	TSet<FVertex> ScaledVerts;
-	for (FFace* Face : Faces)
+	for (FFace* Face : Faces) 
 	{
 		for (FVertex* Vertex : Face->Vertices)
 		{
@@ -99,9 +114,27 @@ void UShape::SetScale(float Scale)
 			if (!bAlreadyInSet) { Vertex->Location *= Scale; }
 		}
 	}
-
 }
 
+void UShape::SetScale(FVector Scale) 
+{
+	// Can't use FFace->SetScale because doing so would scale vertices shared between faces multiple times
+	TSet<FVertex> ScaledVerts;
+	for (FFace* Face : Faces)
+	{
+		for (FVertex* Vertex : Face->Vertices)
+		{
+			bool bAlreadyInSet;
+			ScaledVerts.Add(*Vertex, &bAlreadyInSet);
+			if (!bAlreadyInSet) 
+			{ 
+				Vertex->Location.X *= Scale.X;
+				Vertex->Location.Y *= Scale.Y;
+				Vertex->Location.Z *= Scale.Z;
+			}
+		}
+	}
+}
 
 void UShape::MoveFace(FFace& Face, const FVector& DeltaLocation)
 {
@@ -148,6 +181,10 @@ void UShape::SubdivideFace(FFace& Face, EFaceAxis Axis, float Percent, FFace* Ou
 		OutFace2->Vertices.Add(Face.Vertices[2]);
 		OutFace2->Vertices.Add(Face.Vertices[3]);
 
+		OutFace1->Label = "forward";
+		OutFace2->Label = "forward";
+
+
 		// Removing old face and adding new face
 		int test = Faces.Remove(&Face);
 		delete &Face;
@@ -175,6 +212,7 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	}
 	OutFace->SetAdjacency(); // Set's the adjacency of the faces within the face
 	OutFace->Normal = Face.Normal;
+	OutFace->Label = "forward";
 	Faces.Add(OutFace);
 
 	// -- Setting Adjacencies Manually since some of them are already set -- //
@@ -193,24 +231,28 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	
 	// -- Creating side faces -- //
 	FFace* f1 = new FFace();
+	f1->Label = "roof";
 	f1->Vertices.Add(Face.Vertices[0]);
 	f1->Vertices.Add(Face.Vertices[1]);
 	f1->Vertices.Add(OutFace->Vertices[1]);
 	f1->Vertices.Add(OutFace->Vertices[0]);
 
 	FFace* f2 = new FFace();
+	f2->Label = "floor";
 	f2->Vertices.Add(Face.Vertices[1]);
 	f2->Vertices.Add(Face.Vertices[2]);
 	f2->Vertices.Add(OutFace->Vertices[2]);
 	f2->Vertices.Add(OutFace->Vertices[1]);
 	
 	FFace* f3 = new FFace();
+	f3->Label = "left";
 	f3->Vertices.Add(Face.Vertices[2]);
 	f3->Vertices.Add(Face.Vertices[3]);
 	f3->Vertices.Add(OutFace->Vertices[3]);
 	f3->Vertices.Add(OutFace->Vertices[2]);
 
 	FFace* f4 = new FFace();
+	f4->Label = "forward";
 	f4->Vertices.Add(Face.Vertices[3]);
 	f4->Vertices.Add(Face.Vertices[0]);
 	f4->Vertices.Add(OutFace->Vertices[0]);
@@ -244,4 +286,20 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	f4->Normal.Normalize();
 
 	Faces.Remove(&Face);
+}
+
+
+FFace* UShape::FindFaceByLabel(FString _Label)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UShape::FindFaceByLabel -- Searching for _Label: %s"), *_Label);
+
+	for (FFace* Face : Faces)
+	{
+		 UE_LOG(LogTemp, Warning, TEXT("UShape::FindFaceByLabel ---- Label: %s"), *Face->Label);
+		if (Face->Label == _Label)
+		{	 
+			return Face;
+		}
+	}
+	return nullptr;
 }

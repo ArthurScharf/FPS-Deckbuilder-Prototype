@@ -1,3 +1,19 @@
+Fix Code Smells
+ - Some vertices are being duplicated during MakeMesh() as a consequence of the sharing of vertices between Shapes. I need faces to share verts, but I'd prefer no duplicated vertices. This is a minor issue
+ - The GameLevel Scale property is needed within the grammar. I'd prefer to scale the entire system after generating
+
+
+
+
+
+
+
+
+
+
+
+
+
 RESEARCH HOW ENGINE DOES DAMAGE
 
 Can I read which key was pressed to toggle an input event?

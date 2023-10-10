@@ -2,7 +2,11 @@
 
 #include "GameLevel.h"
 
-
+#include "Components/SceneComponent.h"
+#include "Node.h"
+#include "ProceduralMeshComponent.h"
+#include "Shape.h"
+#include "Grammar.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -28,104 +32,35 @@ void AGameLevel::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// CreateShape();
-	
-	// CreateShapeWithDimension();
-
-	/*
-	// aisle : z * X * Y
-	// X*Y == an entire plane of points
-	X = 5; // column
-	Y = 5; // Row
-	Z = 3; // aisle
-	TArray<int> Matrix = {
-		// Row
-		0, 1, 1, 1, 0,		0, 0, 0, 0, 0,		0, 0, 0, 0, 0,		0, 0, 0, 0, 0,		0, 0, 0, 0, 0, // An aisle
-		0, 0, 0, 0, 0,		0, 1, 1, 1, 0,		0, 1, 1, 1, 0,		0, 1, 1, 1, 0,		0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0,		0, 0, 0, 0, 0,		0, 0, 0, 0, 0,		0, 0, 0, 0, 0,		0, 1, 1, 1, 0
-	};
-	CreateShapeFromMatrix(Matrix);
-	*/
-
-	// Partition();
-
-	/*
-	FNode* n1 = new FNode();
-	n1->Location = FVector(0, 0, 0); // Where the actor is
-	n1->Width = 2.f;
-	n1->TypeName = "hallway";
-	n1->ID = FString("n1");
-
-	GenerateTree(n1); // Extending the test tree
-	GenerateGeometry(n1); // Constructing geometry for the tree
-
-	// Deleting tree
-	FNode* Current = n1;
-	FNode* Next;
-	while (Current->Adjacent.Num())
+	if (!GrammarClass)
 	{
-		Next = Current->Adjacent[0];
-		FNode* Temp = Current;
-		Current = Next;
-		delete Temp;
-	} 
-	*/
-
+		UE_LOG(LogTemp, Error, TEXT("AGameLevel::BeginPlay -- !Grammar"));
+		return;
+	}
+	Grammar = NewObject<UGrammar>(this, GrammarClass);
+	Grammar->GameLevel = this;
 
 	// -- Making Test Shape -- //
 	UShape* Shape = NewObject<UShape>(this);
-	Shape->MyActor = this;
 	UShape::InitCube(Shape);
-	Shape->SetScale(Scale);
-
-
-	TArray<FFace*> BaseFaces;
-	for (FFace* Face : Shape->Faces)
-	{	
-		BaseFaces.Add(Face);
-	}
-
-
-	/*
-	// -- Test 1 -- //
-	while (true)
-	{
-		if (BaseFaces.Num() == 0) break;
-
-		FFace* Face = BaseFaces.Pop();
-		Shape->ExtrudeFace(*Face, 0.5 * Scale, new FFace());
-	}
-	Shape->ExtrudeFace(*Shape->Faces[Shape->Faces.Num()-5], 0.5 * Scale, new FFace());
+	Shape->SetScale(FVector(1, 1, 0.5) * Scale); // Lows ceilings
+	Shape->Label = "start";
+	Shapes.Add(Shape->Label, Shape);
 	
-	FFace* Face1 = new FFace();
-	Shape->SubdivideFace(*Shape->Faces[Shape->Faces.Num() - 5], EFaceAxis::X, 0.5, Face1, new FFace());
-	FFace* Face2 = new FFace();
-	Shape->ExtrudeFace(*Shape->Faces[Shape->Faces.Num() - 1], 0.5 * Scale, Face2);
-	Shape->MoveFace(*Face2, -FVector(0.25,0.25,1) * Scale);
-	*/
 
-	// -- Test 2 -- //
-	for (int i = 0; i < 5; i++)
+	int NumMutations = (FMath::Rand() % 3) + 3;
+	for (int i = 0; i < NumMutations; i++)
 	{
-		if ((FMath::Rand() % 10) > 3) {
-			Shape->ExtrudeFace(
-				*Shape->Faces[ FMath::Rand() % Shape->Faces.Num() ], 
-				((FMath::FRand() / 2.f) + 1.f) * Scale, 
-				new FFace()
-			);
-		}
-		else {
-			Shape->SubdivideFace(*Shape->Faces[FMath::Rand() % Shape->Faces.Num()], EFaceAxis::X,  0.75, new FFace(), new FFace());
-		}
+		Grammar->Mutate(Shapes);
 	}
 
 
-	MakeMeshFromShape(Shape);
+	MakeMesh();
 }
 
 
 
-void AGameLevel::MakeMeshFromShape(UShape* Shape)
+void AGameLevel::MakeMesh()
 {
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
@@ -136,64 +71,80 @@ void AGameLevel::MakeMeshFromShape(UShape* Shape)
 
 	int Counter = 0;
 
-	// TODO: Use a set to reuse verts that are already in the procedural mesh
-	for (FFace* Face : Shape->Faces)
+	TArray<UShape*> ShapeValues;
+	Shapes.GenerateValueArray(ShapeValues);
+	
+	for (UShape* Shape : ShapeValues)
 	{
-		Vertices.Add(Face->Vertices[0]->Location);
-		Vertices.Add(Face->Vertices[1]->Location);
-		Vertices.Add(Face->Vertices[2]->Location);
-		Vertices.Add(Face->Vertices[3]->Location);
+		for (FFace* Face : Shape->Faces)
+		{
+			Vertices.Add(Face->Vertices[0]->Location);
+			Vertices.Add(Face->Vertices[1]->Location);
+			Vertices.Add(Face->Vertices[2]->Location);
+			Vertices.Add(Face->Vertices[3]->Location);
 
 
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
-		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
+			DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);
+			DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 5, 12, FColor::Orange, true);
+			DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 5, 12, FColor::Orange, true);
+			DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 5, 12, FColor::Orange, true);
 
 
-		Triangles.Add(0 + Counter * 4); // Upper Left
-		Triangles.Add(1 + Counter * 4); // Bottom Left
-		Triangles.Add(3 + Counter * 4); // Upper Right
+			Triangles.Add(0 + Counter * 4); // Upper Left
+			Triangles.Add(1 + Counter * 4); // Bottom Left
+			Triangles.Add(3 + Counter * 4); // Upper Right
 
-		Triangles.Add(3 + Counter * 4); // Upper Right
-		Triangles.Add(1 + Counter * 4); // Bottom Left
-		Triangles.Add(2 + Counter * 4); // Bottom Right
+			Triangles.Add(3 + Counter * 4); // Upper Right
+			Triangles.Add(1 + Counter * 4); // Bottom Left
+			Triangles.Add(2 + Counter * 4); // Bottom Right
 
-		// TODO: Face->Normal needs to be set
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
-		Normals.Add(Face->Normal);
+			// TODO: Face->Normal needs to be set
+			Normals.Add(Face->Normal);
+			Normals.Add(Face->Normal);
+			Normals.Add(Face->Normal);
+			Normals.Add(Face->Normal);
 
-		UV0.Add(FVector2D(0, 0));
-		UV0.Add(FVector2D(10, 0));
-		UV0.Add(FVector2D(10, 10));
-		UV0.Add(FVector2D(0, 10));
+			UV0.Add(FVector2D(0, 0));
+			UV0.Add(FVector2D(10, 0));
+			UV0.Add(FVector2D(10, 10));
+			UV0.Add(FVector2D(0, 10));
 
-		// TODO
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
-		Tangents.Add(FProcMeshTangent());
+			// TODO
+			Tangents.Add(FProcMeshTangent());
+			Tangents.Add(FProcMeshTangent());
+			Tangents.Add(FProcMeshTangent());
+			Tangents.Add(FProcMeshTangent());
 
-		// TODO: Remove?
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+			// TODO: Remove?
+			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 
-		++Counter;
+			++Counter;
+		}
 	}
-
+	
+	/* NOTE:  this is an issue that comes from having no meta object representing the mesh as whole */
 	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
-
 	// Enable collision data
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
 
+/* Debugging function */
+void AGameLevel::PrintShapes()
+{
+	TArray<FString> Keys;
+	Shapes.GenerateKeyArray(Keys);
+	
+	UE_LOG(LogTemp, Warning, TEXT("AGameLevel::PrintShapes -- BEGIN"));
 
-
+	for (FString Key : Keys)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::PrintShapes -- %s"), *Key);
+	}
+}
 
 
 
@@ -322,12 +273,6 @@ void AGameLevel::GenerateGeometry(FNode* Node)
 	// Enable collision data
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
-
-
-
-
-
-
 
 void AGameLevel::CreateShape()
 {

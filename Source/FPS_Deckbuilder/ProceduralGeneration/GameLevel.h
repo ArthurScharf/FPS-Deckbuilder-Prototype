@@ -1,22 +1,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-#include "Components/SceneComponent.h"
-#include "Node.h"
-#include "ProceduralMeshComponent.h"
-#include "Shape.h"
-
-
-
 #include "GameFramework/Actor.h"
 #include "GameLevel.generated.h"
 
 
+class UProceduralMeshComponent;
+class USceneComponent;
+class UShape;
+class UGrammar;
+struct FNode;
 
 
 
-
+/* High level control object. Uses a passed grammar to construct a series of shapes that make up the level geometry 
+*/
 UCLASS()
 class FPS_DECKBUILDER_API AGameLevel : public AActor
 {
@@ -32,24 +30,18 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void MakeMesh();
+	
+
+	// -- DEPRECATED -- //
 	void CreateShape();
-
 	void CreateShapeWithDimension();
-
 	void CreateShapeFromMatrix(const TArray<int>& Matrix);
-
 	void Partition();
-
 	// `Node` is the starting node for generation
 	void GenerateGeometry(FNode* Node);
-
 	// Tail : Tail of graph that's already been created
 	void GenerateTree(FNode* Tail);
-
-
-	
-	void MakeMeshFromShape(UShape* Shape);
-	
 
 
 private:
@@ -64,17 +56,26 @@ private:
 		return IndexMap((int)Coordinates[0], (int)Coordinates[1], (int)Coordinates[2]);
 	}
 
+
+	void PrintShapes();
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	USceneComponent* SceneComponent;
 
-	UPROPERTY(EditAnywhere) // TODO: Remove BLueprintReadWrite once we have set the texture appropriately
+	UPROPERTY(EditAnywhere) 
 	UProceduralMeshComponent* Mesh;
+
+	/* The class of generative grammar that will be used to generate the level geometry */
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGrammar> GrammarClass;
+
+	UGrammar* Grammar;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Scale;
 
-	/* Level Dimensions */
+	/* Level Dimensions */ // DEPRECATED 
 	UPROPERTY(EditDefaultsOnly)
 	int X;
 	UPROPERTY(EditDefaultsOnly)
@@ -82,10 +83,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	int Z;
 
+	/* Map of shapes currently comprising the level. 
+	* Key: Label for the shapes stored there
+	* 
+	*/
+	TMultiMap<FString, UShape*> Shapes;
 
-
-	// Integers. Dimensions of the level measured in level 1 cells
-	UPROPERTY(EditDefaultsOnly)
-	FVector LevelDimensions;
+public:
+	FORCEINLINE float GetScale() { return Scale; }
 };
 

@@ -37,7 +37,7 @@ public:
 	FVertex()
 	{
 		ID = NextVertexID++;
-		UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FVertex_ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FVertex_ID: %d"), ID);
 	}
 
 	inline uint32 GetID() const { return ID; }
@@ -61,7 +61,9 @@ enum EFaceAxis
 
 static int NextFaceID = 0;
 
-/* A face on a shape*/
+/* A face on a shape
+*  Face labels : {floor, roof, forward, back, left, right}
+*/
 USTRUCT()
 struct FFace
 {
@@ -75,6 +77,9 @@ public:
 
 	FVector Normal;
 
+	/* Set by grammer and used by grammer to detect and modify/replace this face in a shape*/
+	FString Label; 
+
 private:
 	uint32 ID;
 
@@ -82,7 +87,67 @@ public:
 	FFace()
 	{
 		ID = NextFaceID++;
-		UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FFace_ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FFace_ID: %d"), ID);
+	}
+
+	void SetScale(float Scale)
+	{
+		if (Vertices.Num() == 0) return;
+
+		// -- Calculating the face center -- // 
+		FVector FaceCenter;
+		float X = 0;
+		float Y = 0;
+		float Z = 0;
+		int Num = Vertices.Num();
+		for (FVertex* Vertex : Vertices)
+		{
+			X += Vertex->Location.X;
+			Y += Vertex->Location.Y;
+			Z += Vertex->Location.Z;
+		}
+		X /= Num;
+		Y /= Num;
+		Z /= Num;
+		FaceCenter = FVector(X, Y, Z);
+
+		// -- Centering on 0, and scaling, Then centering at original center -- //
+		for (FVertex* Vertex : Vertices)
+		{
+			Vertex->Location -= FaceCenter;
+			Vertex->Location *= Scale;
+			Vertex->Location += FaceCenter;
+		}
+	}
+
+	void SetScale(FVector Scale)
+	{
+		if (Vertices.Num() == 0) return;
+
+		// -- Calculating the face center -- // 
+		FVector FaceCenter;
+		float X;
+		float Y;
+		float Z;
+		int Num;
+		for (FVertex* Vertex : Vertices)
+		{
+			X += Vertex->Location.X;
+			Y += Vertex->Location.Y;
+			Z += Vertex->Location.Z;
+		}
+		X /= Num;
+		Y /= Num;
+		Z /= Num;
+		FaceCenter = FVector(X, Y, Z);
+
+		// -- Centering on 0, and scaling, Then centering at original center -- //
+		for (FVertex* Vertex : Vertices)
+		{
+			Vertex->Location -= FaceCenter;
+			Vertex->Location *= Scale;
+			Vertex->Location += FaceCenter;
+		}
 	}
 
 	void SetAdjacency()
@@ -108,8 +173,14 @@ public:
 
 
 
+//static int NextShapeID = 0;
+
 /**
+ * Holds and exposes methods for manipulating Faces and their vertices.
+ * Each shape also has a `Label` string. `Label` is set by a grammar and used
+ * by said grammar for replacement.
  * 
+ * NOTE: A single shape can share vertices with another
  */
 UCLASS()
 class FPS_DECKBUILDER_API UShape : public UObject
@@ -117,12 +188,15 @@ class FPS_DECKBUILDER_API UShape : public UObject
 	GENERATED_BODY()
 
 
+	//UShape();
 
 public:
 	static void InitCube(UShape* Shape);
 
 	// -- Modifier Methods -- //
 	void SetScale(float Scale);
+
+	void SetScale(FVector Scale);
 
 	void MoveFace(FFace& Face, const FVector& DeltaLocation);
  
@@ -135,9 +209,22 @@ public:
 
 	void ExtrudeFace(FFace& Face, float Distance, FFace* OutFace);
 
+
+	FFace* FindFaceByLabel(FString _Label);
+
+
 public:
+	FString Label;
+
 	TArray<FFace*> Faces;
 
-	AActor* MyActor;
+//private:
+//	uint32 ID;
 
+//public:
+//	FORCEINLINE uint32 GetID() const { return ID; }
 };
+
+//// -- Enables usage with TSet & TMultiMap -- //
+//FORCEINLINE uint32 GetTypeHash(const UShape& Shape) { return Shape.GetID(); }
+//FORCEINLINE bool operator==(const UShape& lhs, const UShape& rhs) { return lhs.GetID() == rhs.GetID(); }
