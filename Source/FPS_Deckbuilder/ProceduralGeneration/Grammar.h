@@ -20,7 +20,7 @@ class UShape;
  * Replace those patterns with other patterns
  * NOTE: Certains labels are always potentially findable. These are
  * Shape labels: {start, }
- * Face labels : {floor, roof, forward, backward, left, right}
+ * Face labels : {floor, ceiling, forward, backward, left, right}
  */
 UCLASS()
 class FPS_DECKBUILDER_API UGrammar : public UObject

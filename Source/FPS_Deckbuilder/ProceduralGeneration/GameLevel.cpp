@@ -48,10 +48,25 @@ void AGameLevel::BeginPlay()
 	Shapes.Add(Shape->Label, Shape);
 	
 
-	int NumMutations = (FMath::Rand() % 3) + 3;
+	int NumMutations = 8;//(FMath::Rand() % 3) + 10;
 	for (int i = 0; i < NumMutations; i++)
 	{
 		Grammar->Mutate(Shapes);
+	}
+
+	
+
+
+
+	// -- TEMP: Debugging -- // 
+	TArray<UShape*> ShapeValues;
+	Shapes.GenerateValueArray(ShapeValues);
+	for (UShape* _Shape : ShapeValues)
+	{
+		for (FFace* Face : _Shape->Faces)
+		{
+			Face->DrawLabel(this);
+		}
 	}
 
 
@@ -78,10 +93,10 @@ void AGameLevel::MakeMesh()
 	{
 		for (FFace* Face : Shape->Faces)
 		{
-			Vertices.Add(Face->Vertices[0]->Location);
-			Vertices.Add(Face->Vertices[1]->Location);
-			Vertices.Add(Face->Vertices[2]->Location);
 			Vertices.Add(Face->Vertices[3]->Location);
+			Vertices.Add(Face->Vertices[2]->Location);
+			Vertices.Add(Face->Vertices[1]->Location);
+			Vertices.Add(Face->Vertices[0]->Location);
 
 
 			DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 5, 12, FColor::Orange, true);

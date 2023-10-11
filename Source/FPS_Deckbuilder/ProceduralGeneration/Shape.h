@@ -3,8 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "DrawDebugHelpers.h"
+
 #include "UObject/NoExportTypes.h"
 #include "Shape.generated.h"
+
 
 
 
@@ -25,9 +29,6 @@ public:
 	// Adjacent vertices. Order doesn't matter. TODO: Convert to Set
 	TArray<FVertex*> Adjacent;
 
-	// Index for finding this vertex within the procedural mesh component
-	int ProceduralMeshIndex;
-
 private:
 	uint32 ID;
 
@@ -37,15 +38,27 @@ public:
 	FVertex()
 	{
 		ID = NextVertexID++;
-		// UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FVertex_ID: %d"), ID);
+		UE_LOG(LogTemp, Warning, TEXT("FVertex() -- ID: %d"), ID);
 	}
 
-	inline uint32 GetID() const { return ID; }
+	FVertex(const FVector& _Location)
+	{
+		Location = _Location; 
+	}
+
+	FVertex(const FVertex& Vertex)
+	{
+		ID = NextVertexID++;
+		Location = Vertex.Location;
+		UE_LOG(LogTemp, Warning, TEXT("FVertex(COPY) -- ID: %d"), ID);
+	}
+	
+	//inline uint32 GetID() const { return ID; }
 };
 
 // -- Enables usage with TSet -- //
-FORCEINLINE uint32 GetTypeHash(const FVertex& Vertex) { return Vertex.GetID(); }
-FORCEINLINE bool operator==(const FVertex& lhs, const FVertex& rhs) { return lhs.GetID() == rhs.GetID(); }
+//FORCEINLINE uint32 GetTypeHash(const FVertex& Vertex) { return Vertex.GetID(); }
+//FORCEINLINE bool operator==(const FVertex& lhs, const FVertex& rhs) { return lhs.GetID() == rhs.GetID(); }
 
 
 
@@ -78,7 +91,7 @@ public:
 	FVector Normal;
 
 	/* Set by grammer and used by grammer to detect and modify/replace this face in a shape*/
-	FString Label; 
+	FString Label;
 
 private:
 	uint32 ID;
@@ -87,15 +100,30 @@ public:
 	FFace()
 	{
 		ID = NextFaceID++;
-		// UE_LOG(LogTemp, Warning, TEXT("FFace::FFace -- FFace_ID: %d"), ID);
+		UE_LOG(LogTemp, Warning, TEXT("FFace() -- ID: %d"), ID);
 	}
 
-	void SetScale(float Scale)
+	FFace(const FFace& Face)
 	{
-		if (Vertices.Num() == 0) return;
+		ID = NextFaceID++;
+
+		FVertex* NewVertex;
+		for (FVertex* Vertex : Face.Vertices)
+		{
+			NewVertex = new FVertex(*Vertex);
+			NewVertex->Adjacent.RemoveAll([&](const FVertex* v)->bool{ return true; });
+			Vertices.Add( NewVertex );
+		}
+		SetAdjacency();
+
+		UE_LOG(LogTemp, Warning, TEXT("FFace(COPY) -- ID: %d"), ID);
+	}
+
+	FVector GetFaceCenter()
+	{
+		if (Vertices.Num() == 0) return FVector(0);
 
 		// -- Calculating the face center -- // 
-		FVector FaceCenter;
 		float X = 0;
 		float Y = 0;
 		float Z = 0;
@@ -109,7 +137,15 @@ public:
 		X /= Num;
 		Y /= Num;
 		Z /= Num;
-		FaceCenter = FVector(X, Y, Z);
+		return FVector(X, Y, Z);
+	}
+
+	void SetScale(float Scale)
+	{
+		if (Vertices.Num() == 0) return;
+
+		// -- Calculating the face center -- // 
+		FVector FaceCenter = GetFaceCenter();
 
 		// -- Centering on 0, and scaling, Then centering at original center -- //
 		for (FVertex* Vertex : Vertices)
@@ -125,21 +161,7 @@ public:
 		if (Vertices.Num() == 0) return;
 
 		// -- Calculating the face center -- // 
-		FVector FaceCenter;
-		float X;
-		float Y;
-		float Z;
-		int Num;
-		for (FVertex* Vertex : Vertices)
-		{
-			X += Vertex->Location.X;
-			Y += Vertex->Location.Y;
-			Z += Vertex->Location.Z;
-		}
-		X /= Num;
-		Y /= Num;
-		Z /= Num;
-		FaceCenter = FVector(X, Y, Z);
+		FVector FaceCenter = GetFaceCenter();
 
 		// -- Centering on 0, and scaling, Then centering at original center -- //
 		for (FVertex* Vertex : Vertices)
@@ -154,11 +176,28 @@ public:
 	{
 		int N = Vertices.Num();
 		for (int i = 0; i < N; i++)
-		{			
+		{
 			// the ternaries are checking for the need to loop. Can't use C++ `%` bacause negative left-hand values return negative numbers, unlike in true math
-			Vertices[i]->Adjacent.Add(Vertices[(i == N-1) ? 0 : i]); // Vertex immediately clockwise
-			Vertices[i]->Adjacent.Add(Vertices[(i == 0  ) ? N-1 : i]); // Vertex immediately counter clockwise
+			Vertices[i]->Adjacent.Add(Vertices[(i == N - 1) ? 0 : i]); // Vertex immediately clockwise
+			Vertices[i]->Adjacent.Add(Vertices[(i == 0) ? N - 1 : i]); // Vertex immediately counter clockwise
 		}
+	}
+
+	/* TEMP: debugging */
+	void DrawLabel(AActor* WorldReference)
+	{
+		if (Vertices.Num() == 0) return;
+
+		DrawDebugString(
+			WorldReference->GetWorld(),
+			GetFaceCenter() + WorldReference->GetActorLocation() + Normal * 10.f,
+			Label,
+			(AActor*)0,
+			FColor::White,
+			30.f,
+			true,
+			1.f
+		);
 	}
 
 	// Enables Usage with TSet
@@ -188,8 +227,6 @@ class FPS_DECKBUILDER_API UShape : public UObject
 	GENERATED_BODY()
 
 
-	//UShape();
-
 public:
 	static void InitCube(UShape* Shape);
 
@@ -209,6 +246,11 @@ public:
 
 	void ExtrudeFace(FFace& Face, float Distance, FFace* OutFace);
 
+	/* Percent : percent of Face's area outfaces area covers 
+	*  NOTE: Destroys the old face data, replacing it with the new faces being created
+	*/
+	void InsetFace(FFace& Face, float Percent, FFace* OutFace);
+
 
 	FFace* FindFaceByLabel(FString _Label);
 
@@ -217,14 +259,5 @@ public:
 	FString Label;
 
 	TArray<FFace*> Faces;
-
-//private:
-//	uint32 ID;
-
-//public:
-//	FORCEINLINE uint32 GetID() const { return ID; }
 };
 
-//// -- Enables usage with TSet & TMultiMap -- //
-//FORCEINLINE uint32 GetTypeHash(const UShape& Shape) { return Shape.GetID(); }
-//FORCEINLINE bool operator==(const UShape& lhs, const UShape& rhs) { return lhs.GetID() == rhs.GetID(); }
