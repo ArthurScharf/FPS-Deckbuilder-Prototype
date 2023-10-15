@@ -38,7 +38,7 @@ public:
 	FVertex()
 	{
 		ID = NextVertexID++;
-		UE_LOG(LogTemp, Warning, TEXT("FVertex() -- ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FVertex() -- ID: %d"), ID);
 	}
 
 	FVertex(const FVector& _Location)
@@ -50,7 +50,7 @@ public:
 	{
 		ID = NextVertexID++;
 		Location = Vertex.Location;
-		UE_LOG(LogTemp, Warning, TEXT("FVertex(COPY) -- ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FVertex(COPY) -- ID: %d"), ID);
 	}
 	
 	//inline uint32 GetID() const { return ID; }
@@ -100,7 +100,7 @@ public:
 	FFace()
 	{
 		ID = NextFaceID++;
-		UE_LOG(LogTemp, Warning, TEXT("FFace() -- ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FFace() -- ID: %d"), ID);
 	}
 
 	FFace(const FFace& Face)
@@ -116,7 +116,7 @@ public:
 		}
 		SetAdjacency();
 
-		UE_LOG(LogTemp, Warning, TEXT("FFace(COPY) -- ID: %d"), ID);
+		// UE_LOG(LogTemp, Warning, TEXT("FFace(COPY) -- ID: %d"), ID);
 	}
 
 	FVector GetFaceCenter()
@@ -183,10 +183,45 @@ public:
 		}
 	}
 
+	FVector2D GetDimensions()
+	{
+		return FVector2D(
+			(Vertices[1]->Location - Vertices[0]->Location).Size(),
+			(Vertices[3]->Location - Vertices[0]->Location).Size()
+		);
+	}
+
+	/* Using UV coordinates, returns a location on the face */
+	void GetPositionOnFace(float U, float V, FVector& OutLocalOffset)
+	{
+		OutLocalOffset = Vertices[0]->Location + 
+			((Vertices[1]->Location - Vertices[0]->Location) * U) +
+			((Vertices[3]->Location - Vertices[0]->Location) * V);
+	}
+
+	/*
+	* RelativeOffset : Offset of position in units from Vertices[0].
+	*	RelativeOffset.X : U direction
+	*	RelativeOffset.Y : V direction
+	* 
+	* Can exceed bounds of face
+	*/
+	void GetPositionOnFace(FVector2D& RelativeOffset, FVector& OutLocalOffset)
+	{
+		FVector U_Direction = (Vertices[1]->Location- Vertices[0]->Location);
+		U_Direction.Normalize();
+		U_Direction *= RelativeOffset.X;
+		FVector V_Direction = (Vertices[3]->Location - Vertices[0]->Location);
+		V_Direction.Normalize();
+		V_Direction *= RelativeOffset.Y;
+		OutLocalOffset = U_Direction + V_Direction + Vertices[0]->Location;
+	}
+
 	/* TEMP: debugging */
-	void DrawLabel(AActor* WorldReference)
+	void DrawLabel(AActor* WorldReference, bool bDrawVerts)
 	{
 		if (Vertices.Num() == 0) return;
+
 
 		DrawDebugString(
 			WorldReference->GetWorld(),
@@ -198,6 +233,25 @@ public:
 			true,
 			1.f
 		);
+		
+
+		if (bDrawVerts)
+		{
+			for (int i = 0; i < Vertices.Num(); i++)
+			{
+				DrawDebugString(
+					WorldReference->GetWorld(),
+					Vertices[i]->Location + WorldReference->GetActorLocation() + Normal * 10.f,
+					FString::FromInt(i),
+					(AActor*)0,
+					FColor::White,
+					500.f,
+					true,
+					1.f
+				);
+			}
+		}
+		
 	}
 
 	// Enables Usage with TSet
@@ -230,6 +284,8 @@ class FPS_DECKBUILDER_API UShape : public UObject
 public:
 	static void InitCube(UShape* Shape);
 
+	static void InitPlane(UShape* Shape);
+
 	// -- Modifier Methods -- //
 	void SetScale(float Scale);
 
@@ -250,7 +306,6 @@ public:
 	*  NOTE: Destroys the old face data, replacing it with the new faces being created
 	*/
 	void InsetFace(FFace& Face, float Percent, FFace* OutFace);
-
 
 	FFace* FindFaceByLabel(FString _Label);
 

@@ -42,21 +42,35 @@ void AGameLevel::BeginPlay()
 
 	// -- Making Test Shape -- //
 	UShape* Shape = NewObject<UShape>(this);
-	UShape::InitCube(Shape);
+	UShape::InitCube(Shape); // UShape::InitPlane(Shape);
 	Shape->SetScale(FVector(1, 1, 0.5) * Scale); // Lows ceilings
 	Shape->Label = "start";
 	Shapes.Add(Shape->Label, Shape);
 	
+	// Shape->SetScale(FVector(1) * Scale);
+	//FFace* f = Shape->Faces[0];
+	//for (int i = 0; i < f->Vertices.Num(); i++)
+	//{
+	//	DrawDebugString(GetWorld(), f->Vertices[i]->Location + GetActorLocation(), FString::FromInt(i), (AActor*)0, FColor::Black, 600.f);
+	//}
+	//FVector2D LocalOffset = FVector2D(300, 300);
+	//FVector Location;
+	//f->GetPositionOnFace(LocalOffset, Location);
+	////f->GetPositionOnFace(0.5, 0.5, Location);
+	//Location += GetActorLocation();
+	//DrawDebugSphere(GetWorld(), Location, 50, 12, FColor::Orange, true);
+	//MakeMesh();
+	//return;
 
-	int NumMutations = 8;//(FMath::Rand() % 3) + 10;
+	int NumMutations = 20;  // (FMath::Rand() % 3) + 10;
 	for (int i = 0; i < NumMutations; i++)
 	{
 		Grammar->Mutate(Shapes);
 	}
 
-	
 
-
+	MakeMesh();
+	return;
 
 	// -- TEMP: Debugging -- // 
 	TArray<UShape*> ShapeValues;
@@ -65,12 +79,9 @@ void AGameLevel::BeginPlay()
 	{
 		for (FFace* Face : _Shape->Faces)
 		{
-			Face->DrawLabel(this);
+			Face->DrawLabel(this, false);
 		}
 	}
-
-
-	MakeMesh();
 }
 
 

@@ -56,7 +56,19 @@ void UShape::InitCube(UShape* Shape)
 	Shape->Faces = { f1, f2, f3, f4, f5, f6 };
 }
 
+void UShape::InitPlane(UShape* Shape)
+{
+	FFace* Face = new FFace();
+	FVertex* v1 = new FVertex(FVector(0, 0, 0));
+	FVertex* v2 = new FVertex(FVector(1, 0, 0));
+	FVertex* v3 = new FVertex(FVector(1, 0, 1));
+	FVertex* v4 = new FVertex(FVector(0, 0, 1));
+	Face->Vertices.Append({ v1, v2, v3, v4 });
+	Face->SetAdjacency();
+	Face->Normal = FVector(0, 0, 1);
 
+	Shape->Faces.Add(Face);
+}
 
 // -- Member Functions  -- // 
 void UShape::SetScale(float Scale)
@@ -194,37 +206,37 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	
 	FFace* f2 = new FFace();
 	f2->Label = "left";
+	f2->Vertices.Add(OutFace->Vertices[2]);
 	f2->Vertices.Add(OutFace->Vertices[1]);
 	f2->Vertices.Add(Face.Vertices[1]);
 	f2->Vertices.Add(Face.Vertices[2]);
-	f2->Vertices.Add(OutFace->Vertices[2]);
+	
 	
 
 	FFace* f3 = new FFace();
-	f3->Label = "roof";
+	f3->Label = "ceiling";
+	f3->Vertices.Add(OutFace->Vertices[2]);
 	f3->Vertices.Add(Face.Vertices[2]);
 	f3->Vertices.Add(Face.Vertices[3]);
 	f3->Vertices.Add(OutFace->Vertices[3]);
-	f3->Vertices.Add(OutFace->Vertices[2]);
 	
 
 	FFace* f4 = new FFace();
 	f4->Label = "right";
-	
-	f4->Vertices.Add(Face.Vertices[0]);
 	f4->Vertices.Add(OutFace->Vertices[0]);
 	f4->Vertices.Add(OutFace->Vertices[3]);
 	f4->Vertices.Add(Face.Vertices[3]);
+	f4->Vertices.Add(Face.Vertices[0]);
 
 	Faces.Append({ f1, f2, f3, f4 });
 	
 
-	// -- Using face verts to construct vectors which are then used to find the normal -- //
+	// -- Constructing Normals  -- //
 	FVector t1;
 	FVector t2;
 	
-	t1 = f1->Vertices[1]->Location - f1->Vertices[0]->Location;
-	t2 = f1->Vertices[3]->Location - f1->Vertices[0]->Location;
+	t1 = f1->Vertices[0]->Location - f1->Vertices[1]->Location;
+	t2 = f1->Vertices[0]->Location - f1->Vertices[3]->Location;
 	f1->Normal = FVector::CrossProduct(t1, t2);
 	f1->Normal.Normalize();
 

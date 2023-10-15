@@ -3,16 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-
-
 #include "UObject/NoExportTypes.h"
 #include "Grammar.generated.h"
 
 
 class AGameLevel;
 class UShape;
-
+struct FNode;
 
 
 /**
@@ -30,9 +27,15 @@ class FPS_DECKBUILDER_API UGrammar : public UObject
 public:
 	void Mutate(TMultiMap<FString, UShape*>& Shapes);
 
+private:
+	/* Helper method for avoiding programming mistakes */
+	void MigrateShape(FString NewLabel, UShape* Shape, TMultiMap<FString, UShape*>& Shapes);
+
+public:
 	AGameLevel* GameLevel; // Needed to set the outer on new shapes being created
 
 private:
-	TMap<FString, TFunction<void (UShape* Shape)>> Rules;
-	
+	TMap<FString, TFunction<void (UShape* Shape)>> ShapeRules;
+
+	TMap<FString, TFunction<void(FNode* Node)>> NodeRules;
 };

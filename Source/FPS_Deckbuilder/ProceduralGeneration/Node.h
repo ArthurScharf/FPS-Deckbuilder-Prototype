@@ -4,7 +4,7 @@
 
 
 
-// static int NodeID = 4;
+static int NextNodeID = 0;
 
 
 //USTRUCT()
@@ -23,16 +23,16 @@ struct FNode
 	float Width;
 
 	// UPROPERTY()
-	FString ID;
+	int ID;
 
 	// UPROPERTY()
 	FName TypeName;
 
 	FNode()
 	{
+		ID = NextNodeID++;
 		Location = FVector(0);
 		Width = 0.f;
-		ID = FString("-1");
 		TypeName = FName("");
 	}
 };
