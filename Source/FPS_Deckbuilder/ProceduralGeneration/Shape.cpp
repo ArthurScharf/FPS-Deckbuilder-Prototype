@@ -3,10 +3,15 @@
 
 
 
+#include "DrawDebugHelpers.h"
 
+
+/*
 // --  Static Functions -- //
-void UShape::InitCube(UShape* Shape)
+UShape* UShape::CreateCube(FVector Extent);
 {
+	UShape* Shape = UShape();
+
 	// Shifted by (-0.5, -0.5, -0.5) to center it
 	FVertex* v1 = new FVertex(FVector(-0.5, -0.5, -0.5));
 	FVertex* v2 = new FVertex(FVector(-0.5,  0.5, -0.5));
@@ -54,21 +59,86 @@ void UShape::InitCube(UShape* Shape)
 	f6->SetAdjacency();
 
 	Shape->Faces = { f1, f2, f3, f4, f5, f6 };
-}
 
-void UShape::InitPlane(UShape* Shape)
+	return Shape;
+}
+*/
+
+/*
+UShape* UShape::CreateCylinder(int NumFaces, int Height)
 {
-	FFace* Face = new FFace();
-	FVertex* v1 = new FVertex(FVector(0, 0, 0));
-	FVertex* v2 = new FVertex(FVector(1, 0, 0));
-	FVertex* v3 = new FVertex(FVector(1, 0, 1));
-	FVertex* v4 = new FVertex(FVector(0, 0, 1));
-	Face->Vertices.Append({ v1, v2, v3, v4 });
-	Face->SetAdjacency();
-	Face->Normal = FVector(0, 0, 1);
+	 -- NOTES --
+	// Arraying the faces radially around a central point.
+	// Num vert columns == NumFaces+1
+	//
+	// Order of verts observed from without cylinder
+	//	0 : upper left
+	//	1 : lower left
+	//	2 : lower right
+	//	3 : upper right
+	
+	// UShape* Shape = NewObject<UShape>();
 
+	FVector ZeroRotationVector(1, 0, 0);
+	FVector FloorVector(0, 0, -Height); // For incrementing in the Z
+
+	float Theta = 360.f / NumFaces;
+	FRotator Rotation(0, Theta, 0);
+	FRotator HalfRotation(0, -Theta / 2.f, 0); // Used for setting face normals. `-Theta` bc the normal of a face is calculated using the direction for the CurrentSet of vertices
+	FVector Direction(1, 0, 0);
+	Direction = Rotation.RotateVector(Direction);
+
+	// -- Creating First Face -- //
+	FFace* Face = new FFace();
+	FVertex* prev1 = new FVertex(ZeroRotationVector);
+	FVertex* prev2 = new FVertex(ZeroRotationVector + FloorVector);
+	FVertex* curr1 = new FVertex(Direction);
+	FVertex* curr2 = new FVertex(Direction + FloorVector);
+	Face->Vertices.Append({ prev1, prev2, curr2, curr1 });
+	Face->Normal = HalfRotation.RotateVector(Direction);
+	Face->SetAdjacency();
+	Face->Label = "cylinder_wall";
 	Shape->Faces.Add(Face);
+	
+	FFace* FirstFace = Face; // Needed to connect the loop
+
+	// -- Creating faces between first and last face -- //
+	for (int i = 1; i < NumFaces-1; i++)
+	{
+		prev1 = curr1;
+		prev2 = curr2;
+
+		Direction = Rotation.RotateVector(Direction); // Rotating by another Theta
+		curr1 = new FVertex(Direction);
+		curr2 = new FVertex(Direction + FloorVector);
+		
+		Face = new FFace();
+		Face->Vertices.Append({ prev1, prev2, curr2, curr1 });
+		Face->Normal = HalfRotation.RotateVector(Direction);
+		Face->SetAdjacency();
+		Face->Label = "cylinder_wall";
+		Shape->Faces.Add(Face);
+	}
+
+	// -- Creating Last Face -- //
+	Direction = Rotation.RotateVector(Direction);
+	FFace* LastFace = new FFace();
+	LastFace->Vertices.Append( // Finishing the loop
+		{
+			Face->Vertices[3],
+			Face->Vertices[2],
+			FirstFace->Vertices[1],
+			FirstFace->Vertices[0]
+		}
+	);
+	LastFace->Normal = HalfRotation.RotateVector(Direction);
+	LastFace->SetAdjacency();
+	LastFace->Label = "cylinder_wall";
+	Shape->Faces.Add(LastFace);
 }
+*/
+
+
 
 // -- Member Functions  -- // 
 void UShape::SetScale(float Scale)
@@ -105,6 +175,7 @@ void UShape::SetScale(FVector Scale)
 	}
 }
 
+// TODO: This should be a member of FFace, not UShape
 void UShape::MoveFace(FFace& Face, const FVector& DeltaLocation)
 {
 	for (FVertex* Vertex : Face.Vertices)
@@ -268,6 +339,8 @@ void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
 		OutFace->Vertices[i]->Adjacent.Add(Face.Vertices[i]);
 		Face.Vertices[i]->Adjacent.Add(OutFace->Vertices[i]);
 	}
+
+	OutFace->Normal = Face.Normal;
 
 	// -- Constructing new faces -- // NOTE: No SetAdjacency called required. Previous step set all adj that were needing setting
 	FFace* f1 = new FFace(); // Sub-Right

@@ -9,7 +9,8 @@ class UProceduralMeshComponent;
 class USceneComponent;
 class UShape;
 class UGrammar;
-struct FNode;
+class UGraphGrammar;
+struct FGeomNode;
 
 
 
@@ -30,18 +31,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	// TODO: Deprecated 
 	void MakeMesh();
 	
-
-	// -- DEPRECATED -- //
-	void CreateShape();
-	void CreateShapeWithDimension();
-	void CreateShapeFromMatrix(const TArray<int>& Matrix);
-	void Partition();
-	// `Node` is the starting node for generation
-	void GenerateGeometry(FNode* Node);
-	// Tail : Tail of graph that's already been created
-	void GenerateTree(FNode* Tail);
+	void MakeMesh(FGeomNode* Node);
 
 
 private:
@@ -50,14 +43,15 @@ private:
 	{
 		return column + (row * X) + (aisle * X * Y);
 	}
-
 	FORCEINLINE int IndexMap(FVector Coordinates)
 	{
 		return IndexMap((int)Coordinates[0], (int)Coordinates[1], (int)Coordinates[2]);
 	}
 
-
+	// -- Debugging Methods -- //
 	void PrintShapes();
+	void DrawGraph(FGeomNode* Head);
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -71,6 +65,14 @@ protected:
 	TSubclassOf<UGrammar> GrammarClass;
 
 	UGrammar* Grammar;
+
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGraphGrammar> GraphGrammarClass;
+
+	UGraphGrammar* GraphGrammar;
+
+
 
 	UPROPERTY(EditDefaultsOnly)
 	float Scale;
@@ -88,6 +90,9 @@ protected:
 	* 
 	*/
 	TMultiMap<FString, UShape*> Shapes;
+
+	UPROPERTY(EditAnywhere)
+	int NumMutations;
 
 public:
 	FORCEINLINE float GetScale() { return Scale; }

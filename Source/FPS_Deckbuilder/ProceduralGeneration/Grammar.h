@@ -25,17 +25,17 @@ class FPS_DECKBUILDER_API UGrammar : public UObject
 	GENERATED_BODY()
 
 public:
+	virtual void Init(TMultiMap<FString, UShape*>& Shapes);
+
 	void Mutate(TMultiMap<FString, UShape*>& Shapes);
 
-private:
+protected:
 	/* Helper method for avoiding programming mistakes */
 	void MigrateShape(FString NewLabel, UShape* Shape, TMultiMap<FString, UShape*>& Shapes);
 
 public:
 	AGameLevel* GameLevel; // Needed to set the outer on new shapes being created
 
-private:
+protected:
 	TMap<FString, TFunction<void (UShape* Shape)>> ShapeRules;
-
-	TMap<FString, TFunction<void(FNode* Node)>> NodeRules;
 };

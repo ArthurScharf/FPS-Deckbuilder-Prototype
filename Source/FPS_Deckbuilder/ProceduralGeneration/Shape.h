@@ -156,6 +156,7 @@ public:
 		}
 	}
 
+	/* BUG: Scale isn't being changed relative to the alignment of the face */
 	void SetScale(FVector Scale)
 	{
 		if (Vertices.Num() == 0) return;
@@ -167,10 +168,13 @@ public:
 		for (FVertex* Vertex : Vertices)
 		{
 			Vertex->Location -= FaceCenter;
-			Vertex->Location *= Scale;
+			Vertex->Location.X *= Scale.X;
+			Vertex->Location.Y *= Scale.Y;
+			Vertex->Location.Z *= Scale.Z;
 			Vertex->Location += FaceCenter;
 		}
 	}
+
 
 	void SetAdjacency()
 	{
@@ -282,9 +286,10 @@ class FPS_DECKBUILDER_API UShape : public UObject
 
 
 public:
-	static void InitCube(UShape* Shape);
+	// static UShape* CreateCube(FVector Extent);
 
-	static void InitPlane(UShape* Shape);
+	// static UShape* CreateCylinder(int NumFaces, int Height);
+
 
 	// -- Modifier Methods -- //
 	void SetScale(float Scale);
