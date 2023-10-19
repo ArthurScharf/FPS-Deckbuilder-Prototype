@@ -10,7 +10,7 @@ class USceneComponent;
 class UShape;
 class UGrammar;
 class UGraphGrammar;
-struct FGeomNode;
+class UGeomNode;
 
 
 
@@ -34,7 +34,7 @@ protected:
 	// TODO: Deprecated 
 	void MakeMesh();
 	
-	void MakeMesh(FGeomNode* Node);
+	void MakeMesh(UGeomNode* Node);
 
 
 private:
@@ -50,7 +50,7 @@ private:
 
 	// -- Debugging Methods -- //
 	void PrintShapes();
-	void DrawGraph(FGeomNode* Head);
+	void DrawGraph(UGeomNode* Head);
 
 
 protected:
@@ -73,8 +73,7 @@ protected:
 	UGraphGrammar* GraphGrammar;
 
 
-
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	float Scale;
 
 	/* Level Dimensions */ // DEPRECATED 

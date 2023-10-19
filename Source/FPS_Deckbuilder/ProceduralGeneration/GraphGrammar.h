@@ -7,7 +7,7 @@
 #include "GraphGrammar.generated.h"
 
 
-struct FGeomNode;
+class UGeomNode;
 
 /**
  * 
@@ -27,7 +27,7 @@ public:
 protected:
 	/* 1. Removes Node from bucket hash of label if node is there
 	*  2. Addes the Node to the correct bucket using it's new label as the hash */
-	void PutNode(FString NewLabel, FGeomNode* Node);
+	void PutNode(FString NewLabel, UGeomNode* Node);
 
 
 
@@ -49,15 +49,15 @@ protected:
 
 
 	/* Rules for transforming a node with a given label */
-	TMap<FString, TFunction<void(FGeomNode* Node)>> Rules;
+	TMap<FString, TFunction<void(UGeomNode* Node)>> Rules;
 
-	TMultiMap<FString, FGeomNode*> Nodes;
+	TMultiMap<FString, UGeomNode*> Nodes;
 
 	/* Stored to be returned when `GetGraph` is called*/
-	FGeomNode* Head;
+	UGeomNode* Head;
 
 public:
-	FORCEINLINE FGeomNode* GetGraph() { return Head; }
+	FORCEINLINE UGeomNode* GetGraph() { return Head; }
 
 	FORCEINLINE void SetScale(float _Scale) { Scale = _Scale; }
 

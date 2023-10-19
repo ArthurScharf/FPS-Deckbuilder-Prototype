@@ -15,5 +15,6 @@ class FPS_DECKBUILDER_API UTestGraphGrammar : public UGraphGrammar
 	GENERATED_BODY()
 
 	virtual void Init() override;
+
 	
 };

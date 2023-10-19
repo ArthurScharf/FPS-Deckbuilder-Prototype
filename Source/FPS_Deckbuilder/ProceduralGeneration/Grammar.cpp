@@ -1,5 +1,5 @@
-#include "GameLevel.h"
 #include "Grammar.h"
+#include "GameLevel.h"
 #include "Shape.h"
 
 void UGrammar::Init(TMultiMap<FString, UShape*>& Shapes)

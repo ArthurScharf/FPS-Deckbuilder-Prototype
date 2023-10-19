@@ -12,8 +12,8 @@ void UGraphGrammar::Mutate()
 
 	TArray<FString> Labels;
 	Rules.GetKeys(Labels);
-	FGeomNode* Node;
-	TFunction<void(FGeomNode* Node)> Rule;
+	UGeomNode* Node;
+	TFunction<void(UGeomNode* Node)> Rule;
 	for (FString Label : Labels)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGraphGrammar::Mutate -- Searching for Label: %s"), *Label);
@@ -29,7 +29,7 @@ void UGraphGrammar::Mutate()
 }
 
 
-void UGraphGrammar::PutNode(FString NewLabel, FGeomNode* Node)
+void UGraphGrammar::PutNode(FString NewLabel, UGeomNode* Node)
 {
 	Nodes.Remove(Node->Label, Node);
 	Node->Label = NewLabel;

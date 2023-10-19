@@ -12,7 +12,7 @@
 
 
 
-// Should this be here?
+// This should be a uint8
 static int NextVertexID = 0;
 
 // 

@@ -42,16 +42,33 @@ void AGameLevel::BeginPlay()
 	}
 	GraphGrammar = NewObject<UGraphGrammar>(this, GraphGrammarClass);
 	GraphGrammar->Init();
-	
+
 	// -- Mutating Graph -- //
-	GraphGrammar->Mutate();
+	for (int i = 0; i < NumMutations; i++)
+	{
+		GraphGrammar->Mutate();
+	}
 
 	// -- Constructing Geometry -- //
-	FGeomNode* Head = GraphGrammar->GetGraph();
+	UGeomNode* Head = GraphGrammar->GetGraph();
 	MakeMesh(Head);
+
+	//UE_LOG(LogTemp, Warning, TEXT("BeginPlay -- Node[ID: %d |  Neighbours: %d]"), Head->GetID(), Head->Adjacent.Num());
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay -- Node%s"), *Head->ToString());
+
 
 	// -- Debugging: Drawing Graph -- //
 	DrawGraph(Head);
+
+
+
+
+
+
+
+
+
+
 
 
 	return;
@@ -100,7 +117,7 @@ void AGameLevel::BeginPlay()
 
 
 
-void AGameLevel::MakeMesh(FGeomNode* Node)
+void AGameLevel::MakeMesh(UGeomNode* Node)
 {
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
@@ -215,28 +232,46 @@ void AGameLevel::PrintShapes()
 
 
 
-void AGameLevel::DrawGraph(FGeomNode* Head)
+void AGameLevel::DrawGraph(UGeomNode* Head)
 {
-	TSet<FGeomNode*> Visited; // Nodes already drawn
+	TSet<UGeomNode*> Visited; // Nodes already drawn
 
 	int Count = 0;
 
+	UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph -- Node[ID: %d |  Neighbours: %d]"), Head->GetID(), Head->Adjacent.Num());
+
+
 	// Helper function for drawing graph
-	TFunction<void(FGeomNode* Node)> Explore = [&](FGeomNode* Node)
+	TFunction<void(UGeomNode* Node)> Explore = [&](UGeomNode* Node)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph::Explore -- Node_ID: %d"), Node->GetID());
+		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph::Explore -- Node[ID: %d |  Neighbours: %d]"), Node->GetID(), Node->Adjacent.Num());
 		Visited.Add(Node);
 		
-		DrawDebugSphere(GetWorld(), Node->Location + GetActorLocation(), 20, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), (Node->Location * Scale) + GetActorLocation() , 20, 12, FColor::Orange, true);
+		DrawDebugString(GetWorld(),
+			(Node->Location * Scale) + GetActorLocation(),
+			FString::Printf(TEXT("%s [ID: %d]"), *Node->Label, Node->GetID()),
+			(AActor*)0,
+			FColor::White,
+			1000
+		);
 
 		Count++;
 		if (Count > 10) { UE_LOG(LogTemp, Error, TEXT("AGameLevel::DrawGraph::Explore -- Exceeded Limit")); return; }
 		
-		for (FGeomNode* Adjacent : Node->Adjacent)
+		for (UGeomNode* Adjacent : Node->Adjacent)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph::Explore -- Adjacent_ID: %d"), Adjacent->GetID());
+
 			if (!Visited.Contains(Adjacent))
 			{
-				DrawDebugLine(GetWorld(), Node->Location + GetActorLocation(), Adjacent->Location + GetActorLocation(), FColor::Black, true);
+				DrawDebugLine(
+					GetWorld(), 
+					(Node->Location * Scale) + GetActorLocation() ,
+					(Adjacent->Location * Scale) + GetActorLocation(),
+					FColor::Black, 
+					true
+				);
 				Explore(Adjacent);
 			}
 		}
