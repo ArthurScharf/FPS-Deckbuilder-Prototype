@@ -37,3 +37,18 @@ void UGraphGrammar::PutNode(FString NewLabel, UGeomNode* Node)
 }
 
 
+void UGraphGrammar::UpdateBounds(UGeomNode* Node)
+{
+	UE_LOG(LogTemp, Warning, TEXT("UGraphGrammar::UpdateBounds"));
+
+	if (Node->Width > LargestNodeWidth) { LargestNodeWidth = Node->Width; }
+
+	if (Node->Location.X < LeastBounds.X) { LeastBounds.X = Node->Location.X; }
+	else if (GreatestBounds.X < Node->Location.X) { GreatestBounds.X = Node->Location.X; }
+
+	if (Node->Location.Y < LeastBounds.Y) { LeastBounds.Y = Node->Location.Y; }
+	else if (GreatestBounds.Y < Node->Location.Y) { GreatestBounds.Y = Node->Location.Y; }
+
+	if (Node->Location.Z < LeastBounds.Z) { LeastBounds.Z = Node->Location.Z; }
+	else if (GreatestBounds.Z < Node->Location.Z) { GreatestBounds.Z = Node->Location.Z; }
+}

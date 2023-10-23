@@ -286,9 +286,9 @@ class FPS_DECKBUILDER_API UShape : public UObject
 
 
 public:
-	// static UShape* CreateCube(FVector Extent);
+	static UShape* CreateRectangle(FVector Center, FVector Extent);
 
-	// static UShape* CreateCylinder(int NumFaces, int Height);
+	static UShape* CreateCylinder(int NumFaces, int Height);
 
 
 	// -- Modifier Methods -- //

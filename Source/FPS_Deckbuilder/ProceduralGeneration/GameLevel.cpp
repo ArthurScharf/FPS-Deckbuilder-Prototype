@@ -13,7 +13,10 @@
 
 
 
-
+/* -- PROBLEM --
+*  How do I effectively subdivide rooms based on some sort of grammar?
+* 1. Tile approach lets me have loops.
+*/
 
 
 AGameLevel::AGameLevel()
@@ -33,6 +36,50 @@ void AGameLevel::BeginPlay()
 {
 	Super::BeginPlay();
 
+
+	// == Shape Mutation Approach == // 
+	if (!GrammarClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AGameLevel::BeginPlay -- !Grammar"));
+		return;
+	}
+	// -- Making Test Shape -- //
+	UShape* Shape = UShape::CreateCylinder(32, 2);
+	Shape->Label = "start";
+	Shapes.Add(Shape->Label, Shape);
+
+	Grammar = NewObject<UGrammar>(this, GrammarClass);
+	Grammar->Init(Shapes);
+	Grammar->GameLevel = this;
+
+
+	for (int i = 0; i < NumMutations; i++)
+	{
+		Grammar->Mutate(Shapes);
+	}
+
+
+	TArray<UShape*> ShapeValues;
+	Shapes.GenerateValueArray(ShapeValues);
+	for (UShape* _Shape : ShapeValues)
+	{
+
+		// -- TEMP: Debugging -- // 
+		for (FFace* Face : _Shape->Faces)
+		{
+			Face->DrawLabel(this, false);
+		}
+	}
+
+	MakeMesh();
+
+
+
+
+
+
+
+	return;
 	// ==  Graph Mutation Approach ==  //
 	// -- Initializing Graph Grammar -- // 
 	if (!GraphGrammarClass)
@@ -60,56 +107,6 @@ void AGameLevel::BeginPlay()
 	// -- Debugging: Drawing Graph -- //
 	DrawGraph(Head);
 
-
-
-
-
-
-
-
-
-
-
-
-	return;
-	// == Shape Mutation Approach == // 
-
-	if (!GrammarClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("AGameLevel::BeginPlay -- !Grammar"));
-		return;
-	}
-	// -- Making Test Shape -- //
-	UShape* Shape = NewObject<UShape>(this);
-	// UShape::InitCylinder(Shape, 256, 2);
-	Shape->Label = "start";
-	Shapes.Add(Shape->Label, Shape);
-
-	Grammar = NewObject<UGrammar>(this, GrammarClass);
-	Grammar->Init(Shapes);
-	Grammar->GameLevel = this;
-	
-
-	for (int i = 0; i < NumMutations; i++)
-	{
-		Grammar->Mutate(Shapes);
-	}
-
-
-	
-	TArray<UShape*> ShapeValues;
-	Shapes.GenerateValueArray(ShapeValues);
-	for (UShape* _Shape : ShapeValues)
-	{
-
-		// -- TEMP: Debugging -- // 
-		for (FFace* Face : _Shape->Faces)
-		{
-			Face->DrawLabel(this, false);
-		}
-	}
-
-	MakeMesh();
 }
 
 
@@ -132,10 +129,46 @@ void AGameLevel::MakeMesh(UGeomNode* Node)
 	*  [2]: Aisles
 	*  Finding the dimensions for the bounding box of the graph nodes. NOT the geometry
 	*/
-	FVector Dimensions = GraphGrammar->GetGreatestBounds() - GraphGrammar->GetLeastBounds();
-	Dimensions.X = FMath::Abs(Dimensions.X);
-	Dimensions.Y = FMath::Abs(Dimensions.Y);
-	Dimensions.Z = FMath::Abs(Dimensions.Z);
+	Dimensions = GraphGrammar->GetGreatestBounds() - GraphGrammar->GetLeastBounds();
+	LargestNodeWidth = GraphGrammar->GetLargestNodeWidth();
+	Dimensions.X = FMath::Floor(FMath::Abs(Dimensions.X));
+	Dimensions.Y = FMath::Floor(FMath::Abs(Dimensions.Y));
+	Dimensions.Z = FMath::Floor(FMath::Abs(Dimensions.Z));
+
+	// 2*LargestNodeWidth because there must be room for largest width in any direction
+	Dimensions.X = 2 * LargestNodeWidth + (Dimensions.X == 0) ? 1 : Dimensions.X;
+	Dimensions.Y = 2 * LargestNodeWidth + (Dimensions.Y == 0) ? 1 : Dimensions.Y;
+	Dimensions.Z = (Dimensions.Z == 0) ? 1 : Dimensions.Z; // Not used in the Z because node width only deals with X,Y coordinates
+
+	UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh -- Dimensions: %s"), *Dimensions.ToCompactString());
+
+	// Initialize FloorFaces to null as a way to detect which positions haven't been created yet 
+	FloorFaces.AddZeroed((int)(Dimensions.X * Dimensions.Y * Dimensions.Z));
+
+	UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh -- FloorFaces.Num(): %d"), FloorFaces.Num());
+
+
+	// -- Setting the values in FloorFaces -- //
+	TSet<UGeomNode*> Visited; // Nodes already explored
+	TFunction<void(UGeomNode*)> Explore = [&](UGeomNode* Node)
+	{
+		Visited.Add(Node);
+		for (UGeomNode* Adjacent : Node->Adjacent)
+		{
+			if (!Visited.Contains(Adjacent))
+			{
+				Raster(Node, Adjacent);
+				Explore(Adjacent);
+			}
+		}
+	};
+
+
+
+
+
+	// -- Building the Geometry -- //
+	// TODO
 }
 
 
@@ -212,6 +245,12 @@ void AGameLevel::MakeMesh()
 
 
 
+void AGameLevel::Raster(UGeomNode* Start, UGeomNode* End)
+{
+	
+}
+
+
 
 
 
@@ -234,15 +273,15 @@ void AGameLevel::PrintShapes()
 
 void AGameLevel::DrawGraph(UGeomNode* Head)
 {
-	TSet<UGeomNode*> Visited; // Nodes already drawn
+	
 
-	int Count = 0;
+	// int Count = 0;
 
 	UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph -- Node[ID: %d |  Neighbours: %d]"), Head->GetID(), Head->Adjacent.Num());
 
-
+	TSet<UGeomNode*> Visited; // Nodes already drawn
 	// Helper function for drawing graph
-	TFunction<void(UGeomNode* Node)> Explore = [&](UGeomNode* Node)
+	TFunction<void(UGeomNode*)> Explore = [&](UGeomNode* Node)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::DrawGraph::Explore -- Node[ID: %d |  Neighbours: %d]"), Node->GetID(), Node->Adjacent.Num());
 		Visited.Add(Node);
@@ -256,8 +295,8 @@ void AGameLevel::DrawGraph(UGeomNode* Head)
 			1000
 		);
 
-		Count++;
-		if (Count > 10) { UE_LOG(LogTemp, Error, TEXT("AGameLevel::DrawGraph::Explore -- Exceeded Limit")); return; }
+		// Count++;
+		// if (Count > 20) { UE_LOG(LogTemp, Error, TEXT("AGameLevel::DrawGraph::Explore -- Exceeded Limit")); return; }
 		
 		for (UGeomNode* Adjacent : Node->Adjacent)
 		{
@@ -280,5 +319,3 @@ void AGameLevel::DrawGraph(UGeomNode* Head)
 
 	Explore(Head);
 }
-
-

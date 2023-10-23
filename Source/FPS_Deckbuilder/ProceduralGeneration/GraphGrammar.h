@@ -10,7 +10,8 @@
 class UGeomNode;
 
 /**
- * 
+ * NOTE: Children of this class can and often SHOULD be implementing their own meta data for managing the 
+ *       generation of nodes
  */
 UCLASS(Abstract)
 class FPS_DECKBUILDER_API UGraphGrammar : public UObject
@@ -29,6 +30,8 @@ protected:
 	*  2. Addes the Node to the correct bucket using it's new label as the hash */
 	void PutNode(FString NewLabel, UGeomNode* Node);
 
+	/* Updates LeastBounds, GreatestBounds, and LargestNodeWidth*/
+	void UpdateBounds(UGeomNode* Node);
 
 
 
@@ -46,7 +49,7 @@ protected:
 	*/
 	FVector LeastBounds;
 	FVector GreatestBounds;
-
+	uint32 LargestNodeWidth;
 
 	/* Rules for transforming a node with a given label */
 	TMap<FString, TFunction<void(UGeomNode* Node)>> Rules;
@@ -61,6 +64,7 @@ public:
 
 	FORCEINLINE void SetScale(float _Scale) { Scale = _Scale; }
 
+	FORCEINLINE uint32  GetLargestNodeWidth() { return LargestNodeWidth; }
 	FORCEINLINE FVector GetLeastBounds() { return LeastBounds; }
 	FORCEINLINE FVector GetGreatestBounds() { return GreatestBounds; }
 };

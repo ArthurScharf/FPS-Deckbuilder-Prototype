@@ -6,21 +6,22 @@
 #include "DrawDebugHelpers.h"
 
 
-/*
+
 // --  Static Functions -- //
-UShape* UShape::CreateCube(FVector Extent);
+// TODO: Extent isn't being used 
+UShape* UShape::CreateRectangle(FVector Center, FVector Extent)
 {
-	UShape* Shape = UShape();
+	UShape* Shape = NewObject<UShape>();
 
 	// Shifted by (-0.5, -0.5, -0.5) to center it
-	FVertex* v1 = new FVertex(FVector(-0.5, -0.5, -0.5));
-	FVertex* v2 = new FVertex(FVector(-0.5,  0.5, -0.5));
-	FVertex* v3 = new FVertex(FVector( 0.5,  0.5, -0.5));
-	FVertex* v4 = new FVertex(FVector( 0.5, -0.5, -0.5));
-	FVertex* v5 = new FVertex(FVector(-0.5, -0.5,  0.5));
-	FVertex* v6 = new FVertex(FVector(-0.5,  0.5,  0.5));
-	FVertex* v7 = new FVertex(FVector( 0.5,  0.5,  0.5));
-	FVertex* v8 = new FVertex(FVector( 0.5, -0.5,  0.5));
+	FVertex* v1 = new FVertex(FVector(-0.5, -0.5, -0.5) + Center);
+	FVertex* v2 = new FVertex(FVector(-0.5, 0.5, -0.5) + Center);
+	FVertex* v3 = new FVertex(FVector(0.5, 0.5, -0.5) + Center);
+	FVertex* v4 = new FVertex(FVector(0.5, -0.5, -0.5) + Center);
+	FVertex* v5 = new FVertex(FVector(-0.5, -0.5, 0.5) + Center);
+	FVertex* v6 = new FVertex(FVector(-0.5, 0.5, 0.5) + Center);
+	FVertex* v7 = new FVertex(FVector(0.5, 0.5, 0.5) + Center);
+	FVertex* v8 = new FVertex(FVector(0.5, -0.5, 0.5) + Center);
 
 	FFace* f1 = new FFace();  // bottom (-Z)
 	f1->Normal = FVector(0, 0, 1);
@@ -33,7 +34,7 @@ UShape* UShape::CreateCube(FVector Extent);
 	f2->Label = FString("ceiling");
 	f2->Vertices.Append({ v5,v6,v7,v8 });
 	f2->SetAdjacency();
-	
+
 	FFace* f3 = new FFace();  // Back (-Y)
 	f3->Normal = FVector(0, -1, 0);
 	f3->Label = FString("backward");
@@ -62,12 +63,12 @@ UShape* UShape::CreateCube(FVector Extent);
 
 	return Shape;
 }
-*/
 
-/*
+
+
 UShape* UShape::CreateCylinder(int NumFaces, int Height)
 {
-	 -- NOTES --
+	// -- NOTES --
 	// Arraying the faces radially around a central point.
 	// Num vert columns == NumFaces+1
 	//
@@ -77,7 +78,7 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 	//	2 : lower right
 	//	3 : upper right
 	
-	// UShape* Shape = NewObject<UShape>();
+	UShape* Shape = NewObject<UShape>();
 
 	FVector ZeroRotationVector(1, 0, 0);
 	FVector FloorVector(0, 0, -Height); // For incrementing in the Z
@@ -135,12 +136,15 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 	LastFace->SetAdjacency();
 	LastFace->Label = "cylinder_wall";
 	Shape->Faces.Add(LastFace);
+
+	return Shape;
 }
-*/
+
 
 
 
 // -- Member Functions  -- // 
+// BUG: moving shape when scaling. Keep center constant
 void UShape::SetScale(float Scale)
 {
 	TSet<FVertex*> ScaledVerts;

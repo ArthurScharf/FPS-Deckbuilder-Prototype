@@ -4,7 +4,7 @@
 UGeomNode::UGeomNode()
 {
 	ID = NextNodeID++;
-	Width = 0.f;
+	Width = 0;
 	Label = "";
 }
 

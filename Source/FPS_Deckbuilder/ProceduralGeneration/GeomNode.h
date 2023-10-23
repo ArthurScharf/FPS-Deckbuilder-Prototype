@@ -39,7 +39,7 @@ public:
 
 	// TODO: This should be a function, not a single value
 	UPROPERTY()
-		float Width;
+		uint32 Width;
 
 private:
 	UPROPERTY()

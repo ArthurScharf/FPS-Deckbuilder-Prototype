@@ -38,7 +38,7 @@ void UTestGraphGrammar::Init()
 			
 
 			// -- Updating Bounds -- //
-			GreatestBounds[0] = 10; // TEMP
+			GreatestBounds.X = 10; // TEMP
 
 
 			// -- Linking Nodes -- //
@@ -68,9 +68,8 @@ void UTestGraphGrammar::Init()
 			NewNode->Width = 4;
 			
 
-
 			// -- Updating Bounds -- //
-			GreatestBounds[0] = 10; // TEMP
+			UpdateBounds(NewNode);
 
 
 			// -- Linking Nodes -- //
@@ -78,6 +77,4 @@ void UTestGraphGrammar::Init()
 			// NewNode.Adjacent.Add(*Node);		// NOTE: for now, we might not be doing bidirectional graphs
 		}
 	);
-
-
 }

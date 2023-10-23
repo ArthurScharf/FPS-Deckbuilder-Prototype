@@ -12,6 +12,8 @@ class UGrammar;
 class UGraphGrammar;
 class UGeomNode;
 
+struct FFace;
+
 
 
 /* High level control object. Uses a passed grammar to construct a series of shapes that make up the level geometry 
@@ -36,9 +38,13 @@ protected:
 	
 	void MakeMesh(UGeomNode* Node);
 
+	/* Set's the face values found in FloorFaces per the width of `Start` and the position of both `Start` and `End`*/
+	void Raster(UGeomNode* Start, UGeomNode* End);
+
+	
 
 private:
-	// converts the grid coordinates of a vertex to it's index in the vertex array
+	// DEPRECATED converts the grid coordinates of a vertex to it's index in the vertex array
 	FORCEINLINE int IndexMap(int column, int row, int aisle)
 	{
 		return column + (row * X) + (aisle * X * Y);
@@ -63,14 +69,14 @@ protected:
 	/* The class of generative grammar that will be used to generate the level geometry */
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGrammar> GrammarClass;
-
 	UGrammar* Grammar;
 
-	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UGraphGrammar> GraphGrammarClass;
-
 	UGraphGrammar* GraphGrammar;
+
+
+	TArray<FFace*> FloorFaces;
 
 
 	UPROPERTY(EditAnywhere)
@@ -92,6 +98,10 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	int NumMutations;
+
+	// Amount in each dimension we offset FGeomNodes to allow them to begin within the matrix generated during `MakeMesh`
+	FVector Dimensions;
+	uint32 LargestNodeWidth;
 
 public:
 	FORCEINLINE float GetScale() { return Scale; }
