@@ -8,20 +8,18 @@
 
 
 // --  Static Functions -- //
-// TODO: Extent isn't being used 
-UShape* UShape::CreateRectangle(FVector Center, FVector Extent)
+UShape* UShape::CreateRectangle(FVector Center, FRotator Rotation, FVector Extent)
 {
 	UShape* Shape = NewObject<UShape>();
 
-	// Shifted by (-0.5, -0.5, -0.5) to center it
-	FVertex* v1 = new FVertex(FVector(-0.5, -0.5, -0.5) + Center);
-	FVertex* v2 = new FVertex(FVector(-0.5, 0.5, -0.5) + Center);
-	FVertex* v3 = new FVertex(FVector(0.5, 0.5, -0.5) + Center);
-	FVertex* v4 = new FVertex(FVector(0.5, -0.5, -0.5) + Center);
-	FVertex* v5 = new FVertex(FVector(-0.5, -0.5, 0.5) + Center);
-	FVertex* v6 = new FVertex(FVector(-0.5, 0.5, 0.5) + Center);
-	FVertex* v7 = new FVertex(FVector(0.5, 0.5, 0.5) + Center);
-	FVertex* v8 = new FVertex(FVector(0.5, -0.5, 0.5) + Center);
+	FVertex* v1 = new FVertex(Rotation.RotateVector(FVector(-Extent.X, -Extent.Y, -Extent.Z)) + Center);
+	FVertex* v2 = new FVertex(Rotation.RotateVector(FVector(-Extent.X,  Extent.Y, -Extent.Z)) + Center);
+	FVertex* v3 = new FVertex(Rotation.RotateVector(FVector( Extent.X,  Extent.Y, -Extent.Z)) + Center);
+	FVertex* v4 = new FVertex(Rotation.RotateVector(FVector( Extent.X, -Extent.Y, -Extent.Z)) + Center);
+	FVertex* v5 = new FVertex(Rotation.RotateVector(FVector(-Extent.X, -Extent.Y,  Extent.Z)) + Center);
+	FVertex* v6 = new FVertex(Rotation.RotateVector(FVector(-Extent.X,  Extent.Y,  Extent.Z)) + Center);
+	FVertex* v7 = new FVertex(Rotation.RotateVector(FVector( Extent.X,  Extent.Y,  Extent.Z)) + Center);
+	FVertex* v8 = new FVertex(Rotation.RotateVector(FVector( Extent.X, -Extent.Y,  Extent.Z)) + Center);
 
 	FFace* f1 = new FFace();  // bottom (-Z)
 	f1->Normal = FVector(0, 0, 1);
@@ -286,8 +284,6 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	f2->Vertices.Add(Face.Vertices[1]);
 	f2->Vertices.Add(Face.Vertices[2]);
 	
-	
-
 	FFace* f3 = new FFace();
 	f3->Label = "ceiling";
 	f3->Vertices.Add(OutFace->Vertices[2]);
@@ -295,7 +291,6 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	f3->Vertices.Add(Face.Vertices[3]);
 	f3->Vertices.Add(OutFace->Vertices[3]);
 	
-
 	FFace* f4 = new FFace();
 	f4->Label = "right";
 	f4->Vertices.Add(OutFace->Vertices[0]);
@@ -333,7 +328,7 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	Faces.Remove(&Face);
 }
 
-void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
+void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace, TArray<FString> Labels)
 {
 	// -- Constructing inset-face vertices -- //
 	for (int i = 0; i < Face.Vertices.Num(); i++)
@@ -353,6 +348,7 @@ void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
 	f1->Vertices.Add(OutFace->Vertices[0]);
 	f1->Vertices.Add(OutFace->Vertices[3]);
 	f1->Vertices.Add(Face.Vertices[3]);
+	f1->Label = Labels[0];
 
 	FFace* f2 = new FFace();
 	f2->Normal = OutFace->Normal;
@@ -360,6 +356,7 @@ void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
 	f2->Vertices.Add(OutFace->Vertices[1]);
 	f2->Vertices.Add(OutFace->Vertices[0]);
 	f2->Vertices.Add(Face.Vertices[0]);
+	f2->Label = Labels[1];
 
 	FFace* f3 = new FFace();
 	f3->Normal = OutFace->Normal;
@@ -367,6 +364,7 @@ void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
 	f3->Vertices.Add(OutFace->Vertices[2]);
 	f3->Vertices.Add(OutFace->Vertices[1]);
 	f3->Vertices.Add(Face.Vertices[1]);
+	f3->Label = Labels[2];
 
 	FFace* f4 = new FFace();
 	f4->Normal = OutFace->Normal;
@@ -374,7 +372,8 @@ void UShape::InsetFace(FFace& Face, float Percent, FFace* OutFace)
 	f4->Vertices.Add(OutFace->Vertices[3]);
 	f4->Vertices.Add(OutFace->Vertices[2]);
 	f4->Vertices.Add(Face.Vertices[2]);
-
+	f4->Label = Labels[3];
+	
 	Faces.Append({ f1, f2, f3, f4 });
 
 	OutFace->SetAdjacency(); // resetting adj of verts that are a part of the face

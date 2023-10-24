@@ -37,5 +37,9 @@ public:
 	AGameLevel* GameLevel; // Needed to set the outer on new shapes being created
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FString, TSubclassOf<AActor>> Actors;
+
+
 	TMap<FString, TFunction<void (UShape* Shape)>> ShapeRules;
 };

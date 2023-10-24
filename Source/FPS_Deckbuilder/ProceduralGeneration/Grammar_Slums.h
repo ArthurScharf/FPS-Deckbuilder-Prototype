@@ -154,7 +154,7 @@ class UShape;
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class FPS_DECKBUILDER_API UGrammar_Slums : public UGrammar
 {
 	GENERATED_BODY()

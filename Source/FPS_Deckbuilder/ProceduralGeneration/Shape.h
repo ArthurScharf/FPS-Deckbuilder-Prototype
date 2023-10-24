@@ -111,8 +111,8 @@ public:
 		for (FVertex* Vertex : Face.Vertices)
 		{
 			NewVertex = new FVertex(*Vertex);
-			NewVertex->Adjacent.RemoveAll([&](const FVertex* v)->bool{ return true; });
-			Vertices.Add( NewVertex );
+			NewVertex->Adjacent.RemoveAll([&](const FVertex* v)->bool { return true; });
+			Vertices.Add(NewVertex);
 		}
 		SetAdjacency();
 
@@ -156,7 +156,9 @@ public:
 		}
 	}
 
-	/* BUG: Scale isn't being changed relative to the alignment of the face */
+	/* BUG: Scale isn't being changed relative to the alignment of the face
+	*  BUG: Should be set using a 2D vector since
+	*/
 	void SetScale(FVector Scale)
 	{
 		if (Vertices.Num() == 0) return;
@@ -176,6 +178,31 @@ public:
 	}
 
 
+	FVector2D GetDimensions()
+	{
+		return FVector2D(
+			(Vertices[1]->Location - Vertices[0]->Location).Size(),
+			(Vertices[3]->Location - Vertices[0]->Location).Size()
+		);
+	}
+
+
+	void SetDimensions(FVector2D Dimensions)
+	{
+		FVector Center = GetFaceCenter();
+
+		// X in the basis of the face 
+		FVector UnitX = (Vertices[3]->Location - Vertices[0]->Location).GetSafeNormal() / 2.f;
+		FVector UnitY = (Vertices[1]->Location - Vertices[0]->Location).GetSafeNormal() / 2.f;
+		
+		/* Observe the differing signs in each calculation */
+		Vertices[0]->Location = Center - (Dimensions.X * UnitX) - (Dimensions.Y * UnitY);
+		Vertices[1]->Location = Center - (Dimensions.X * UnitX) + (Dimensions.Y * UnitY);
+		Vertices[2]->Location = Center + (Dimensions.X * UnitX) + (Dimensions.Y * UnitY);
+		Vertices[3]->Location = Center + (Dimensions.X * UnitX) - (Dimensions.Y * UnitY);
+	}
+
+
 	void SetAdjacency()
 	{
 		int N = Vertices.Num();
@@ -187,13 +214,14 @@ public:
 		}
 	}
 
-	FVector2D GetDimensions()
+	void MoveFace(FVector DeltaLocation)
 	{
-		return FVector2D(
-			(Vertices[1]->Location - Vertices[0]->Location).Size(),
-			(Vertices[3]->Location - Vertices[0]->Location).Size()
-		);
+		for (FVertex* Vertex : Vertices)
+		{
+			Vertex->Location += DeltaLocation;
+		}
 	}
+
 
 	/* Using UV coordinates, returns a location on the face */
 	void GetPositionOnFace(float U, float V, FVector& OutLocalOffset)
@@ -286,7 +314,7 @@ class FPS_DECKBUILDER_API UShape : public UObject
 
 
 public:
-	static UShape* CreateRectangle(FVector Center, FVector Extent);
+	static UShape* CreateRectangle(FVector Center, FRotator Rotation, FVector Extent);
 
 	static UShape* CreateCylinder(int NumFaces, int Height);
 
@@ -310,7 +338,7 @@ public:
 	/* Percent : percent of Face's area outfaces area covers 
 	*  NOTE: Destroys the old face data, replacing it with the new faces being created
 	*/
-	void InsetFace(FFace& Face, float Percent, FFace* OutFace);
+	void InsetFace(FFace& Face, float Percent, FFace* OutFace, TArray<FString> Labels);
 
 	FFace* FindFaceByLabel(FString _Label);
 

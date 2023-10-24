@@ -8,6 +8,7 @@
 #include "Shape.h"
 #include "Grammar.h"
 #include "GraphGrammar.h"
+#include "NavigationSystem.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -67,11 +68,17 @@ void AGameLevel::BeginPlay()
 		// -- TEMP: Debugging -- // 
 		for (FFace* Face : _Shape->Faces)
 		{
-			Face->DrawLabel(this, false);
+			Face->DrawLabel(this, true);
 		}
 	}
 
 	MakeMesh();
+
+
+
+
+
+
 
 
 
@@ -240,7 +247,7 @@ void AGameLevel::MakeMesh()
 	/* NOTE:  this is an issue that comes from having no meta object representing the mesh as whole */
 	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
 	// Enable collision data
-	// Mesh->ContainsPhysicsTriMeshData(true);
+	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
 

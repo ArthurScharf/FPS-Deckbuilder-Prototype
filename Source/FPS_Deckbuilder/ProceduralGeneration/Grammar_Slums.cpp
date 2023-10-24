@@ -2,6 +2,9 @@
 
 #include "FPS_Deckbuilder/ProceduralGeneration/GameLevel.h"
 #include "FPS_Deckbuilder/ProceduralGeneration/Shape.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
+
+#include "FPS_Deckbuilder/Character/EnemyCharacter.h"
 
 void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 {
@@ -18,7 +21,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			UShape* NewShape;
 
 			/* Finding cylinder wall faces and constructing a new shape as a platform extending from the wall of the cylinder */
-			int Num = 6;
+			int Num = 5;
 			for (int i = 0; i < Num; i++)
 			{
 				// -- Finding Cylinder wall face, and changing it's label so it isn't used more than once -- //
@@ -39,7 +42,6 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 				// Need the tangent to find vertex locations on CylinderFace
 				FVector Tangent = FRotator(0, -90, 0).RotateVector(Face->Normal);
 				Tangent *= Dimensions.Y * 0.4;
-
 
 
 				// -- Creating new Face -- //
@@ -73,6 +75,39 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 	);
 
 
+	ShapeRules.Add(
+		"building",
+		[&](UShape* Shape)
+		{
+			// -- Creating door -- //
+			FFace* Face = Shape->FindFaceByLabel("forward");
+			if (!Face)
+			{
+				UE_LOG(LogTemp, Error, TEXT("UGrammar_Slums::Init -- RULE: room --  !Face"));
+				return;
+			}
+			Face->Label = ""; // Don't want to use this face more than once 
+
+			// - Creating door - //
+			FVector2D Dimensions = Face->GetDimensions();
+			FFace* NewFace = new FFace();
+			Shape->InsetFace(*Face, 1, NewFace, {"wall", "delete", "wall", "wall"});
+			Shape->Faces.Remove(Shape->FindFaceByLabel("delete")); // We're making a door. Don't need bottom face
+			NewFace->SetDimensions(FVector2D(300, 400));
+			NewFace->MoveFace(FVector(
+				0, 
+				0, 
+				-(Dimensions.Y/2.f) + 150.f
+			));
+			NewFace->DrawLabel(GameLevel, true);
+
+			// - Cutting door face out to make room for door actor - //
+			Shape->Faces.Remove(NewFace);
+
+			MigrateShape("", Shape, Shapes); // Room is completed
+		}
+	);
+
 
 	ShapeRules.Add(
 		"encounter",
@@ -90,24 +125,46 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 
 			// - Choosing Room Size - // 
 			FVector2D Dimensions = Face->GetDimensions();
-			float ExtentX = Dimensions.X * 0.05 + FMath::FRand() * 50;
-			float ExtentY = Dimensions.Y * 0.05 + FMath::FRand() * 50;
+			float ExtentX = Dimensions.X * 0.2 + FMath::FRand() * 50;
+			float ExtentY = Dimensions.Y * 0.2 + FMath::FRand() * 50;
 			FVector Extent(ExtentX, ExtentY, 500);
 
-			float PositionX = (FMath::RandBool() ? ExtentX : Dimensions.X - ExtentX);
-			float PositionY = (FMath::RandBool() ? ExtentY : Dimensions.Y - ExtentY);
+			bool XLessThan0 = FMath::RandBool(); // Stored for use to calculate random rotation
+
+			float PositionX = (XLessThan0 ? ExtentX + 500 : Dimensions.X - (ExtentX + 500));
+			float PositionY = (FMath::RandBool() ? ExtentY + 500 : Dimensions.Y - (ExtentY + 500));
 
 			// - Finding Center position for room - //
-			FVector FaceLocation; // Remember that these are local on the face
+			FVector Location; // Remember that these are local on the face
 			FVector2D RelativePosition(PositionX, PositionY);
-			Face->GetPositionOnFace(RelativePosition, FaceLocation);
-			FaceLocation.Z += 500.f;
+			Face->GetPositionOnFace(RelativePosition, Location);
+			Location.Z += 500.f; // 50 more than height so the room is slightly elevated 
 
-			DrawDebugBox(GameLevel->GetWorld(), FaceLocation, Extent, FColor::Red, true);
+			// - Finding Rotation including choosing randoming facing for door - //
+			FRotator Rotation = (Face->Vertices[1]->Location - Face->Vertices[0]->Location).Rotation();
+			Rotation.Yaw += (XLessThan0 ? -90.f : 90.f); 
 
-			UShape* NewShape = UShape::CreateRectangle(FaceLocation, FVector(500000));
-			// NewShape->SetScale(10000);
-			MigrateShape("room", NewShape, Shapes);
+			// - Constructing Shape - //
+			UShape* NewShape = UShape::CreateRectangle(
+				Location, 
+				Rotation, 
+				Extent 
+			);
+
+			Location += FVector(0, 0, 300);
+
+			// - Testing Spawning Enemies - //
+			FActorSpawnParameters SpawnParams;
+			FTransform Transform;
+			Transform.SetLocation(Location);
+			Transform.SetRotation(FQuat(Rotation));
+
+			// GameLevel->GetWorld()->SpawnActor<AEnemyCharacter>(Actors["TestEnemy"], &Location, &Rotation, SpawnParams);
+			GameLevel->GetWorld()->SpawnActor<AEnemyCharacter>(Actors["TestEnemy"], Transform, SpawnParams);
+
+			// - Migrating Shapes - //
+			MigrateShape("building", NewShape, Shapes);
+			MigrateShape("", Shape, Shapes);
 		}
 	);
 }
