@@ -19,7 +19,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 		[&](UShape* Shape) 
 		{
 			// NOTE: This is a code smell. Shouldn't be doing this here
-			// MapFacesToMaterialLabel("cylinder", Shape->Faces);
+			MapFacesToMaterialLabel("cylinder", Shape->Faces);
 			
 			Shape->SetScale(50000); // Making the cylinder very large
 
@@ -100,8 +100,8 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			// - Creating door - //
 			FVector2D Dimensions = Face->GetDimensions();
 			FFace* NewFace = new FFace();
-			Shape->InsetFace(*Face, 1, NewFace, {"wall", "delete", "wall", "wall"});
-			Shape->Faces.Remove(Shape->FindFaceByLabel("delete")); // We're making a door. Don't need bottom face
+			Shape->InsetFace(*Face, 1, NewFace, {"wall", "delete", "wall", "wall"}); // We're making a door. Don't need bottom face
+			Shape->Faces.Remove(Shape->FindFaceByLabel("delete")); // Deleting Bottom Face
 			NewFace->SetDimensions(FVector2D(300, 400));
 			NewFace->MoveFace(FVector(
 				0, 
@@ -134,7 +134,6 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			}
 			Face->Label = ""; // Don't want to use this face more than once 
 
-			// -- Constructing a room -- //
 
 			// - Choosing Room Size - // 
 			FVector2D Dimensions = Face->GetDimensions();
@@ -180,7 +179,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 					if (!FacesToMaterialMap.Contains("wall")) { FacesToMaterialMap.Add("wall", { f }); }
 					else { FacesToMaterialMap["wall"].Add(f); }
 				}
-				else if (f->Label == "floor")
+				if (f->Label == "floor")
 				{
 					if (!FacesToMaterialMap.Contains("floor")) { FacesToMaterialMap.Add("floor", { f }); }
 					else { FacesToMaterialMap["floor"].Add(f); }
@@ -197,7 +196,6 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			{
 				MapFacesToMaterialLabel(Label, FacesToMaterialMap[Label]);
 			}
-			//MapFacesToMaterialLabel("wall", TEST_Faces);
 
 
 			// - Testing Spawning Enemies - //

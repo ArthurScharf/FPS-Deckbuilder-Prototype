@@ -66,21 +66,26 @@ void AGameLevel::BeginPlay()
 	}
 
 
+
+
+
 	// -- Getting the ShapeTextureMultiMap for use in constructing
 
-	TArray<UShape*> ShapeValues;
-	Shapes.GenerateValueArray(ShapeValues);
-	for (UShape* _Shape : ShapeValues)
-	{
-
-		// -- TEMP: Debugging -- // 
-		for (FFace* Face : _Shape->Faces)
-		{
-			Face->DrawLabel(this, true);
-		}
-	}
+	//TArray<UShape*> ShapeValues;
+	//Shapes.GenerateValueArray(ShapeValues);
+	//for (UShape* _Shape : ShapeValues)
+	//{
+	//	// -- TEMP: Debugging -- // 
+	//	for (FFace* Face : _Shape->Faces)
+	//	{
+	//		Face->DrawLabel(this, true);
+	//	}
+	//}
 
 	MakeMesh();
+	//Mesh->AddLocalOffset(FVector(0, 0, -1));
+// 	AddActorWorldOffset(FVector(0, 0, -1), true);
+
 
 
 
@@ -201,17 +206,37 @@ void AGameLevel::MakeMesh()
 
 	TMap<FString, UShape*> MaterialShapeMap = Grammar->GetMaterialShapeMap();
 
+
+
+	// - Testing - //
+	//FString OutString;
+	//TArray<FString> TestLabels;
+	//MaterialShapeMap.GetKeys(TestLabels);
+	//UShape* TestShape;
+	//for (FString Label : TestLabels)
+	//{
+	//	TestShape = MaterialShapeMap[Label];
+	//	
+	//	OutString += Label + "\n";
+	//	for (FFace* f : TestShape->Faces)
+	//	{
+	//		OutString += "  " + f->Label + "\n";
+	//	}
+	//	OutString += "\n";
+	//}
+	//UE_LOG(LogTemp, Error, TEXT("%s"), *OutString);
+
+
+
+
 	TArray<FString> Labels; 
 	MaterialShapeMap.GetKeys(Labels);
-
-	TArray<UShape*> ShapeValues;
-	Shapes.GenerateValueArray(ShapeValues);
-	
 	UShape* Shape;
-	UMaterial* Material;
 	for (FString Label : Labels) // Each label corresponds to one and only one material to be applied
 	{
 		Shape = MaterialShapeMap[Label];
+
+		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh -- Label: %s"), *Label);
 
 		for (FFace* Face : Shape->Faces)
 		{
@@ -266,8 +291,11 @@ void AGameLevel::MakeMesh()
 		Mesh->CreateMeshSection_LinearColor(MeshSectionIndex, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
 		
 		// -- Applying material to mesh section -- //
-		Material = SectionMaterialMap[Label];
-		Mesh->SetMaterial(MeshSectionIndex, Material);
+		if (SectionMaterialMap.Contains(Label)) { Mesh->SetMaterial(MeshSectionIndex, SectionMaterialMap[Label]); }
+
+
+		
+		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh --MatName: %s"), *(SectionMaterialMap[Label]->GetName()));
 
 		MeshSectionIndex++;
 	}
