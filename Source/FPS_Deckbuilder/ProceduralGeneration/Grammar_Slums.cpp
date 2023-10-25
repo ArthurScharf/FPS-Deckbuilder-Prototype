@@ -11,21 +11,28 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 	UE_LOG(LogTemp, Warning, TEXT("UGrammar_Slums::Init()"));
 
 
+	/*
+	* Creates a cylinder and generates platforms which are used to generate encounters
+	*/
 	ShapeRules.Add(
 		"start",
 		[&](UShape* Shape) 
 		{
+			// NOTE: This is a code smell. Shouldn't be doing this here
+			// MapFacesToMaterialLabel("cylinder", Shape->Faces);
+			
 			Shape->SetScale(50000); // Making the cylinder very large
 
 			FFace* Face;
 			UShape* NewShape;
+			TArray<FFace*> FacesToMaterialMap;
 
 			/* Finding cylinder wall faces and constructing a new shape as a platform extending from the wall of the cylinder */
 			int Num = 5;
 			for (int i = 0; i < Num; i++)
 			{
 				// -- Finding Cylinder wall face, and changing it's label so it isn't used more than once -- //
-				Face = Shape->FindFaceByLabel("cylinder_wall");
+				Face = Shape->FindFaceByLabel("cylinder");
 				if (!Face)
 				{
 					UE_LOG(LogTemp, Error, TEXT("UGrammar_Slums::Init -- RULE: start -- !Face"));
@@ -44,7 +51,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 				Tangent *= Dimensions.Y * 0.4;
 
 
-				// -- Creating new Face -- //
+				// -- Creating base -- //
 				FFace* NewFace = new FFace();
 				NewFace->Vertices.Append(
 					{
@@ -57,6 +64,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 				NewFace->Normal = FVector(0, 0, 1);
 				NewFace->SetAdjacency();
 				NewFace->Label = "base";
+				FacesToMaterialMap.Add(NewFace);
 
 
 				// -- Creating new shape & Adding NewFace to NewShape -- //
@@ -71,6 +79,7 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			}
 
 			MigrateShape("cylinder", Shape, Shapes);
+			MapFacesToMaterialLabel("floor", FacesToMaterialMap); // TODO: Change to appropriate material
 		}
 	);
 
@@ -99,11 +108,15 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 				0, 
 				-(Dimensions.Y/2.f) + 150.f
 			));
-			NewFace->DrawLabel(GameLevel, true);
+			Shape->Faces.Remove(NewFace);	// Cutting door face out to make room for door actor
+			
+			// - Mapping faces to material labels - //
+			TArray<FFace*> WallFaces = Shape->Faces.FilterByPredicate(
+				[&](const FFace* f) { return f->Label == "wall"; }
+			);
+			MapFacesToMaterialLabel("wall", WallFaces);
 
-			// - Cutting door face out to make room for door actor - //
-			Shape->Faces.Remove(NewFace);
-
+			// - Migrating Shape - //
 			MigrateShape("", Shape, Shapes); // Room is completed
 		}
 	);
@@ -144,27 +157,56 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			FRotator Rotation = (Face->Vertices[1]->Location - Face->Vertices[0]->Location).Rotation();
 			Rotation.Yaw += (XLessThan0 ? -90.f : 90.f); 
 
-			// - Constructing Shape - //
+			// - Constructing Room Shape - //
 			UShape* NewShape = UShape::CreateRectangle(
-				Location, 
+				Location + FVector(0,0,1), 
 				Rotation, 
 				Extent 
 			);
 
-			Location += FVector(0, 0, 300);
+			// - Migrating Shapes - //
+			MigrateShape("building", NewShape, Shapes);
+			MigrateShape("", Shape, Shapes);
+
+
+			// - Material Mapping Faces - //
+			TMap<FString, TArray<FFace*>> FacesToMaterialMap;
+			for (FFace* f : NewShape->Faces)
+			{
+				// I wish this was a switch statement
+				if (f->Label == "left" || f->Label == "right" || f->Label == "backward")
+				{
+					// - Adding face to appropriate mapping - //
+					if (!FacesToMaterialMap.Contains("wall")) { FacesToMaterialMap.Add("wall", { f }); }
+					else { FacesToMaterialMap["wall"].Add(f); }
+				}
+				else if (f->Label == "floor")
+				{
+					if (!FacesToMaterialMap.Contains("floor")) { FacesToMaterialMap.Add("floor", { f }); }
+					else { FacesToMaterialMap["floor"].Add(f); }
+				}
+				else if (f->Label == "ceiling")
+				{
+					if (!FacesToMaterialMap.Contains("ceiling")) { FacesToMaterialMap.Add("ceiling", { f }); }
+					else { FacesToMaterialMap["ceiling"].Add(f); }
+				}
+			}
+			TArray<FString> Labels;
+			FacesToMaterialMap.GetKeys(Labels);
+			for (FString Label : Labels)
+			{
+				MapFacesToMaterialLabel(Label, FacesToMaterialMap[Label]);
+			}
+			//MapFacesToMaterialLabel("wall", TEST_Faces);
+
 
 			// - Testing Spawning Enemies - //
+			Location += FVector(0, 0, 300);
 			FActorSpawnParameters SpawnParams;
 			FTransform Transform;
 			Transform.SetLocation(Location);
 			Transform.SetRotation(FQuat(Rotation));
-
-			// GameLevel->GetWorld()->SpawnActor<AEnemyCharacter>(Actors["TestEnemy"], &Location, &Rotation, SpawnParams);
 			GameLevel->GetWorld()->SpawnActor<AEnemyCharacter>(Actors["TestEnemy"], Transform, SpawnParams);
-
-			// - Migrating Shapes - //
-			MigrateShape("building", NewShape, Shapes);
-			MigrateShape("", Shape, Shapes);
 		}
 	);
 }

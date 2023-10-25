@@ -96,7 +96,7 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 	Face->Vertices.Append({ prev1, prev2, curr2, curr1 });
 	Face->Normal = HalfRotation.RotateVector(Direction);
 	Face->SetAdjacency();
-	Face->Label = "cylinder_wall";
+	Face->Label = "cylinder";
 	Shape->Faces.Add(Face);
 	
 	FFace* FirstFace = Face; // Needed to connect the loop
@@ -115,7 +115,7 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 		Face->Vertices.Append({ prev1, prev2, curr2, curr1 });
 		Face->Normal = HalfRotation.RotateVector(Direction);
 		Face->SetAdjacency();
-		Face->Label = "cylinder_wall";
+		Face->Label = "cylinder";
 		Shape->Faces.Add(Face);
 	}
 
@@ -132,7 +132,7 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 	);
 	LastFace->Normal = HalfRotation.RotateVector(Direction);
 	LastFace->SetAdjacency();
-	LastFace->Label = "cylinder_wall";
+	LastFace->Label = "cylinder";
 	Shape->Faces.Add(LastFace);
 
 	return Shape;

@@ -8,7 +8,9 @@
 #include "Shape.h"
 #include "Grammar.h"
 #include "GraphGrammar.h"
+
 #include "NavigationSystem.h"
+
 
 #include "DrawDebugHelpers.h"
 
@@ -38,6 +40,7 @@ void AGameLevel::BeginPlay()
 	Super::BeginPlay();
 
 
+
 	// == Shape Mutation Approach == // 
 	if (!GrammarClass)
 	{
@@ -46,6 +49,10 @@ void AGameLevel::BeginPlay()
 	}
 	// -- Making Test Shape -- //
 	UShape* Shape = UShape::CreateCylinder(32, 2);
+	for (FFace* Face : Shape->Faces)
+	{
+		Face->DrawLabel(this, true);
+	}
 	Shape->Label = "start";
 	Shapes.Add(Shape->Label, Shape);
 
@@ -53,12 +60,13 @@ void AGameLevel::BeginPlay()
 	Grammar->Init(Shapes);
 	Grammar->GameLevel = this;
 
-
 	for (int i = 0; i < NumMutations; i++)
 	{
 		Grammar->Mutate(Shapes);
 	}
 
+
+	// -- Getting the ShapeTextureMultiMap for use in constructing
 
 	TArray<UShape*> ShapeValues;
 	Shapes.GenerateValueArray(ShapeValues);
@@ -164,7 +172,7 @@ void AGameLevel::MakeMesh(UGeomNode* Node)
 		{
 			if (!Visited.Contains(Adjacent))
 			{
-				Raster(Node, Adjacent);
+				// Raster(Node, Adjacent);
 				Explore(Adjacent);
 			}
 		}
@@ -188,13 +196,23 @@ void AGameLevel::MakeMesh()
 	TArray<FProcMeshTangent> Tangents;
 	TArray<FLinearColor> VertexColors;
 
-	int Counter = 0;
+	int TriangleVertexIndex = 0;
+	int MeshSectionIndex = 0;
+
+	TMap<FString, UShape*> MaterialShapeMap = Grammar->GetMaterialShapeMap();
+
+	TArray<FString> Labels; 
+	MaterialShapeMap.GetKeys(Labels);
 
 	TArray<UShape*> ShapeValues;
 	Shapes.GenerateValueArray(ShapeValues);
 	
-	for (UShape* Shape : ShapeValues)
+	UShape* Shape;
+	UMaterial* Material;
+	for (FString Label : Labels) // Each label corresponds to one and only one material to be applied
 	{
+		Shape = MaterialShapeMap[Label];
+
 		for (FFace* Face : Shape->Faces)
 		{
 			Vertices.Add(Face->Vertices[0]->Location);
@@ -208,21 +226,23 @@ void AGameLevel::MakeMesh()
 			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 500, 12, FColor::Orange, true);
 			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 500, 12, FColor::Orange, true);
 
+			Triangles.Add(0 + TriangleVertexIndex * 4); // Upper Left
+			Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
+			Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
 
-			Triangles.Add(0 + Counter * 4); // Upper Left
-			Triangles.Add(1 + Counter * 4); // Bottom Left
-			Triangles.Add(3 + Counter * 4); // Upper Right
+			Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
+			Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
+			Triangles.Add(2 + TriangleVertexIndex * 4); // Bottom Right
 
-			Triangles.Add(3 + Counter * 4); // Upper Right
-			Triangles.Add(1 + Counter * 4); // Bottom Left
-			Triangles.Add(2 + Counter * 4); // Bottom Right
 
-			// TODO: Face->Normal needs to be set
 			Normals.Add(Face->Normal);
 			Normals.Add(Face->Normal);
 			Normals.Add(Face->Normal);
 			Normals.Add(Face->Normal);
 
+
+			// -- Calculating UV's -- //
+			// TODO: Calculate UV values during Grammar::Mutate() instead of here
 			UV0.Add(FVector2D(0, 0));
 			UV0.Add(FVector2D(10, 0));
 			UV0.Add(FVector2D(10, 10));
@@ -240,22 +260,23 @@ void AGameLevel::MakeMesh()
 			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 
-			++Counter;
+			TriangleVertexIndex++;
 		}
+
+		Mesh->CreateMeshSection_LinearColor(MeshSectionIndex, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+		
+		// -- Applying material to mesh section -- //
+		Material = SectionMaterialMap[Label];
+		Mesh->SetMaterial(MeshSectionIndex, Material);
+
+		MeshSectionIndex++;
 	}
 	
-	/* NOTE:  this is an issue that comes from having no meta object representing the mesh as whole */
-	Mesh->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
-	// Enable collision data
+	// Apparently I need this for collision to work, though collision works without it
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
 
-
-void AGameLevel::Raster(UGeomNode* Start, UGeomNode* End)
-{
-	
-}
 
 
 

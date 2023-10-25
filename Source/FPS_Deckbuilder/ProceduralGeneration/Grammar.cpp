@@ -38,3 +38,18 @@ void UGrammar::MigrateShape(FString NewLabel, UShape* Shape, TMultiMap<FString, 
 	Shape->Label = NewLabel;
 	Shapes.Add(NewLabel, Shape);
 }
+
+
+void UGrammar::MapFacesToMaterialLabel(FString Label, TArray<FFace*> Faces)
+{
+	UShape* Shape; 
+	if (!MaterialShapeMap.Contains(Label)) 
+	{ 
+		Shape = NewObject<UShape>(GameLevel);
+		Shape->Faces.Append(Faces);
+		MaterialShapeMap.Add(Label, Shape);
+		return;
+	}
+
+	MaterialShapeMap[Label]->Faces.Append(Faces);
+}

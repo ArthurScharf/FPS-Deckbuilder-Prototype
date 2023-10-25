@@ -9,15 +9,13 @@
 
 class AGameLevel;
 class UShape;
+struct FFace;
 struct FNode;
 
 
 /**
- * Efficiently query graph structure for matching patterns.
- * Replace those patterns with other patterns
- * NOTE: Certains labels are always potentially findable. These are
- * Shape labels: {start, }
- * Face labels : {floor, ceiling, forward, backward, left, right}
+ * Efficiently query graph structure for matching patterns and 
+ * replace those patterns with other patterns
  */
 UCLASS()
 class FPS_DECKBUILDER_API UGrammar : public UObject
@@ -33,6 +31,12 @@ protected:
 	/* Helper method for avoiding programming mistakes */
 	void MigrateShape(FString NewLabel, UShape* Shape, TMultiMap<FString, UShape*>& Shapes);
 
+	/*
+	* Each faces must be associated with a material (by a label) for it to become real geometry.
+	* This associates faces with materials in this way
+	*/
+	void MapFacesToMaterialLabel(FString Label, TArray<FFace*> Faces);
+
 public:
 	AGameLevel* GameLevel; // Needed to set the outer on new shapes being created
 
@@ -40,6 +44,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TMap<FString, TSubclassOf<AActor>> Actors;
 
-
 	TMap<FString, TFunction<void (UShape* Shape)>> ShapeRules;
+
+	/*
+	* Once set of faces are no longer required for mutation, they are removed from Shapes
+	* and added to this map, often breaking down a shape in Shapes and constructing to or adding to a shape in here.
+	* Each Shape in this data structure should contain ALL faces that will receive the material associated with it's label.
+	* This may mean a shape has many islands of faces that are disconnected from one another
+	*/
+	TMap<FString, UShape*> MaterialShapeMap;
+
+public:
+	FORCEINLINE TMap<FString, UShape*> GetMaterialShapeMap() { return MaterialShapeMap; }
 };
