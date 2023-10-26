@@ -39,8 +39,6 @@ void AGameLevel::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-
 	// == Shape Mutation Approach == // 
 	if (!GrammarClass)
 	{
@@ -83,8 +81,7 @@ void AGameLevel::BeginPlay()
 	//}
 
 	MakeMesh();
-	//Mesh->AddLocalOffset(FVector(0, 0, -1));
-// 	AddActorWorldOffset(FVector(0, 0, -1), true);
+	AddActorWorldOffset(FVector(0, 0, -1), true); // This is a hack solution for forcing the nav mesh to be generated on the surface of the procedural mesh at runtime
 
 
 
@@ -194,6 +191,23 @@ void AGameLevel::MakeMesh(UGeomNode* Node)
 
 void AGameLevel::MakeMesh()
 {
+	int TriangleVertexIndex = 0;
+	int MeshSectionIndex = 0;
+
+	TMap<FString, UShape*> MaterialShapeMap = Grammar->GetMaterialShapeMap();
+
+	TArray<FString> Labels; 
+	MaterialShapeMap.GetKeys(Labels);
+	for (FString Label : Labels) { MakeMeshSection(Label); } // Each label corresponds to one and only one material to be applied
+	
+	// Apparently I need this for collision to work, though collision works without it
+	Mesh->ContainsPhysicsTriMeshData(true);
+
+}
+
+
+void AGameLevel::MakeMeshSection(FString Label)
+{
 	TArray<FVector> Vertices;
 	TArray<int32> Triangles;
 	TArray<FVector> Normals;
@@ -202,109 +216,63 @@ void AGameLevel::MakeMesh()
 	TArray<FLinearColor> VertexColors;
 
 	int TriangleVertexIndex = 0;
-	int MeshSectionIndex = 0;
 
 	TMap<FString, UShape*> MaterialShapeMap = Grammar->GetMaterialShapeMap();
+	UShape* Shape = MaterialShapeMap[Label];
 
-
-
-	// - Testing - //
-	//FString OutString;
-	//TArray<FString> TestLabels;
-	//MaterialShapeMap.GetKeys(TestLabels);
-	//UShape* TestShape;
-	//for (FString Label : TestLabels)
-	//{
-	//	TestShape = MaterialShapeMap[Label];
-	//	
-	//	OutString += Label + "\n";
-	//	for (FFace* f : TestShape->Faces)
-	//	{
-	//		OutString += "  " + f->Label + "\n";
-	//	}
-	//	OutString += "\n";
-	//}
-	//UE_LOG(LogTemp, Error, TEXT("%s"), *OutString);
-
-
-
-
-	TArray<FString> Labels; 
-	MaterialShapeMap.GetKeys(Labels);
-	UShape* Shape;
-	for (FString Label : Labels) // Each label corresponds to one and only one material to be applied
+	for (FFace* Face : Shape->Faces)
 	{
-		Shape = MaterialShapeMap[Label];
+		Vertices.Add(Face->Vertices[0]->Location);
+		Vertices.Add(Face->Vertices[1]->Location);
+		Vertices.Add(Face->Vertices[2]->Location);
+		Vertices.Add(Face->Vertices[3]->Location);
 
-		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh -- Label: %s"), *Label);
+		// NOTE: These are VERY expensive for the framerate
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 500, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 500, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 500, 12, FColor::Orange, true);
+		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 500, 12, FColor::Orange, true);
 
-		for (FFace* Face : Shape->Faces)
-		{
-			Vertices.Add(Face->Vertices[0]->Location);
-			Vertices.Add(Face->Vertices[1]->Location);
-			Vertices.Add(Face->Vertices[2]->Location);
-			Vertices.Add(Face->Vertices[3]->Location);
+		Triangles.Add(0 + TriangleVertexIndex * 4); // Upper Left
+		Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
+		Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
 
-			// NOTE: These are VERY expensive for the framerate
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 500, 12, FColor::Orange, true);
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 500, 12, FColor::Orange, true);
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 500, 12, FColor::Orange, true);
-			//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 500, 12, FColor::Orange, true);
+		Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
+		Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
+		Triangles.Add(2 + TriangleVertexIndex * 4); // Bottom Right
 
-			Triangles.Add(0 + TriangleVertexIndex * 4); // Upper Left
-			Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
-			Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
+		Normals.Add(Face->Normal);
 
-			Triangles.Add(3 + TriangleVertexIndex * 4); // Upper Right
-			Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
-			Triangles.Add(2 + TriangleVertexIndex * 4); // Bottom Right
+		// -- Calculating UV's -- //
+		// TODO: Calculate UV values during Grammar::Mutate() instead of here
+		UV0.Add(FVector2D(0, 0));
+		UV0.Add(FVector2D(10, 0));
+		UV0.Add(FVector2D(10, 10));
+		UV0.Add(FVector2D(0, 10));
 
+		// TODO
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
+		Tangents.Add(FProcMeshTangent());
 
-			Normals.Add(Face->Normal);
-			Normals.Add(Face->Normal);
-			Normals.Add(Face->Normal);
-			Normals.Add(Face->Normal);
+		// TODO: Remove?
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+		VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 
-
-			// -- Calculating UV's -- //
-			// TODO: Calculate UV values during Grammar::Mutate() instead of here
-			UV0.Add(FVector2D(0, 0));
-			UV0.Add(FVector2D(10, 0));
-			UV0.Add(FVector2D(10, 10));
-			UV0.Add(FVector2D(0, 10));
-
-			// TODO
-			Tangents.Add(FProcMeshTangent());
-			Tangents.Add(FProcMeshTangent());
-			Tangents.Add(FProcMeshTangent());
-			Tangents.Add(FProcMeshTangent());
-
-			// TODO: Remove?
-			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-			VertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
-
-			TriangleVertexIndex++;
-		}
-
-		Mesh->CreateMeshSection_LinearColor(MeshSectionIndex, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
-		
-		// -- Applying material to mesh section -- //
-		if (SectionMaterialMap.Contains(Label)) { Mesh->SetMaterial(MeshSectionIndex, SectionMaterialMap[Label]); }
-
-
-		
-		UE_LOG(LogTemp, Warning, TEXT("AGameLevel::MakeMesh --MatName: %s"), *(SectionMaterialMap[Label]->GetName()));
-
-		MeshSectionIndex++;
+		TriangleVertexIndex++;
 	}
-	
-	// Apparently I need this for collision to work, though collision works without it
-	Mesh->ContainsPhysicsTriMeshData(true);
+
+	Mesh->CreateMeshSection_LinearColor(Mesh->GetNumSections(), Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+
+	// -- Applying material to mesh section -- //
+	if (SectionMaterialMap.Contains(Label)) { Mesh->SetMaterial(Mesh->GetNumSections()-1, SectionMaterialMap[Label]); }
 }
-
-
 
 
 

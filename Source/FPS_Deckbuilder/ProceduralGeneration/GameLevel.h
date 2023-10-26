@@ -43,6 +43,7 @@ protected:
 	
 	void MakeMesh(UGeomNode* Node);
 
+	void MakeMeshSection(FString Label);
 	
 
 private:

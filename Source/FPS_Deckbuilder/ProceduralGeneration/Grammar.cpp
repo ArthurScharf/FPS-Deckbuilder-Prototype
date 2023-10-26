@@ -45,6 +45,7 @@ void UGrammar::MapFacesToMaterialLabel(FString Label, TArray<FFace*> Faces)
 	UShape* Shape; 
 	if (!MaterialShapeMap.Contains(Label)) 
 	{ 
+		// UE_LOG(LogTemp, Warning, TEXT("UGrammar::MapFacesToMaterialLabel -- New Label"));
 		Shape = NewObject<UShape>(GameLevel);
 		Shape->Faces.Append(Faces);
 		MaterialShapeMap.Add(Label, Shape);
