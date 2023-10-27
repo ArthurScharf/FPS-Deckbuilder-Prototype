@@ -74,6 +74,7 @@ enum EFaceAxis
 
 static int NextFaceID = 0;
 
+// TODO: Have the face init it's normal automatically. The user shouldn't need to init it 
 /* A face on a shape
 *  Face labels : {floor, roof, forward, back, left, right}
 */
@@ -117,6 +118,11 @@ public:
 		SetAdjacency();
 
 		// UE_LOG(LogTemp, Warning, TEXT("FFace(COPY) -- ID: %d"), ID);
+	}
+
+	void InitNormal()
+	{
+		Normal = FVector::CrossProduct((Vertices[3]->Location - Vertices[0]->Location), (Vertices[1]->Location - Vertices[0]->Location));
 	}
 
 	FVector GetFaceCenter()
@@ -202,7 +208,6 @@ public:
 		Vertices[3]->Location = Center + (Dimensions.X * UnitX) - (Dimensions.Y * UnitY);
 	}
 
-
 	void SetAdjacency()
 	{
 		int N = Vertices.Num();
@@ -247,6 +252,17 @@ public:
 		V_Direction.Normalize();
 		V_Direction *= RelativeOffset.Y;
 		OutLocalOffset = U_Direction + V_Direction + Vertices[0]->Location;
+	}
+
+	void SetWorldLocation(FVector Location)
+	{
+		FVector FaceCenter = GetFaceCenter();
+
+		for (FVertex* Vertex : Vertices)
+		{
+			Vertex->Location -= FaceCenter;
+			Vertex->Location += Location;
+		}
 	}
 
 	/* TEMP: debugging */
@@ -316,7 +332,11 @@ class FPS_DECKBUILDER_API UShape : public UObject
 public:
 	static UShape* CreateRectangle(FVector Center, FRotator Rotation, FVector Extent);
 
+	// TODO: Should have center settable
 	static UShape* CreateCylinder(int NumFaces, int Height);
+
+	// TODO: Complete
+	static UShape* CreatePlane(FVector Origin, FVector HypotenuseVector);
 
 
 	// -- Modifier Methods -- //

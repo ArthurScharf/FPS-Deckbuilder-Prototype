@@ -1,7 +1,6 @@
 TODO 
- - Some vertices are being duplicated during MakeMesh() as a consequence of the sharing of vertices between Shapes. I need faces to share verts, but I'd prefer no duplicated vertices. This is a minor issue
- - The GameLevel Scale property is needed within the grammar. I'd prefer to scale the entire system after generating
- - Face.Normal can be set on init, but must be adjusted during the Move method. Additionally
+ - Change InsetFace to be a member of FFace. This may require having FFace's carry a pointer to their shape
+ - Per first point, consider overhauling the accessability of the FFace and UShape to allow better control
  
 
 

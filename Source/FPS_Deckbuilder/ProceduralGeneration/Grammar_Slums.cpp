@@ -1,14 +1,17 @@
 #include "Grammar_Slums.h"
 
+#include "Algo/Reverse.h" 
+#include "FPS_Deckbuilder/Character/EnemyCharacter.h"
 #include "FPS_Deckbuilder/ProceduralGeneration/GameLevel.h"
 #include "FPS_Deckbuilder/ProceduralGeneration/Shape.h"
 #include "NavMesh/NavMeshBoundsVolume.h"
 
-#include "FPS_Deckbuilder/Character/EnemyCharacter.h"
 
 
 
-
+/*
+* Only map faces to their material label once they're finished with mutation
+ */
 
 
 
@@ -17,6 +20,9 @@
 void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 {
 	UE_LOG(LogTemp, Warning, TEXT("UGrammar_Slums::Init()"));
+
+	// -- Initializing Meta Data -- //
+	FenceHeight = FVector(0, 0, 400);
 
 
 	/*
@@ -71,27 +77,26 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 				);
 				NewFace->Normal = FVector(0, 0, 1);
 				NewFace->SetAdjacency();
-				NewFace->Label = "base";
+				NewFace->Label = "base_plate";
 				FacesToMaterialMap.Add(NewFace);
 
 
 				// -- Creating new shape & Adding NewFace to NewShape -- //
 				NewShape = NewObject<UShape>(GameLevel);
 				NewShape->Faces.Add(NewFace);
-				NewShape->Label = "encounter"; // So we can use a rule on it
-				MigrateShape("encounter", NewShape, Shapes);
-				
-
-				// -- Modifying Grammar specific meta data -- //
-				Rooms.Add(NewShape);
+				NewShape->Label = "base_plate_1"; // So we can use a rule on it
+				MigrateShape("base_plate_1", NewShape, Shapes);
 			}
 
 			MigrateShape("cylinder", Shape, Shapes);
-			MapFacesToMaterialLabel("floor", FacesToMaterialMap); // TODO: Change to appropriate material
+			MapFacesToMaterialLabel("ground", FacesToMaterialMap); // TODO: Change to appropriate material
 		}
 	);
 
 
+	/*
+	* Modifies building to have a door and (soon to come) windows
+	*/
 	ShapeRules.Add(
 		"building",
 		[&](UShape* Shape)
@@ -130,11 +135,44 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 	);
 
 
+
 	ShapeRules.Add(
-		"encounter",
-		[&](UShape* Shape)
+		"fence_gate",
+		[&](UShape* GateShape)
 		{
-			FFace* Face = Shape->FindFaceByLabel("base");
+			FFace* GateFace = GateShape->Faces[0];
+
+			// -- Finding the a random position on the face where the gate should be -- //
+			FVector2D Dimensions = GateFace->GetDimensions();
+			FVector GateWorldLocation;
+			FVector2D FacePosition((Dimensions.X/2.f) + 50.f, FMath::RandRange(500.f, Dimensions.Y - 500));
+			GateFace->GetPositionOnFace( FacePosition, GateWorldLocation );
+
+			// -- Constructing new face -- //
+			FFace* NewFace = new FFace();
+			GateShape->InsetFace(*GateFace, 1, NewFace, { "wall", "wall", "delete", "wall" }); // We're making a door. Don't need bottom face
+			GateShape->Faces.Remove(GateShape->FindFaceByLabel("delete")); // Deleting Bottom Face
+			NewFace->SetDimensions(FVector2D(200, 300));
+			NewFace->SetWorldLocation(GateWorldLocation);
+			GateShape->Faces.Remove(NewFace);	// Cutting door face out to make room for door actor
+
+			// -- Migrating -- //
+			MigrateShape("", GateShape, Shapes);
+			MapFacesToMaterialLabel("fence", GateShape->Faces);
+		}
+	);
+
+
+
+
+	/*
+	* Makes building and fence shapes
+	*/
+	ShapeRules.Add(
+		"base_plate_1",
+		[&](UShape* BasePlateShape)
+		{
+			FFace* Face = BasePlateShape->FindFaceByLabel("base_plate");
 			if (!Face)
 			{
 				UE_LOG(LogTemp, Error, TEXT("UGrammar_Slums::Init -- RULE: encounter --  !Face"));
@@ -143,6 +181,66 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			Face->Label = ""; // Don't want to use this face more than once 
 
 
+// -- Creating Fence -- //
+			UShape* FenceShape; // Reused later
+			FFace* FenceFace; // Reused later
+
+			// - Creating FenceShape - //
+			FenceShape = NewObject<UShape>(GameLevel);
+			FenceFace = new FFace();
+			FenceShape->Faces.Add(FenceFace);
+
+			// - Finding start and end positions of FenceFace - //
+			FVector FenceOrigin;
+			FVector FenceTermination;
+			BasePlateShape->Faces[0]->GetPositionOnFace(0, 0.5, FenceOrigin);
+			BasePlateShape->Faces[0]->GetPositionOnFace(1, 0.5, FenceTermination);
+			
+			
+			// - Initializing FenceFace - //
+			// FVector FenceHeight(0, 0, 500);
+			FenceFace->Vertices.Append(
+				{
+					new FVertex(FenceOrigin + FenceHeight), // 300 is fence height
+					new FVertex(FenceOrigin),
+					new FVertex(FenceTermination),
+					new FVertex(FenceTermination + FenceHeight)
+				}
+			);
+			FenceFace->InitNormal();
+			MigrateShape("", FenceShape, Shapes); // Never mutated
+			MapFacesToMaterialLabel("fence", FenceShape->Faces);
+			// FenceFace->SetAdjacency(); TODO: Implement
+
+		
+			// - Creating additional fence faces - //
+			int NumSubdivisions = 2 + FMath::Rand() % 2; // [2,4] obstacles
+			float Percent;
+			for (int i = 0; i < NumSubdivisions; i++)
+			{
+				FenceFace = new FFace();
+				Percent = (i + 1) / (float)NumSubdivisions;
+				BasePlateShape->Faces[0]->GetPositionOnFace(Percent, 0.5, FenceOrigin);
+				BasePlateShape->Faces[0]->GetPositionOnFace(Percent, 0, FenceTermination);
+				FenceFace->Vertices.Append
+				(
+					{
+						new FVertex(FenceOrigin + FenceHeight),
+						new FVertex(FenceOrigin),
+						new FVertex(FenceTermination),
+						new FVertex(FenceTermination + FenceHeight)
+					}
+				);
+				FenceFace->InitNormal();
+				FenceShape = NewObject<UShape>(GameLevel);
+				FenceShape->Label = "fence_gate";
+				FenceShape->Faces.Add(FenceFace);
+				MigrateShape("fence_gate", FenceShape, Shapes);
+			}
+			
+
+
+// -- Creating Building -- //		
 			// - Choosing Room Size - // 
 			FVector2D Dimensions = Face->GetDimensions();
 			float ExtentX = Dimensions.X * 0.2 + FMath::FRand() * 50;
@@ -154,31 +252,37 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 			float PositionX = (XLessThan0 ? ExtentX + 500 : Dimensions.X - (ExtentX + 500));
 			float PositionY = (FMath::RandBool() ? ExtentY + 500 : Dimensions.Y - (ExtentY + 500));
 
+
 			// - Finding Center position for room - //
 			FVector Location; // Remember that these are local on the face
 			FVector2D RelativePosition(PositionX, PositionY);
 			Face->GetPositionOnFace(RelativePosition, Location);
 			Location.Z += 500.f; // 50 more than height so the room is slightly elevated 
 
+
 			// - Finding Rotation including choosing randoming facing for door - //
 			FRotator Rotation = (Face->Vertices[1]->Location - Face->Vertices[0]->Location).Rotation();
 			Rotation.Yaw += (XLessThan0 ? -90.f : 90.f); 
 
-			// - Constructing Room Shape - //
-			UShape* NewShape = UShape::CreateRectangle(
+			
+			// - Constructing Room BasePlateShape - //
+			UShape* BuildingShape = UShape::CreateRectangle(
 				Location + FVector(0,0,1), 
 				Rotation, 
 				Extent 
 			);
+			FFace* FloorFace = BuildingShape->FindFaceByLabel("floor");
+			Algo::Reverse(FloorFace->Vertices); 
+
 
 			// - Migrating Shapes - //
-			MigrateShape("building", NewShape, Shapes);
-			MigrateShape("", Shape, Shapes);
+			MigrateShape("building", BuildingShape, Shapes);
+			MigrateShape("", BasePlateShape, Shapes);
 
 
 			// - Material Mapping Faces - //
 			TMap<FString, TArray<FFace*>> FacesToMaterialMap;
-			for (FFace* f : NewShape->Faces)
+			for (FFace* f : BuildingShape->Faces)
 			{
 				// I wish this was a switch statement
 				if (f->Label == "left" || f->Label == "right" || f->Label == "backward")
@@ -216,3 +320,5 @@ void UGrammar_Slums::Init(TMultiMap<FString, UShape*>& Shapes)
 		}
 	);
 }
+
+

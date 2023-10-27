@@ -143,7 +143,16 @@ class UShape;
 
 
 
+/* If children are empty, the it's a shape and we use Origin & Extent */
+struct Subdiv
+{
+	TArray<Subdiv*> Children;
 
+	bool X; // false --> Y
+
+	FVector2D Origin;
+	FVector2D Extent;
+};
 
 
 
@@ -164,5 +173,5 @@ public:
 
 
 private:
-	TArray<UShape*> Rooms;
+	FVector FenceHeight;
 };

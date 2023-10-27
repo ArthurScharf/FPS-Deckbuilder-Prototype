@@ -16,6 +16,11 @@ struct FNode;
 /**
  * Efficiently query graph structure for matching patterns and 
  * replace those patterns with other patterns
+ * 
+ * NOTE: This entire process is too complicated. Since I'm subclassing to create each level type anyway,
+ * I might as well simply write the process of generation using member functions and randomized data structures
+ * like queues to achieve the same result. I'm leaving it this way for now, bit the current implementation
+ * is needlessly opaque
  */
 UCLASS()
 class FPS_DECKBUILDER_API UGrammar : public UObject

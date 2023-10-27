@@ -138,7 +138,10 @@ UShape* UShape::CreateCylinder(int NumFaces, int Height)
 	return Shape;
 }
 
-
+UShape* UShape::CreatePlane(FVector Origin, FVector HypotenuseVector)
+{
+	return NewObject<UShape>();
+}
 
 
 // -- Member Functions  -- // 
@@ -305,6 +308,8 @@ void UShape::ExtrudeFace(FFace& Face, float Distance, FFace* OutFace)
 	FVector t1;
 	FVector t2;
 	
+	// TODO: This first block needs to switch order of verts and order of parameters in cross product
+	// TODO: These blocks should be using FFace:InitNormal
 	t1 = f1->Vertices[0]->Location - f1->Vertices[1]->Location;
 	t2 = f1->Vertices[0]->Location - f1->Vertices[3]->Location;
 	f1->Normal = FVector::CrossProduct(t1, t2);
@@ -390,7 +395,7 @@ FFace* UShape::FindFaceByLabel(FString _Label)
 
 	for (FFace* Face : Faces)
 	{
-		 UE_LOG(LogTemp, Warning, TEXT("UShape::FindFaceByLabel ---- Label: %s"), *Face->Label);
+		UE_LOG(LogTemp, Warning, TEXT("UShape::FindFaceByLabel ---- Label: %s"), *Face->Label);
 		if (Face->Label == _Label)
 		{	 
 			return Face;
