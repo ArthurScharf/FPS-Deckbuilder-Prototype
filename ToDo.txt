@@ -1,6 +1,8 @@
 TODO 
+ - Explicit Grammar classes don't need to exist. GameLevel Should contain all the data for a grammar and do mutation itself. THis works because the grammar is the only thing that differs between game levels
  - Change InsetFace to be a member of FFace. This may require having FFace's carry a pointer to their shape
  - Per first point, consider overhauling the accessability of the FFace and UShape to allow better control
+ 
  
 
 

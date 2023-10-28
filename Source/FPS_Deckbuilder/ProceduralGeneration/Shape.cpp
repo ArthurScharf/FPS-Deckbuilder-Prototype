@@ -8,6 +8,7 @@
 
 
 // --  Static Functions -- //
+// This is named incorrectly. Should be `CreateBox`
 UShape* UShape::CreateRectangle(FVector Center, FRotator Rotation, FVector Extent)
 {
 	UShape* Shape = NewObject<UShape>();

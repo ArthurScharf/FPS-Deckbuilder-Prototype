@@ -45,18 +45,10 @@ void AGameLevel::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("AGameLevel::BeginPlay -- !Grammar"));
 		return;
 	}
-	// -- Making Test Shape -- //
-	UShape* Shape = UShape::CreateCylinder(32, 2);
-	for (FFace* Face : Shape->Faces)
-	{
-		Face->DrawLabel(this, true);
-	}
-	Shape->Label = "start";
-	Shapes.Add(Shape->Label, Shape);
 
 	Grammar = NewObject<UGrammar>(this, GrammarClass);
-	Grammar->Init(Shapes);
 	Grammar->GameLevel = this;
+	Grammar->Init(Shapes);
 
 	for (int i = 0; i < NumMutations; i++)
 	{
@@ -228,10 +220,10 @@ void AGameLevel::MakeMeshSection(FString Label)
 		Vertices.Add(Face->Vertices[3]->Location);
 
 		// NOTE: These are VERY expensive for the framerate
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 500, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 500, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 500, 12, FColor::Orange, true);
-		//DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 500, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[0]->Location, 500, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[1]->Location, 500, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[2]->Location, 500, 12, FColor::Orange, true);
+		DrawDebugSphere(GetWorld(), GetActorLocation() + Face->Vertices[3]->Location, 500, 12, FColor::Orange, true);
 
 		Triangles.Add(0 + TriangleVertexIndex * 4); // Upper Left
 		Triangles.Add(1 + TriangleVertexIndex * 4); // Bottom Left
