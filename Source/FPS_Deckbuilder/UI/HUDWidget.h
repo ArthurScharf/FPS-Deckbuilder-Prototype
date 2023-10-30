@@ -65,7 +65,7 @@ private:
 
 	// The position relative to the center of the screen that each crosshair when no other factor is included in the crosshairs position
 	UPROPERTY(EditDefaultsOnly)
-	float BaseCrosshairOffset = 20;
+	float BaseCrosshairOffset = 10;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UTextBlock* CurrentAmmoText;

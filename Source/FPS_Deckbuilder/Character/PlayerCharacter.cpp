@@ -8,6 +8,9 @@
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
+#include "Components/CapsuleComponent.h"
+
+#include "DrawDebugHelpers.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -76,6 +79,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
+
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -92,6 +96,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("RightMouseButton"), IE_Pressed, this, &ThisClass::RightMouseButton_Pressed);
 	PlayerInputComponent->BindAction(FName("RightMouseButton"), IE_Released, this, &ThisClass::RightMouseButton_Released);
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::CrouchButton_Pressed);
+	PlayerInputComponent->BindAction(FName("Crouch"), IE_Released, this, &APlayerCharacter::CrouchButton_Released);
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
 
 	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
@@ -135,12 +141,12 @@ void APlayerCharacter::MoveRight(float AxisValue)
 
 void APlayerCharacter::LookUp(float AxisValue)
 {
-	AddControllerPitchInput(AxisValue);
+	AddControllerPitchInput(AxisValue * MouseSensitivity);
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
 {
-	AddControllerYawInput(AxisValue);
+	AddControllerYawInput(AxisValue * MouseSensitivity);
 }
 
 void APlayerCharacter::LeftMouseButton_Pressed()
@@ -167,6 +173,22 @@ void APlayerCharacter::InteractButton_Pressed()
 {
 	if (TargetInteractable) TargetInteractable->Interact(this);
 }
+
+void APlayerCharacter::CrouchButton_Pressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::CrouchButton_Pressed"));
+	// GetCharacterMovement()->Crouch();
+}
+
+void APlayerCharacter::CrouchButton_Released()
+{
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::CrouchButton_Released"));
+	// GetCharacterMovement()->UnCrouch();
+}
+
+
+
+
 
 
 void APlayerCharacter::Die()

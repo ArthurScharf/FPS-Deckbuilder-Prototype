@@ -110,7 +110,7 @@ void AWeapon::Fire()
 		Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
+		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
 
 		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (EnemyCharacter)
@@ -120,6 +120,12 @@ void AWeapon::Fire()
 		}
 		// TODO: Tracer Particle effect
 	}
+
+	// -- Sound & Animation -- //
+	// NOTE: Sounds are notifies on the animation.
+	SkeletalMeshComponent->Stop();
+	SkeletalMeshComponent->Play(false);
+
 
 	// Accumulating Spread
 	AccumulatedSpread += SpreadGrowth;

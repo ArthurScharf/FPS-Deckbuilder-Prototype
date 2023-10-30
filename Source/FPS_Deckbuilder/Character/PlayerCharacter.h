@@ -62,6 +62,8 @@ private:
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
 	void InteractButton_Pressed();
+	void CrouchButton_Pressed();
+	void CrouchButton_Released();
 
 	// -- Gameplay Methods -- // 
 	virtual void Die();
@@ -99,6 +101,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
+
+
+	UPROPERTY(EditAnywhere)
+	float MouseSensitivity;
+
 
 	// -- Card Members -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")

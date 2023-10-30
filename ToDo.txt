@@ -9,6 +9,12 @@ TODO
  - Per first point, consider overhauling the accessability of the FFace and UShape to allow better control
  
  
+
+
+
+
+
+
  
 
 
@@ -43,6 +49,10 @@ Figure out how to have the GameDamageStruct by a child of the engine damage stru
 
 
 
+
+
+// -- Important Editor Notes -- //
+All sound notifies attached to weapona animations must have follow owner set and be attached to the weapon
 
 
 

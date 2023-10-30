@@ -51,6 +51,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AProjectile> ProjectileClass;
 
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bIsAutomatic;
 
@@ -65,8 +66,7 @@ private:
 
 	bool bIsFiring;
 
-	// -- Spread -- //	Spread is the angle between the line being aimed down and the cone whose center is colinear to that line 
-
+// -- Spread -- //	Spread is the angle between the line being aimed down and the cone whose center is colinear to that line 
 	// The amount of spread the weapon always has
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float BaseSpread;
@@ -90,9 +90,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float SpreadGrowth;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
-	UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
-
 	// degrees per second the weapon decays while firing
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float FiringSpreadDecay;
@@ -105,6 +102,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Firing Properties")
 	float AccumulatedSpread;
 
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+		UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
 	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
