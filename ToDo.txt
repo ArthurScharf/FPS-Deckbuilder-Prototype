@@ -1,11 +1,15 @@
-TODO 
+TODO
+ 1. Card design & Weapon Design
+ 2. Enemy attack and intelligence. Must be fun to fight
+
+ - Playtesting goes hand in hand with level design. Arena features matter more than interconnected-ness so do those first and alongside enemy and weapon design
+	
  - Explicit Grammar classes don't need to exist. GameLevel Should contain all the data for a grammar and do mutation itself. THis works because the grammar is the only thing that differs between game levels
  - Change InsetFace to be a member of FFace. This may require having FFace's carry a pointer to their shape
  - Per first point, consider overhauling the accessability of the FFace and UShape to allow better control
  
  
-
-
+ 
 
 
 
@@ -139,3 +143,10 @@ Nothing is OSHA approved
 Crystals ACT
 Goo REACTS inconsistently
 spirits are always acting
+
+
+
+
+
+
+

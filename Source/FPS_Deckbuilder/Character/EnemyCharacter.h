@@ -22,15 +22,24 @@ class FPS_DECKBUILDER_API AEnemyCharacter : public AGameCharacter
 public:
 	AEnemyCharacter();
 
+
+
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
 
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+
+	/* Handles bones being hit or anything else unique to how a blueprint subclass takes damage 
+	* 
+	* NOTE: I can't seem to have pass-by-reference variables used in this way change once the blueprint implementation is popped
+	* from the stack
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+	FDamageStruct HandleSpecialDamageConditions(FDamageStruct DamageStruct);
 
 	/* overridden to force sight cone facing to align with the character's facing 
 	 * NOTE: I wasn't able to understand where this method was being called in the engine code such that overriding it does this, but it works. Wouldn't mind understanding better 
 	 */
 	virtual FRotator GetViewRotation() const override;
-
 
 	/*
 	* the intention is that each enemy can implement their own attack behavior's in a switch statement.
@@ -73,4 +82,15 @@ private:
 	UEnemyAnimInstance* EnemyAnimInstance;
 
 	AEnemyAIController* EnemyAIController;
+
+	/* Name of the bone last hit by an attack.
+	* Only EnemyCharacter must keep track of which bone has been hit with an attack.
+	* Therefore, adding hit bone to the DamageStruct complicates it. 
+	* Thus, Enemy Character's set which bone is hit when they a collision occurs
+	*/
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	FName HitBoneName;
+
+public:
+	FORCEINLINE void SetHitBoneName(const FName _HitBoneName) { HitBoneName = _HitBoneName; }
 };

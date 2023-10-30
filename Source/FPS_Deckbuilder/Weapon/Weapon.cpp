@@ -78,18 +78,20 @@ void AWeapon::Fire()
 
 	FHitResult HitResult;
 	FVector Start;
+	FVector End;
 	FRotator EyeRotation;
+	FRotator Rotation;
 	EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
 
 	// Firing projectile, or performing line trace & applying damage
 	// TODO: Clean this up
 	if (ProjectileClass)
 	{
-		FVector End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
+		End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECollisionChannel::ECC_Visibility);
 
-		FVector Location = GetActorLocation() + GetActorForwardVector() * 50.f;
-		FRotator Rotation;
+		// FVector Location = GetActorLocation() + GetActorForwardVector() * 50.f; // TODO: MilitaryWeaponsSilver and Dark have weapons misaligned and can't reimport to fix. Reimplement once we have out own weapon meshes
+		FVector Location = SkeletalMeshComponent->GetSocketLocation(FName("MuzzleFlash"));
 		if (HitResult.bBlockingHit) { Rotation = (HitResult.ImpactPoint - Location).Rotation(); }
 		else						{ Rotation = (End				    - Location).Rotation(); }
 
@@ -105,14 +107,15 @@ void AWeapon::Fire()
 	{
 		float Spread = GetSpread();
 		// TODO: Change spread to a circle instead of a square
-		FRotator Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
-		FVector End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
+		Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
+		End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
 
 		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (EnemyCharacter)
 		{
+			EnemyCharacter->SetHitBoneName(HitResult.BoneName);
 			ApplyDamage(EnemyCharacter);
 		}
 		// TODO: Tracer Particle effect

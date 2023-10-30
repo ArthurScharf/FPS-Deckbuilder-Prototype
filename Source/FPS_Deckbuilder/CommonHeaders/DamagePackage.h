@@ -20,6 +20,7 @@ struct FDamageStruct
 {
 	GENERATED_BODY()
 
+
 public:
 	UPROPERTY(BlueprintReadWrite)
 	float Damage;
@@ -34,5 +35,24 @@ public:
 	AGameCharacter* DamageReceiver;
 
 	UPROPERTY(BlueprintReadWrite)
+	FName HitBoneName;
+
+	UPROPERTY(BlueprintReadWrite)
 	bool bWasLethal;
 };
+
+
+
+//public:
+//	FString ToString()
+//	{
+//		return FString::Printf(
+//			TEXT("Damage: %f, Type: %s, DamageCauser: %s, DamageReceiver: %s, HitBoneName: %s"),
+//			Damage,
+//			*UEnum::GetValueAsString(DamageType),
+//			DamageCauser ? *DamageCauser->GetName() : *FString("None"),
+//			DamageReceiver ? *DamageReceiver->GetName() : *FString("None"),
+//			*HitBoneName.ToString(),
+//			bWasLethal ? FString("True") : FString("False")
+//		);
+//	}

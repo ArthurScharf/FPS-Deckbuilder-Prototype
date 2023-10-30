@@ -43,8 +43,8 @@ void AEnemyCharacter::BeginPlay()
 
 	EnemyAIController = Cast<AEnemyAIController>(GetController());
 	EnemyAIController->RunBehaviorTree(BehaviorTree);
-}
 
+}
 
 
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
@@ -59,7 +59,13 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
 	}
-	AGameCharacter::ReceiveDamage(DamageStruct);
+	/*
+	* I need an new damage struct here as a workaround. 
+	* Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
+	*/
+	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
+	HitBoneName = "None";
+	AGameCharacter::ReceiveDamage(_DamageStruct); 
 }
 
 
@@ -79,6 +85,8 @@ FRotator AEnemyCharacter::GetViewRotation() const
 	// Facing the same direction as the pawn
 	return GetActorForwardVector().Rotation();
 }
+
+
 
 
 void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)

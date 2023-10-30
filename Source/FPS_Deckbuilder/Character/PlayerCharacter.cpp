@@ -193,6 +193,7 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 
 	Weapon->SetActorEnableCollision(false);
 	Weapon->SetActorRelativeLocation(FVector(0.f));
+	Weapon->SetActorRelativeRotation(FRotator(0.f, -90.f, 0.f)); // NOTE: Test weapon meshes are rotated funny. Hard set to handle this. Import August's weapons properly and change this
 	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
 	Weapon->SetEquippedPlayerCharacter(this);
 	Weapon->SetAmmoTextBlock(HUDWidget->GetCurrentAmmoText());
