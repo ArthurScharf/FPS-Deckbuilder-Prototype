@@ -10,11 +10,12 @@
 #include "Weapon.generated.h"
 
 
-class AProjectile;
+class UMatineeCameraShake;
 class UCurveFloat; // TODO: implement or remove
+class UNiagaraSystem;
+class AProjectile;
 class USkeletalMeshComponent;
 class USphereComponent;
-class UNiagaraSystem;
 
 
 UCLASS()
@@ -37,11 +38,6 @@ public:
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
 
-	
-
-
-private:
-	void ApplyDamage(AGameCharacter* DamagerReceiver);
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category = "Weapon")
@@ -56,6 +52,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	UNiagaraSystem* BulletTracerSystem;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<UMatineeCameraShake> FireShakeClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bIsAutomatic;
@@ -140,7 +139,6 @@ public:
 		AmmoTextBlock = _AmmoTextBlock; 
 		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
 	}
-
 
 	/* Placeholder until we do a better reload system */
 	FORCEINLINE void Reload() 

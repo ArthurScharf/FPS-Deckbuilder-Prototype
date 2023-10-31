@@ -56,7 +56,7 @@ public:
 
 	/* To be bound to spawned actors when those actors instigate the card's effect. */
 	UFUNCTION(BlueprintImplementableEvent)
-	void SpawnedActorCallback(AGameCharacter* GameCharacter);
+	void SpawnedActorCallback(AGameCharacter* GameCharacter, FVector Location);
 
 private:
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.

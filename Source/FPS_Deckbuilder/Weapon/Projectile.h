@@ -15,7 +15,9 @@ class USphereComponent;
 struct FDamageStruct;
 
 /*  */
-DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifyEvent, AGameCharacter*)
+DECLARE_EVENT_TwoParams(AProjectile, FOnBeginOverlapNotifyEvent, AGameCharacter*, FVector) // GameCharacter so projectiles spawned from things other than guns can hurt the player
+//DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifyEvent)
+
 
 UCLASS(Abstract, Blueprintable, BlueprintType)
 class FPS_DECKBUILDER_API AProjectile : public AActor

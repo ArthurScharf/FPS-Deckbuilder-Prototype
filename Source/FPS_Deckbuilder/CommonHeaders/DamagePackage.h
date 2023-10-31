@@ -29,6 +29,9 @@ public:
 	TEnumAsByte<EDamageType> DamageType;
 
 	UPROPERTY(BlueprintReadWrite)
+	FVector DamageLocation;
+
+	UPROPERTY(BlueprintReadWrite)
 	AGameCharacter* DamageCauser;
 	
 	UPROPERTY(BlueprintReadWrite)

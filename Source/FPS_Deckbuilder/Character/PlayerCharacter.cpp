@@ -153,7 +153,10 @@ void APlayerCharacter::LookRight(float AxisValue)
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	if (EquippedWeapon) EquippedWeapon->Fire();
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Fire();
+	}
 }
 
 void APlayerCharacter::LeftMouseButton_Released()
@@ -301,3 +304,8 @@ void APlayerCharacter::ShuffleDeck()
 	}
 }
 
+
+void APlayerCharacter::ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass)
+{
+	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(CameraShakeClass);
+}

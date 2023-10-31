@@ -64,7 +64,6 @@ void AWeapon::Tick(float DeltaTime)
 }
 
 
-
 void AWeapon::Fire()
 {
 	bIsFiring = true;
@@ -101,7 +100,23 @@ void AWeapon::Fire()
 		Rotation = Rotation + FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
-		Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &AWeapon::ApplyDamage);
+		
+		
+		// Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &AWeapon::ApplyDamage);
+		
+
+		TFunction<void (AGameCharacter*, FVector)> Lambda = [&](AGameCharacter* HitGameCharacter, FVector HitLocation)
+		{
+			FDamageStruct DamageStruct;
+			DamageStruct.Damage = this->Damage;
+			DamageStruct.DamageType = this->DamageType;
+			DamageStruct.DamageCauser = this->EquippedPlayerCharacter;
+			DamageStruct.DamageLocation = HitLocation;
+			HitGameCharacter->ReceiveDamage(DamageStruct);
+		};
+		Projectile->OnBeginOverlapNotifyEvent.AddLambda(Lambda);
+		
+		
 		UGameplayStatics::FinishSpawningActor(Projectile, Transform);
 	}
 	else
@@ -115,12 +130,21 @@ void AWeapon::Fire()
 		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 
-		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
-		if (EnemyCharacter)
+		// -- Applying Damage to hit EnemyCharacter -- //
+		AEnemyCharacter* HitEnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
+		if (HitEnemyCharacter)
 		{
-			EnemyCharacter->SetHitBoneName(HitResult.BoneName);
-			ApplyDamage(EnemyCharacter);
+			HitEnemyCharacter->SetHitBoneName(HitResult.BoneName);
+
+			FDamageStruct DamageStruct;
+			DamageStruct.Damage = Damage;
+			DamageStruct.DamageType = DamageType;
+			DamageStruct.DamageCauser = EquippedPlayerCharacter;
+			if (HitResult.bBlockingHit) { DamageStruct.DamageLocation = HitResult.Location; }
+
+			HitEnemyCharacter->ReceiveDamage(DamageStruct);
 		}
+
 
 		// -- FXs -- //
 		// - Tracer Effect - //
@@ -132,27 +156,25 @@ void AWeapon::Fire()
 			if (HitResult.bBlockingHit)
 			{
 				Tracer->SetVariableVec3(FName("BeamEnd"), (HitResult.Location - MuzzleLocation));
-				
 			}
 			else
 			{
 				Tracer->SetVariableVec3(FName("BeamEnd"), (End - MuzzleLocation));
-			}
-			
+			}	
 		}
-
 	}
 
 	// -- Sound & Animation -- //
 	// NOTE: Sounds are notifies on the animation.
 	SkeletalMeshComponent->Stop();
 	SkeletalMeshComponent->Play(false);
+	if (FireShakeClass) { EquippedPlayerCharacter->ShakeCamera(FireShakeClass); }
+	
 
 
 	// Accumulating Spread
 	AccumulatedSpread += SpreadGrowth;
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
-
 	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
 }
 
@@ -172,16 +194,3 @@ void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
 	SetActorTickEnabled(true);
 }
 
-
-
-void AWeapon::ApplyDamage(AGameCharacter* DamageReceiver)
-{
-	UE_LOG(LogTemp, Warning, TEXT("AWeapon::ApplyDamage"));
-
-	FDamageStruct DamageStruct;
-	DamageStruct.Damage = Damage;
-	DamageStruct.DamageCauser = EquippedPlayerCharacter;
-	DamageStruct.DamageType = DamageType;
-
-	DamageReceiver->ReceiveDamage(DamageStruct);
-}

@@ -49,6 +49,10 @@ public:
 
 	// -- Gameplay Methods -- //
 	void EquipWeapon(AWeapon* Weapon);
+	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
+	
+	
+
 
 private:
 	// -- Axis Bindngs & Action Bindings -- //

@@ -1,7 +1,7 @@
 TODO
- - Feedback is an issue. 
-	- Lazer charge up upon seeing player
-	- 
+1. BasicEnemy Feedback
+ - Lazer charge up upon seeing player
+ - EnemyFlinch 
 
  1. Card design & Weapon Design
  2. Enemy attack and intelligence. Must be fun to fight
@@ -13,6 +13,18 @@ TODO
  - Per first point, consider overhauling the accessability of the FFace and UShape to allow better control
  
  
+
+screenshake from shooting [X] 
+HitMarker
+Basic Enemy Attacks
+Blood splatter on hit
+blood decal splatter on hit
+healthbar shake from taking damage
+Shotguns
+Enemy Strafing
+Enemy Improved Attacks
+ - Experiment with projectiles
+fix detection height to be able to see over chest highwalls
 
 
 
@@ -138,6 +150,8 @@ This might be a problem if weapons ever need to collide with one another
   : spawns a few weaker enemies
 
  Red rez or heal is crystal defibrelator
+
+ Switch to another weapon like a knife. Move much faster for a duration and gain resources for not being hit or hitting enemies with it. Gains resources for parrying?
 
 
 

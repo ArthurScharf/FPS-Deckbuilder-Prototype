@@ -35,7 +35,7 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- Hit an Enemy"));
 		EnemyCharacter->SetHitBoneName(SweepResult.BoneName); // Setting hit bone name so EnemyCharacter can handle bone specific hit conditions
-		OnBeginOverlapNotifyEvent.Broadcast(EnemyCharacter);
+		OnBeginOverlapNotifyEvent.Broadcast(EnemyCharacter, SweepResult.ImpactPoint);
 	}
 
 	// UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap"));
