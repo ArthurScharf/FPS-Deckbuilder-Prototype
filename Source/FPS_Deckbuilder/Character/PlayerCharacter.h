@@ -61,9 +61,10 @@ private:
 	void LeftMouseButton_Released();
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
-	void InteractButton_Pressed();
 	void CrouchButton_Pressed();
 	void CrouchButton_Released();
+	void InteractButton_Pressed();
+	void ReloadButton_Pressed();
 
 	// -- Gameplay Methods -- // 
 	virtual void Die();

@@ -51,11 +51,11 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
-	// Being attacked while in roaming state
-	if (!EnemyAIController->GetBlackboardComponent()->GetValueAsBool(FName("TargetPlayerCharacter")) && DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
+	// Being attacked
+	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
 		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
-		EnemyAIController->SetTimerToClearBlackboardTargetPlayer();
+		EnemyAIController->SetSearchTimer();
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
 	}
@@ -99,6 +99,8 @@ void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 void AEnemyCharacter::Die()
 {
 	// TODO: Ragdoll and/or spawned debris
-	
+	EnemyAIController->ClearSearchTimer();
+
+
 	Destroy();
 }

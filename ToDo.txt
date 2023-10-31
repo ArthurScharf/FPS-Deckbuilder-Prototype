@@ -1,4 +1,8 @@
 TODO
+ - Feedback is an issue. 
+	- Lazer charge up upon seeing player
+	- 
+
  1. Card design & Weapon Design
  2. Enemy attack and intelligence. Must be fun to fight
 

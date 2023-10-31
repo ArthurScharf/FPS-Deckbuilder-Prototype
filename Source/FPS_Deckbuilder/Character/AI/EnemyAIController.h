@@ -31,12 +31,15 @@ public:
 	AEnemyAIController();
 
 	/* Should this be public? */
-	void SetTimerToClearBlackboardTargetPlayer();
+	void SetSearchTimer();
+
+	void ClearSearchTimer();
 
 private:
 	/* controls the blackboard variables responsible for setting the Enemy AI's state. */
 	UFUNCTION()
 	void HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus Stimulus); 
+
 
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -54,5 +57,4 @@ public:
 	void SetBlackboardTargetPlayerCharacter(APlayerCharacter* _PlayerCharacter) { Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), _PlayerCharacter); }
 	
 	void SetBlackboardTargetLocation(FVector _TargetLocation) { Blackboard->SetValueAsVector(FName("TargetLocation"), _TargetLocation); }
-
 };

@@ -14,6 +14,7 @@ class AProjectile;
 class UCurveFloat; // TODO: implement or remove
 class USkeletalMeshComponent;
 class USphereComponent;
+class UNiagaraSystem;
 
 
 UCLASS()
@@ -36,6 +37,8 @@ public:
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
 
+	
+
 
 private:
 	void ApplyDamage(AGameCharacter* DamagerReceiver);
@@ -51,6 +54,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<AProjectile> ProjectileClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UNiagaraSystem* BulletTracerSystem;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	bool bIsAutomatic;
@@ -105,7 +110,7 @@ private:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
-		UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
+	UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
 	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
@@ -133,6 +138,14 @@ public:
 	FORCEINLINE void SetAmmoTextBlock(UTextBlock* _AmmoTextBlock) 
 	{  
 		AmmoTextBlock = _AmmoTextBlock; 
+		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
+	}
+
+
+	/* Placeholder until we do a better reload system */
+	FORCEINLINE void Reload() 
+	{ 
+		CurrentAmmo = MagazineCapacity; 
 		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
 	}
 };

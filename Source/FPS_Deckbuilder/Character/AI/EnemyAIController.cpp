@@ -17,7 +17,7 @@ AEnemyAIController::AEnemyAIController()
 }
 
 
-void AEnemyAIController::SetTimerToClearBlackboardTargetPlayer()
+void AEnemyAIController::SetSearchTimer()
 {
 	GetWorldTimerManager().SetTimer(	/* Setting timer to lose player character and return to roaming state */
 		SearchHandle,
@@ -31,6 +31,11 @@ void AEnemyAIController::SetTimerToClearBlackboardTargetPlayer()
 	);
 }
 
+void AEnemyAIController::ClearSearchTimer()
+{
+	GetWorldTimerManager().ClearTimer(SearchHandle);
+}
+
 
 /* NOTE: This method might be too complex */
 void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus Stimulus)
@@ -40,13 +45,14 @@ void AEnemyAIController::HandleTargetPerceptionUpdate(AActor* Actor, FAIStimulus
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(Actor);
 
 	if (Blackboard->GetValueAsObject(FName("TargetPlayerCharacter")))	// Losing sight of the player OR regaining sight of the player
-	{	/* Enemy has lost line of sight of PlayerCharacter */
+	{	
 		if (Blackboard->GetValueAsBool(FName("bCanSeePlayer")))
 		{ /* Losing sight of the player */
 			UE_LOG(LogTemp, Warning, TEXT("AEnemyAIController::HandleTargetPerceptionUpdate -- Lost sight of player"));
 			SetFocus(nullptr);
 			Blackboard->SetValueAsBool(FName("bCanSeePlayer"), false);	// Behavior tree reacts
-			SetTimerToClearBlackboardTargetPlayer();
+			Blackboard->SetValueAsVector(FName("TargetLocation"), Actor->GetActorLocation());
+			SetSearchTimer();
 		}
 		else
 		{ /* Regaining sight of the player */

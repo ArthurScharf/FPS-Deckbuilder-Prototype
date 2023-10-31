@@ -99,6 +99,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::CrouchButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Released, this, &APlayerCharacter::CrouchButton_Released);
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
+	PlayerInputComponent->BindAction(FName("Reload"), IE_Pressed, this, &ThisClass::ReloadButton_Pressed);
+
 
 	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
 	FName ActionName;
@@ -186,7 +188,10 @@ void APlayerCharacter::CrouchButton_Released()
 	// GetCharacterMovement()->UnCrouch();
 }
 
-
+void APlayerCharacter::ReloadButton_Pressed()
+{
+	if (EquippedWeapon) { EquippedWeapon->Reload(); }
+}
 
 
 

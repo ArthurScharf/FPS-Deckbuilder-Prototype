@@ -12,7 +12,8 @@
 
 #include "DrawDebugHelpers.h"
 
-
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -109,8 +110,10 @@ void AWeapon::Fire()
 		// TODO: Change spread to a circle instead of a square
 		Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
+		
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
-		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.5, (uint8)0U, 5.f);
 
 		AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (EnemyCharacter)
@@ -118,7 +121,26 @@ void AWeapon::Fire()
 			EnemyCharacter->SetHitBoneName(HitResult.BoneName);
 			ApplyDamage(EnemyCharacter);
 		}
-		// TODO: Tracer Particle effect
+
+		// -- FXs -- //
+		// - Tracer Effect - //
+		if (BulletTracerSystem)
+		{
+			FVector MuzzleLocation = SkeletalMeshComponent->GetSocketLocation(FName("MuzzleFlash"));
+			UNiagaraComponent* Tracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletTracerSystem, MuzzleLocation);
+			
+			if (HitResult.bBlockingHit)
+			{
+				Tracer->SetVariableVec3(FName("BeamEnd"), (HitResult.Location - MuzzleLocation));
+				
+			}
+			else
+			{
+				Tracer->SetVariableVec3(FName("BeamEnd"), (End - MuzzleLocation));
+			}
+			
+		}
+
 	}
 
 	// -- Sound & Animation -- //

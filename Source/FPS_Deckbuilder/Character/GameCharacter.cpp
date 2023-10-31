@@ -38,7 +38,6 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 	DamageStruct.DamageReceiver = this;
 
-	// TODO: HandleSpecialDamageConditions (ie hit certain bones for crits, or other effects)
 
 	Health -= DamageStruct.Damage;
 
