@@ -102,9 +102,6 @@ void AWeapon::Fire()
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
 		
 		
-		// Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &AWeapon::ApplyDamage);
-		
-
 		TFunction<void (AGameCharacter*, FVector)> Lambda = [&](AGameCharacter* HitGameCharacter, FVector HitLocation)
 		{
 			FDamageStruct DamageStruct;

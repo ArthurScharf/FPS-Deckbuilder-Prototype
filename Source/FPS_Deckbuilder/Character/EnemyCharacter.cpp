@@ -2,9 +2,8 @@
 #include "AIController.h"
 #include "Animation/AnimMontage.h"
 #include "Components/WidgetComponent.h"
-
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
-
+#include "FPS_Deckbuilder/Weapon/Projectile.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -92,6 +91,16 @@ FRotator AEnemyCharacter::GetViewRotation() const
 void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 {
 	EnemyAnimInstance->Montage_Play(AttackMontage);
+}
+
+
+
+AProjectile* AEnemyCharacter::SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform)
+{
+	AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
+	Projectile->SetActorEnableCollision(false);
+	Projectile->FinishSpawning(Transform);
+	return Projectile;
 }
 
 

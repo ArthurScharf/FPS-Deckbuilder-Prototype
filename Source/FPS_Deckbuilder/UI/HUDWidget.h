@@ -3,12 +3,15 @@
 #include "CoreMinimal.h"
 #include "Components/TextBlock.h"
 #include "Components/HorizontalBox.h"
+#include "Components/Image.h"
 #include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
 #include "FPS_Deckbuilder/UI/TraySlot.h"
 #include "Math/IntVector.h"
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
+
+
 
 
 class UCanvasPanel;

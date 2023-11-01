@@ -7,6 +7,7 @@
 #include "EnemyCharacter.generated.h"
 
 
+class AProjectile;
 class UAnimMontage;
 class UBehaviorTree;
 class UEnemyAnimInstance;
@@ -64,6 +65,17 @@ public:
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void OnAttackDamageEvent5();
+
+
+	/*
+	* A workaround. Can't call SpawnActorDeferred in bluerprints. also can't pass function pointers to a "BlueprintCallable" function.
+	* Therefor, must Spawn projectile without collision
+	* 
+	* TFunction's cannot be passed as parameters to BlueprintCallable methods 
+	* The same is true of TFunctionRef
+	*/
+	UFUNCTION(BlueprintCallable)
+	AProjectile* SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform);
 
 
 protected:

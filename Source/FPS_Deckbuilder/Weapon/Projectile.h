@@ -42,6 +42,7 @@ private:
 public:
 	/* Using an event (instead of a delegate) to allow projectile spawning classes have an easier time binding 
 	 * their callback methods to the event without the need for extra code to do so */
+	UPROPERTY(BlueprintAssignable)
 	FOnBeginOverlapNotifyEvent OnBeginOverlapNotifyEvent;
 
 

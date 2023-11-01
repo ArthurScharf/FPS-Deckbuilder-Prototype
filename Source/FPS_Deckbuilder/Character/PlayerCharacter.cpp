@@ -125,9 +125,8 @@ void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
-	// if (OnDamageDealt.IsBound()) 
-	OnDamageDealt.Broadcast(DamageStruct);
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
+	OnDamageDealt.Broadcast(DamageStruct);
 }
 
 

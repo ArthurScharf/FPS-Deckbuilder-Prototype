@@ -15,10 +15,9 @@ TODO
  
 
 screenshake from shooting [X] 
-HitMarker
-Basic Enemy Attacks
-Blood splatter on hit
+Blood splatter on hit [1/2]
 blood decal splatter on hit
+Basic Enemy Attacks
 healthbar shake from taking damage
 Shotguns
 Enemy Strafing

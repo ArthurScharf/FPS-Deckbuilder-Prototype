@@ -27,11 +27,6 @@ void UHUDWidget::UpdateCrosshairsSpread(float Spread)
 	SlotBottom->SetPosition(FVector2D(   0.f,                                   BaseCrosshairOffset + Spread * 20.f  ));
 	SlotLeft->SetPosition(  FVector2D( -(BaseCrosshairOffset + Spread * 20.f) , 0.f                                  ));
 	SlotRight->SetPosition( FVector2D(   BaseCrosshairOffset + Spread * 20.f,   0.f                                  ));
-
-	//SlotTop->SetPosition(FVector2D(0.f, -(2)));
-	//SlotBottom->SetPosition(FVector2D(0.f, 2));
-	//SlotLeft->SetPosition(FVector2D(-(2), 0.f));
-	//SlotRight->SetPosition(FVector2D(2, 0.f));
 }
 
 
