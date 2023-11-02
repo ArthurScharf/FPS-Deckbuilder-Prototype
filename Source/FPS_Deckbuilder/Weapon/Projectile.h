@@ -15,8 +15,8 @@ class USphereComponent;
 struct FDamageStruct;
 
 /*  */
-DECLARE_EVENT_TwoParams(AProjectile, FOnBeginOverlapNotifyEvent, AGameCharacter*, FVector) // GameCharacter so projectiles spawned from things other than guns can hurt the player
-//DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifyEvent)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBeginOverlapNotifySignature, AGameCharacter*, HitGameCharacter, FVector, Location); // GameCharacter so projectiles spawned from things other than guns can hurt the player
+//DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifySignature)
 
 
 UCLASS(Abstract, Blueprintable, BlueprintType)
@@ -43,14 +43,14 @@ public:
 	/* Using an event (instead of a delegate) to allow projectile spawning classes have an easier time binding 
 	 * their callback methods to the event without the need for extra code to do so */
 	UPROPERTY(BlueprintAssignable)
-	FOnBeginOverlapNotifyEvent OnBeginOverlapNotifyEvent;
+	FOnBeginOverlapNotifySignature OnBeginOverlapNotify;
 
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	USphereComponent* SphereComponent;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovementComponent;
 
 };

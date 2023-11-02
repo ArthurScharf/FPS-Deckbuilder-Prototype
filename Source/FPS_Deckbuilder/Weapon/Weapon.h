@@ -38,6 +38,8 @@ public:
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
 
+	void ApplyDamage(AGameCharacter* HitGameCharacter, FVector Location);
+
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category = "Weapon")

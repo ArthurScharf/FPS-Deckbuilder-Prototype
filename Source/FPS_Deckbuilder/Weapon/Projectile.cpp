@@ -29,14 +29,25 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 {
 	UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- %s"), *(OtherActor->GetName()));
 
-
+	
+	// NOTE: Shouldn't be doing multiple casts like this
 	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
 	if (EnemyCharacter)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- Hit an Enemy"));
 		EnemyCharacter->SetHitBoneName(SweepResult.BoneName); // Setting hit bone name so EnemyCharacter can handle bone specific hit conditions
-		OnBeginOverlapNotifyEvent.Broadcast(EnemyCharacter, SweepResult.ImpactPoint);
+
+		if (OnBeginOverlapNotify.IsBound()) { GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("BOUND")); }
+
+		OnBeginOverlapNotify.Broadcast(EnemyCharacter, SweepResult.ImpactPoint);
 	}
+	APlayerCharacter* PlayerCharacter = Cast <APlayerCharacter>(OtherActor);
+	if (PlayerCharacter)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- Hit an Player"));
+		OnBeginOverlapNotify.Broadcast(PlayerCharacter, SweepResult.ImpactPoint);
+	}
+
 
 	// UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap"));
 	Destroy();

@@ -21,7 +21,7 @@ AProjectile* UCard::SpawnProjectile(TSubclassOf<AProjectile> ProjectileClass, co
 
 	FTransform Transform = FTransform(Rotation, Location);
 	AProjectile* Projectile = PlayerCharacter->GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
-	Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &UCard::SpawnedActorCallback);
+	// Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &UCard::SpawnedActorCallback);
 	Projectile->FinishSpawning(Transform);
 	return Projectile;
 }

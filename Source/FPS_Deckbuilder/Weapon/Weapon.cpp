@@ -100,20 +100,7 @@ void AWeapon::Fire()
 		Rotation = Rotation + FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
-		
-		
-		TFunction<void (AGameCharacter*, FVector)> Lambda = [&](AGameCharacter* HitGameCharacter, FVector HitLocation)
-		{
-			FDamageStruct DamageStruct;
-			DamageStruct.Damage = this->Damage;
-			DamageStruct.DamageType = this->DamageType;
-			DamageStruct.DamageCauser = this->EquippedPlayerCharacter;
-			DamageStruct.DamageLocation = HitLocation;
-			HitGameCharacter->ReceiveDamage(DamageStruct);
-		};
-		Projectile->OnBeginOverlapNotifyEvent.AddLambda(Lambda);
-		
-		
+		Projectile->OnBeginOverlapNotify.AddDynamic(this, &AWeapon::ApplyDamage);
 		UGameplayStatics::FinishSpawningActor(Projectile, Transform);
 	}
 	else
@@ -127,19 +114,13 @@ void AWeapon::Fire()
 		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 
+		
 		// -- Applying Damage to hit EnemyCharacter -- //
 		AEnemyCharacter* HitEnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (HitEnemyCharacter)
 		{
 			HitEnemyCharacter->SetHitBoneName(HitResult.BoneName);
-
-			FDamageStruct DamageStruct;
-			DamageStruct.Damage = Damage;
-			DamageStruct.DamageType = DamageType;
-			DamageStruct.DamageCauser = EquippedPlayerCharacter;
-			if (HitResult.bBlockingHit) { DamageStruct.DamageLocation = HitResult.Location; }
-
-			HitEnemyCharacter->ReceiveDamage(DamageStruct);
+			ApplyDamage(HitEnemyCharacter, HitResult.Location);
 		}
 
 
@@ -191,3 +172,16 @@ void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
 	SetActorTickEnabled(true);
 }
 
+
+
+
+void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, FVector Location)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("AWeapon::ApplyDamage"));
+	FDamageStruct DamageStruct;
+	DamageStruct.Damage = this->Damage;
+	DamageStruct.DamageType = this->DamageType;
+	DamageStruct.DamageCauser = this->EquippedPlayerCharacter;
+	DamageStruct.DamageLocation = Location;
+	HitGameCharacter->ReceiveDamage(DamageStruct);
+}
