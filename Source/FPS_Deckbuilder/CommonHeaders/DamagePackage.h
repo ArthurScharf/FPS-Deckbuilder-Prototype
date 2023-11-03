@@ -15,11 +15,11 @@ enum EDamageType
 	EDT_MAX        UMETA(DisplayName = "MAX")
 };
 
+
 USTRUCT(BlueprintType)
 struct FDamageStruct
 {
 	GENERATED_BODY()
-
 
 public:
 	UPROPERTY(BlueprintReadWrite)
@@ -42,6 +42,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bWasLethal;
+
+	UPROPERTY(BlueprintReadWrite)
+	FHitResult HitResult;
 };
 
 

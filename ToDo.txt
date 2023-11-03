@@ -16,6 +16,8 @@ TODO
 
 screenshake from shooting [X] 
 Blood splatter on hit [1/2]
+Projectile whips
+phys material based impact sounds
 blood decal splatter on hit
 Basic Enemy Attacks
 healthbar shake from taking damage

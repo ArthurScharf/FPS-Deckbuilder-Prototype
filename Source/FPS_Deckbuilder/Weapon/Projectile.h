@@ -14,9 +14,7 @@ class UProjectileMovementComponent;
 class USphereComponent;
 struct FDamageStruct;
 
-/*  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBeginOverlapNotifySignature, AGameCharacter*, HitGameCharacter, FVector, Location); // GameCharacter so projectiles spawned from things other than guns can hurt the player
-//DECLARE_EVENT_OneParam(AProjectile, FOnBeginOverlapNotifySignature)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBeginOverlapNotifySignature, AGameCharacter*, HitGameCharacter, const FHitResult&, HitResult); // GameCharacter so projectiles spawned from things other than guns can hurt the player
 
 
 UCLASS(Abstract, Blueprintable, BlueprintType)

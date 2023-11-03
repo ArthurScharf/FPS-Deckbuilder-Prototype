@@ -7,12 +7,14 @@
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "GameFramework/Actor.h"
+//#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Weapon.generated.h"
 
 
 class UMatineeCameraShake;
 class UCurveFloat; // TODO: implement or remove
 class UNiagaraSystem;
+// class UPhysicalMaterial;
 class AProjectile;
 class USkeletalMeshComponent;
 class USphereComponent;
@@ -38,7 +40,8 @@ public:
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
 
-	void ApplyDamage(AGameCharacter* HitGameCharacter, FVector Location);
+	UFUNCTION() // so it can be called by delegates
+	void ApplyDamage(AGameCharacter* HitGameCharacter, const FHitResult& HitResult);
 
 
 private:
@@ -53,19 +56,22 @@ private:
 	TSubclassOf<AProjectile> ProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	UNiagaraSystem* BulletTracerSystem;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<UMatineeCameraShake> FireShakeClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	bool bIsAutomatic;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|FX")
+	UNiagaraSystem* BulletTracerSystem;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"), Category = "Weapon|FX")
+	TMap<FName, UNiagaraSystem*> ImpactSystemMap;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float Damage;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	TEnumAsByte<EDamageType> DamageType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	bool bIsAutomatic;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float RateOfFireSeconds;

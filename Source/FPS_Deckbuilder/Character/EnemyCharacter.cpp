@@ -58,10 +58,9 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
 	}
-	/*
-	* I need an new damage struct here as a workaround. 
-	* Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
-	*/
+	
+	// I need an new damage struct here as a workaround. 
+	// Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
 	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
 	HitBoneName = "None";
 	AGameCharacter::ReceiveDamage(_DamageStruct); 

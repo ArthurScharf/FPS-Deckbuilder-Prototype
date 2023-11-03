@@ -8,12 +8,14 @@
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+
 #include "Projectile.h"
 
 #include "DrawDebugHelpers.h"
 
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraComponent.h"
+
 
 AWeapon::AWeapon()
 {
@@ -120,7 +122,17 @@ void AWeapon::Fire()
 		if (HitEnemyCharacter)
 		{
 			HitEnemyCharacter->SetHitBoneName(HitResult.BoneName);
-			ApplyDamage(HitEnemyCharacter, HitResult.Location);
+			ApplyDamage(HitEnemyCharacter, HitResult);
+		}
+		else if (HitResult.Actor != nullptr && HitResult.Actor->Tags.Num() > 0)
+		{
+			UNiagaraSystem* NiagaraSystem = ImpactSystemMap[HitResult.Actor->Tags[0]];
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				this,
+				NiagaraSystem,
+				HitResult.ImpactPoint,
+				HitResult.ImpactNormal.Rotation()
+			);
 		}
 
 
@@ -175,13 +187,13 @@ void AWeapon::Interact(APlayerCharacter* PlayerCharacter)
 
 
 
-void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, FVector Location)
+void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, const FHitResult& HitResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("AWeapon::ApplyDamage"));
 	FDamageStruct DamageStruct;
 	DamageStruct.Damage = this->Damage;
 	DamageStruct.DamageType = this->DamageType;
 	DamageStruct.DamageCauser = this->EquippedPlayerCharacter;
-	DamageStruct.DamageLocation = Location;
+	DamageStruct.DamageLocation = HitResult.ImpactPoint;
+	DamageStruct.HitResult = HitResult;
 	HitGameCharacter->ReceiveDamage(DamageStruct);
 }
