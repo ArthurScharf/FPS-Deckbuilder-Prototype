@@ -13,6 +13,8 @@
 
 #include "Projectile.h"
 
+#include "Sound/SoundCue.h"
+
 #include "DrawDebugHelpers.h"
 
 
@@ -126,13 +128,22 @@ void AWeapon::Fire()
 		}
 		else if (HitResult.Actor != nullptr && HitResult.Actor->Tags.Num() > 0)
 		{
-			UNiagaraSystem* NiagaraSystem = ImpactSystemMap[HitResult.Actor->Tags[0]];
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-				this,
-				NiagaraSystem,
-				HitResult.ImpactPoint,
-				HitResult.ImpactNormal.Rotation()
-			);
+			FImpactPackage ImpactPackage = ImpactPackageMap[HitResult.Actor->Tags[0]];
+
+			if (ImpactPackage.ImpactSystem && ImpactPackage.ImpactCue)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, ImpactPackage.ImpactCue, FVector(HitResult.ImpactPoint));
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+					this,
+					ImpactPackage.ImpactSystem,
+					HitResult.ImpactPoint,
+					HitResult.ImpactNormal.Rotation()
+				);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AWeapon::Fire -- !ImpactSystem || !ImpactCue"));
+			}
 		}
 
 

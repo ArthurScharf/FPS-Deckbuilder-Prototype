@@ -34,7 +34,7 @@ public:
 	* NOTE: I can't seem to have pass-by-reference variables used in this way change once the blueprint implementation is popped
 	* from the stack
 	*/
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintNativeEvent)
 	FDamageStruct HandleSpecialDamageConditions(FDamageStruct DamageStruct);
 
 	/* overridden to force sight cone facing to align with the character's facing 
@@ -93,6 +93,7 @@ private:
 
 	UEnemyAnimInstance* EnemyAnimInstance;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AEnemyAIController* EnemyAIController;
 
 	/* Name of the bone last hit by an attack.

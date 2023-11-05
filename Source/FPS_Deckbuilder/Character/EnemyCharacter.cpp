@@ -40,9 +40,10 @@ void AEnemyCharacter::BeginPlay()
 	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
 
+	
 	EnemyAIController = Cast<AEnemyAIController>(GetController());
-	EnemyAIController->RunBehaviorTree(BehaviorTree);
-
+	if (EnemyAIController) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
+	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController")); }
 }
 
 
@@ -57,6 +58,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 		EnemyAIController->SetSearchTimer();
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
+		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);
 	}
 	
 	// I need an new damage struct here as a workaround. 
@@ -71,6 +73,14 @@ void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
 }
+
+
+FDamageStruct AEnemyCharacter::HandleSpecialDamageConditions_Implementation(FDamageStruct DamageStruct)
+{
+	UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::HandleSpecialDamageConditions_Implementation -- This is a stub. Do you need to implement a BP override?"));
+	return DamageStruct;
+}
+
 
 
 FRotator AEnemyCharacter::GetViewRotation() const

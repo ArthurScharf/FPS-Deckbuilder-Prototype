@@ -17,7 +17,29 @@ class UNiagaraSystem;
 // class UPhysicalMaterial;
 class AProjectile;
 class USkeletalMeshComponent;
+class USoundCue;
 class USphereComponent;
+
+
+
+
+
+
+
+USTRUCT(BlueprintType, Blueprintable)
+struct FImpactPackage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* ImpactSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundCue* ImpactCue;
+};
+
+
+
 
 
 UCLASS()
@@ -62,7 +84,7 @@ private:
 	UNiagaraSystem* BulletTracerSystem;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"), Category = "Weapon|FX")
-	TMap<FName, UNiagaraSystem*> ImpactSystemMap;
+	TMap<FName, FImpactPackage> ImpactPackageMap;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float Damage;

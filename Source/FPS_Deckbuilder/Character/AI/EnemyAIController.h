@@ -42,7 +42,7 @@ private:
 
 
 private:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess="true"))
 	UAIPerceptionComponent* AIPerceptionComponent;
 
 	UPROPERTY(EditDefaultsOnly)

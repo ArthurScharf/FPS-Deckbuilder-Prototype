@@ -29,6 +29,9 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 {
 	UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- %s"), *(OtherActor->GetName()));
 
+
+	UE_LOG(LogTemp, Error, TEXT("%s"), *OtherActor->GetName());
+
 	
 	// NOTE: Shouldn't be doing multiple casts like this
 	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
@@ -44,7 +47,6 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap -- Hit an Player"));
 		OnBeginOverlapNotify.Broadcast(PlayerCharacter, SweepResult);
 	}
-
 
 	// UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap"));
 	Destroy();

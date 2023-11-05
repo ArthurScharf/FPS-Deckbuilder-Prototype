@@ -28,6 +28,7 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TEnumAsByte<EDamageType> DamageType;
 
+	// DEPRECATED. Use Locations stored within HitResult
 	UPROPERTY(BlueprintReadWrite)
 	FVector DamageLocation;
 
