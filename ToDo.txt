@@ -2,6 +2,7 @@ TODO
 1. BasicEnemy Feedback
  - Lazer charge up upon seeing player
  - EnemyFlinch 
+ - Make each enemy an NavInvoker in C++
 
  1. Card design & Weapon Design
  2. Enemy attack and intelligence. Must be fun to fight

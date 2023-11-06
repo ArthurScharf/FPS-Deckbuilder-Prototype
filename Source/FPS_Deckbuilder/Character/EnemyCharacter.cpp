@@ -42,8 +42,8 @@ void AEnemyCharacter::BeginPlay()
 
 	
 	EnemyAIController = Cast<AEnemyAIController>(GetController());
-	if (EnemyAIController) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
-	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController")); }
+	if (EnemyAIController && BehaviorTree) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
+	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController OR !BehaviorTree")); }
 }
 
 
