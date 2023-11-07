@@ -1,10 +1,14 @@
 
 #include "GameCharacter.h"
-
+#include "FPS_Deckbuilder/Character/GameCharacterMovementComponent.h"
 #include "FPS_Deckbuilder/Character/StatusEffect.h"
 
-
 AGameCharacter::AGameCharacter()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+AGameCharacter::AGameCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 }

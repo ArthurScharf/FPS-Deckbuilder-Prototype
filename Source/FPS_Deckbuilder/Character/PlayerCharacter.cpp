@@ -1,6 +1,5 @@
 #include "PlayerCharacter.h"
 
-
 #include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
@@ -8,19 +7,23 @@
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
+#include "FPS_Deckbuilder/Character/GameCharacterMovementComponent.h"
+
 #include "Components/CapsuleComponent.h"
 
 #include "DrawDebugHelpers.h"
 
 
-APlayerCharacter::APlayerCharacter()
+
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGameCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
 	CameraComponent->SetupAttachment(RootComponent);
-
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 	SpringArmComponent->SetupAttachment(CameraComponent);
 }
+
 
 
 void APlayerCharacter::BeginPlay()
@@ -100,6 +103,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Released, this, &APlayerCharacter::CrouchButton_Released);
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Reload"), IE_Pressed, this, &ThisClass::ReloadButton_Pressed);
+	PlayerInputComponent->BindAction(FName("Dash"), IE_Pressed, this, &ThisClass::DashButton_Pressed);
+	//PlayerInputComponent->BindAction(FName("Dash"), IE_Pressed, this, &ThisClass::DashButton_Released);
 
 
 	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
@@ -165,7 +170,10 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	HUDWidget->RemoveTraySlot();
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%s"), *GetMovementComponent()->GetClass()->GetName()));
+
+	// 
+	//HUDWidget->RemoveTraySlot();
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -195,7 +203,20 @@ void APlayerCharacter::ReloadButton_Pressed()
 	if (EquippedWeapon) { EquippedWeapon->Reload(); }
 }
 
+void APlayerCharacter::DashButton_Pressed()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, SUBMOVE_Dashing);
 
+	FTimerHandle DashHandle;
+	GetWorldTimerManager().SetTimer(
+		DashHandle,
+		[&]() { GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking, 0); UE_LOG(LogTemp, Warning, TEXT("TEST")); },
+		3.f,
+		false
+	);
+}
+
+// void APlayerCharacter::DashButton_Released() {}
 
 
 void APlayerCharacter::Die()

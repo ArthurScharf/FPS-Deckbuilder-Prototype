@@ -34,7 +34,10 @@ fix detection height to be able to see over chest highwalls
 
 
  
-
+Less punishment for moviung (Accuracy)
+boost
+much larger testing area (multiple disjointed encounters)
+multiagro
 
 
 

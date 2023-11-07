@@ -2,9 +2,9 @@
 
 #include "CoreMinimal.h"
 
+
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
-
 #include "Engine/EngineTypes.h"
 #include "GameFramework/Character.h"
 #include "GameCharacter.generated.h"
@@ -23,9 +23,10 @@ class FPS_DECKBUILDER_API AGameCharacter : public ACharacter
 
 public:
 	AGameCharacter();
+	AGameCharacter(const FObjectInitializer& ObjectInitializer); // Needed so child classes can use member initialization syntax to init type of movement component used
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct);
+	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct); 
 
 	/* Adds a status effect to the list of those attached to this character.
 	 * Will either add a new effect, or increase the stack value of one if a stackable instance of Class is already on the character 
@@ -56,7 +57,7 @@ protected:
 
 private:
 	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Transient)
 	float Health;
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;

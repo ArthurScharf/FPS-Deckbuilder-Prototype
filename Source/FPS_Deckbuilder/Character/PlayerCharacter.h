@@ -9,6 +9,10 @@
 #include "Math/IntVector.h"
 #include "PlayerCharacter.generated.h"
 
+
+#define SUBMOVE_Dashing 1
+
+
 class AWeapon;
 class IInteractable;
 class UCard;
@@ -16,14 +20,9 @@ class UHUDWidget;
 class USpringArmComponent;
 
 
-
-
-
 // -- Events -- //
 DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
 DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
-
-
 
 
 /**
@@ -38,6 +37,7 @@ class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 
 public:
 	APlayerCharacter();
+	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 
 public:
@@ -69,6 +69,8 @@ private:
 	void CrouchButton_Released();
 	void InteractButton_Pressed();
 	void ReloadButton_Pressed();
+	void DashButton_Pressed();
+	/*void DashButton_Released();*/
 
 	// -- Gameplay Methods -- // 
 	virtual void Die();
