@@ -53,8 +53,10 @@ private:
 
 	FTimerHandle SearchHandle;
 
-public:
+public:	
 	void SetBlackboardTargetPlayerCharacter(APlayerCharacter* _PlayerCharacter) { Blackboard->SetValueAsObject(FName("TargetPlayerCharacter"), _PlayerCharacter); }
 	
 	void SetBlackboardTargetLocation(FVector _TargetLocation) { Blackboard->SetValueAsVector(FName("TargetLocation"), _TargetLocation); }
+
+
 };

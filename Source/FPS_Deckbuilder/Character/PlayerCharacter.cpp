@@ -15,8 +15,8 @@
 
 
 
-APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGameCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+
+APlayerCharacter::APlayerCharacter()
 {
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
 	CameraComponent->SetupAttachment(RootComponent);
@@ -25,9 +25,21 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 }
 
 
+//APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
+//	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+//{
+//	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
+//	CameraComponent->SetupAttachment(RootComponent);
+//	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
+//	SpringArmComponent->SetupAttachment(CameraComponent);
+//}
+
+
 
 void APlayerCharacter::BeginPlay()
 {
+	bIsDashing = false;
+
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -76,13 +88,20 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		if (!TargetInteractable || TargetInteractable != HitResult.Actor.Get()) UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- Interactable")); // NOTE: We use get because there is no overridden `!=` operator for TScriptInterface and a WeakPtr	
 		TargetInteractable = HitResult.Actor.Get(); //NOTE: `.Get()` dereferences the WeakPtr, allowing us to pass a traditional C++ ptr to the `=` operator. There is no conversion to Interface using WeakPtr
-		return;
 	}
-	TargetInteractable = nullptr;
+	else
+	{
+		TargetInteractable = nullptr;
+	}
 
 	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 
+
+	if (bIsDashing)
+	{
+		GetCharacterMovement()->AddInputVector(DashDirection);
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -98,7 +117,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("LeftMouseButton"), IE_Released, this, &ThisClass::LeftMouseButton_Released);
 	PlayerInputComponent->BindAction(FName("RightMouseButton"), IE_Pressed, this, &ThisClass::RightMouseButton_Pressed);
 	PlayerInputComponent->BindAction(FName("RightMouseButton"), IE_Released, this, &ThisClass::RightMouseButton_Released);
-	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ThisClass::JumpButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Pressed, this, &APlayerCharacter::CrouchButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Crouch"), IE_Released, this, &APlayerCharacter::CrouchButton_Released);
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
@@ -170,7 +189,11 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%s"), *GetMovementComponent()->GetClass()->GetName()));
+	if (GetMovementComponent()->GetClass())
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%s"), *GetMovementComponent()->GetClass()->GetName()));
+	}
+
 
 	// 
 	//HUDWidget->RemoveTraySlot();
@@ -185,6 +208,16 @@ void APlayerCharacter::InteractButton_Pressed()
 {
 	if (TargetInteractable) TargetInteractable->Interact(this);
 }
+
+void APlayerCharacter::JumpButton_Pressed()
+{
+	if (!bIsDashing)
+	{
+		ACharacter::Jump();
+	}
+}
+
+
 
 void APlayerCharacter::CrouchButton_Pressed()
 {
@@ -205,18 +238,38 @@ void APlayerCharacter::ReloadButton_Pressed()
 
 void APlayerCharacter::DashButton_Pressed()
 {
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Custom, SUBMOVE_Dashing);
+	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
+	
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Velocity.Size: %s"), CharMovement->Velocity.Size());
+
+	// if (!CharMovement || bIsDashing || CharMovement->Velocity.Size() == 0) return;
+
+
+	//bIsDashing = true;
+	float Stored_MaxWalkSpeed = CharMovement->MaxWalkSpeed;
+	CharMovement->MaxWalkSpeed = DashSpeed;
+	DashDirection = CharMovement->Velocity.GetSafeNormal();
+	DashDirection.Z = 0;
+
+	// Calculating dash time
+	DashSeconds = DashSpeed / DashDistance;
+
 
 	FTimerHandle DashHandle;
 	GetWorldTimerManager().SetTimer(
 		DashHandle,
-		[&]() { GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking, 0); UE_LOG(LogTemp, Warning, TEXT("TEST")); },
-		3.f,
+		[&, CharMovement]() 
+		{ 
+			//bIsDashing = false;
+			CharMovement->MaxWalkSpeed = Stored_MaxWalkSpeed;
+			UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending "));
+		},
+		DashSeconds,
 		false
 	);
 }
 
-// void APlayerCharacter::DashButton_Released() {}
+
 
 
 void APlayerCharacter::Die()

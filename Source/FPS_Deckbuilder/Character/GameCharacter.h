@@ -23,7 +23,7 @@ class FPS_DECKBUILDER_API AGameCharacter : public ACharacter
 
 public:
 	AGameCharacter();
-	AGameCharacter(const FObjectInitializer& ObjectInitializer); // Needed so child classes can use member initialization syntax to init type of movement component used
+	// AGameCharacter(const FObjectInitializer& ObjectInitializer); // Needed so child classes can use member initialization syntax to init type of movement component used
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct); 
@@ -55,17 +55,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	int32 Money;
 
+
+
 private:
 	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive
 	UPROPERTY(VisibleAnywhere, Transient)
 	float Health;
+
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;
+	
 	ULazyHealthBar* LazyHealthBar;
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<UStatusEffect*> StatusEffects;
-
 
 
 // -- Getters & Setters -- //

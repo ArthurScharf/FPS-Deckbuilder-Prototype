@@ -8,10 +8,10 @@ AGameCharacter::AGameCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-AGameCharacter::AGameCharacter(const FObjectInitializer& ObjectInitializer)
-{
-	PrimaryActorTick.bCanEverTick = true;
-}
+//AGameCharacter::AGameCharacter(const FObjectInitializer& ObjectInitializer)
+//{
+//	PrimaryActorTick.bCanEverTick = true;
+//}
 
 
 void AGameCharacter::BeginPlay()

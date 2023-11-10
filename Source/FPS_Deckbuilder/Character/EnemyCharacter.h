@@ -105,5 +105,9 @@ private:
 	FName HitBoneName;
 
 public:
+	// Too much casting. This has been a reccurant issue throughout the code base
+	FORCEINLINE APlayerCharacter* GetTargetPlayerCharacter() { return Cast<APlayerCharacter>(EnemyAIController->GetBlackboardComponent()->GetValueAsObject("TargetPlayerCharacter")); }
+	
 	FORCEINLINE void SetHitBoneName(const FName _HitBoneName) { HitBoneName = _HitBoneName; }
+
 };

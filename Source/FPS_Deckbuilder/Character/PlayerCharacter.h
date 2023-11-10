@@ -10,8 +10,6 @@
 #include "PlayerCharacter.generated.h"
 
 
-#define SUBMOVE_Dashing 1
-
 
 class AWeapon;
 class IInteractable;
@@ -27,6 +25,9 @@ DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
 
 /**
  * Character controlled by the player
+ * 
+ * NOTE: Given time constraints, Dashing is going to be solved by managing state within the player character class itself.
+ * This is obviously hackey, and properly implementing a subclass of the CharacterMovementClass would be the correct way to do this
  */
 UCLASS()
 class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
@@ -37,7 +38,7 @@ class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 
 public:
 	APlayerCharacter();
-	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
+	// APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 
 public:
@@ -52,8 +53,6 @@ public:
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
 	
 	
-
-
 private:
 	// -- Axis Bindngs & Action Bindings -- //
 	void MoveForward(float AxisValue);
@@ -65,6 +64,7 @@ private:
 	void LeftMouseButton_Released();
 	void RightMouseButton_Pressed();
 	void RightMouseButton_Released();
+	void JumpButton_Pressed();
 	void CrouchButton_Pressed();
 	void CrouchButton_Released();
 	void InteractButton_Pressed();
@@ -109,9 +109,22 @@ private:
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
-
 	UPROPERTY(EditAnywhere)
 	float MouseSensitivity;
+
+
+	// -- Movement -- //
+	UPROPERTY(EditDefaultsOnly)
+	float DashDistance;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DashSpeed;
+
+	float DashSeconds;
+
+	FVector DashDirection;
+
+	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class
 
 
 	// -- Card Members -- //
