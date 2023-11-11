@@ -41,14 +41,14 @@ void UEnvQueryTest_LineOfSight::RunTest(FEnvQueryInstance& QueryInstance) const
 			ECollisionChannel::ECC_Visibility
 		);
 
-		DrawDebugLine(
-			GetWorld(),
-			ItemLocation + FVector(0, 0, 200),
-			TargetPlayerCharacterLocation,
-			HitResult.bBlockingHit ? FColor::Red : FColor::Green,
-			false,
-			3.f
-		);
+		//DrawDebugLine(
+		//	GetWorld(),
+		//	ItemLocation + FVector(0, 0, 200),
+		//	TargetPlayerCharacterLocation,
+		//	HitResult.bBlockingHit ? FColor::Red : FColor::Green,
+		//	false,
+		//	3.f
+		//);
 
 		It.SetScore(TestPurpose, FilterType, HitResult.bBlockingHit, false); // last param decides what a true value is considered?
 
