@@ -7,7 +7,7 @@
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
-#include "FPS_Deckbuilder/Character/GameCharacterMovementComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "Components/CapsuleComponent.h"
 
@@ -38,7 +38,9 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
+	// -- Dashing -- //
 	bIsDashing = false;
+	DashSeconds = DashDistance / DashSpeed;
 
 	// -- UI -- // 
 	if (HUDWidgetClass)
@@ -97,7 +99,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 
-
+	// -- Dashing -- //
 	if (bIsDashing)
 	{
 		GetCharacterMovement()->AddInputVector(DashDirection);
@@ -238,33 +240,45 @@ void APlayerCharacter::ReloadButton_Pressed()
 
 void APlayerCharacter::DashButton_Pressed()
 {
+	// TODO: Character speed is being hardcoded in this method. Should fetch dynamically
 	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
 	
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Velocity.Size: %s"), CharMovement->Velocity.Size());
 
-	// if (!CharMovement || bIsDashing || CharMovement->Velocity.Size() == 0) return;
+	if (!CharMovement || bIsDashing || CharMovement->GetLastUpdateVelocity().Size() <= 1.f) return;
 
-
-	//bIsDashing = true;
-	float Stored_MaxWalkSpeed = CharMovement->MaxWalkSpeed;
+	bIsDashing = true;
+	float Stored_MaxWalkSpeed = CharMovement->GetMaxSpeed();
 	CharMovement->MaxWalkSpeed = DashSpeed;
-	DashDirection = CharMovement->Velocity.GetSafeNormal();
+	CharMovement->MaxAcceleration *= 20.f;
+	CharMovement->bCanWalkOffLedges = false;
+	DashDirection = CharMovement->GetLastUpdateVelocity().GetSafeNormal();
 	DashDirection.Z = 0;
 
-	// Calculating dash time
-	DashSeconds = DashSpeed / DashDistance;
-
-
+	
 	FTimerHandle DashHandle;
 	GetWorldTimerManager().SetTimer(
 		DashHandle,
 		[&, CharMovement]() 
 		{ 
-			//bIsDashing = false;
-			CharMovement->MaxWalkSpeed = Stored_MaxWalkSpeed;
-			UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending "));
+			//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
+			bIsDashing = false;
+			CharMovement->MaxWalkSpeed = 600;
+			CharMovement->MaxAcceleration /= 20.f;
+			CharMovement->StopActiveMovement();
 		},
 		DashSeconds,
+		false
+	);
+
+	// A hack to prevent the character from launching themselves from edges
+	FTimerHandle EdgeHandle;
+	GetWorldTimerManager().SetTimer(
+		EdgeHandle,
+		[&, CharMovement]()
+		{
+			CharMovement->bCanWalkOffLedges = true;
+		},
+		DashSeconds + 0.1f,
 		false
 	);
 }
