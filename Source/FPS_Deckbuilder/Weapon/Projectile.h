@@ -50,5 +50,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovementComponent;
-
 };

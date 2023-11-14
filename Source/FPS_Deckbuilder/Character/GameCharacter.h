@@ -45,10 +45,13 @@ protected:
 
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) PURE_VIRTUAL(AGameCharacter::NotifyOfDamageDealt);
 
-	
-private:
 	// Kills the game character and initiates cleanup effects on the game (effects can be delayed, in the case of Enemies)
-	virtual void Die() PURE_VIRTUAL(AGameCharacter::Die, );
+	//virtual void Die() PURE_VIRTUAL(AGameCharacter::Die, );
+	virtual void Die();
+
+private:
+	/* See DependentActors */
+	void AttemptDestroy();
 
 
 protected:
@@ -70,12 +73,21 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TArray<UStatusEffect*> StatusEffects;
 
+	/*
+	* The system I've designed often has game character's spawning actors, then binding it's events to the delegates for those spawned actors.
+	* Destroying a game character seems to prevent this delegate methods from being called (Makes sense, since these delegates would usually need properties that belong to the destroyed actor),
+	* Thus, we maintain an array of actors we've spawned and bound to. The actor is only destroyed once they are dead, and this list is empty
+	*/
+	TArray<AActor*> DependentActors;
 
 // -- Getters & Setters -- //
 protected:
 	FORCEINLINE float GetHealth() { return Health; }
 
 	FORCEINLINE void SetLazyHealthBar(ULazyHealthBar* _LazyHealthBar) { LazyHealthBar = _LazyHealthBar; }
+
+	UFUNCTION(BlueprintCallable)
+	void AddDependentActor(AActor* Actor) { DependentActors.Add(Actor); }
 };
 
 

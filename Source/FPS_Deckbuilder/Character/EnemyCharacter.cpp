@@ -1,6 +1,7 @@
 #include "EnemyCharacter.h"
 #include "AIController.h"
 #include "Animation/AnimMontage.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/WidgetComponent.h"
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
@@ -109,6 +110,7 @@ AProjectile* AEnemyCharacter::SpawnProjectileWithoutCollision(TSubclassOf<AProje
 	AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
 	Projectile->SetActorEnableCollision(false);
 	Projectile->FinishSpawning(Transform);
+	AddDependentActor(Projectile);
 	return Projectile;
 }
 
@@ -119,6 +121,15 @@ void AEnemyCharacter::Die()
 	// TODO: Ragdoll and/or spawned debris
 	EnemyAIController->ClearSearchTimer();
 
+	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
+	if (IsValid(BT))
+	{
+		BT->StopTree(EBTStopMode::Safe);
+	}
+	
+	// TODO: Propery Die animation and etc
+	this->SetActorHiddenInGame(true);
+	this->SetActorEnableCollision(false);
 
-	Destroy();
+	Super::Die();
 }

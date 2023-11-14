@@ -58,5 +58,4 @@ public:
 	
 	void SetBlackboardTargetLocation(FVector _TargetLocation) { Blackboard->SetValueAsVector(FName("TargetLocation"), _TargetLocation); }
 
-
 };

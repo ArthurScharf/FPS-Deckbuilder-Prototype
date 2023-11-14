@@ -33,6 +33,52 @@ void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 
 
+void AGameCharacter::Die()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s / AGameCharacter::Die"), *GetName());
+
+	AttemptDestroy();
+
+	FTimerHandle DeathHandle;
+	GetWorldTimerManager().SetTimer(
+		DeathHandle,
+		this,
+		&ThisClass::AttemptDestroy,
+		5.f,
+		true
+	);
+}
+
+
+void AGameCharacter::AttemptDestroy()
+{
+	bool ToDestroy = true;
+	for (int i = 0; i < DependentActors.Num(); i++)
+	{
+		if (IsValid(DependentActors[i]))
+		{
+			ToDestroy = false;
+		};
+	}
+	if (ToDestroy)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
+		Destroy();
+	}
+	else
+	{
+		FTimerHandle DeathHandle;
+		GetWorldTimerManager().SetTimer(
+			DeathHandle,
+			this,
+			&ThisClass::AttemptDestroy,
+			5.f,
+			false
+		);
+	}
+}
+
+
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {

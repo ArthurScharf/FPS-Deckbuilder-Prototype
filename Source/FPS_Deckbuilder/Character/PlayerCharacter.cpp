@@ -288,8 +288,10 @@ void APlayerCharacter::DashButton_Pressed()
 
 void APlayerCharacter::Die()
 {
+	// TODO: Many things
 
-	Destroy();
+
+	Super::Die();
 }
 
 
