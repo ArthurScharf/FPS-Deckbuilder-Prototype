@@ -6,8 +6,8 @@
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
+#include "FPS_Deckbuilder/CommonHeaders/ImpactPackage.h"
 #include "GameFramework/Actor.h"
-//#include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Weapon.generated.h"
 
 
@@ -21,22 +21,6 @@ class USoundCue;
 class USphereComponent;
 
 
-
-
-
-
-
-USTRUCT(BlueprintType, Blueprintable)
-struct FImpactPackage
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UNiagaraSystem* ImpactSystem;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundCue* ImpactCue;
-};
 
 
 

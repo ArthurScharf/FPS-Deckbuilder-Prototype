@@ -15,6 +15,8 @@
 
 #include "Sound/SoundCue.h"
 
+
+
 #include "DrawDebugHelpers.h"
 
 
@@ -105,8 +107,9 @@ void AWeapon::Fire()
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
 		Projectile->OnBeginOverlapNotify.AddDynamic(this, &AWeapon::ApplyDamage);
+		Projectile->SetImpactPackageMap(ImpactPackageMap);
 		UGameplayStatics::FinishSpawningActor(Projectile, Transform);
-	}
+	}//~ Projectile
 	else
 	{
 		float Spread = GetSpread();
@@ -118,6 +121,12 @@ void AWeapon::Fire()
 		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 
+		// A Grotesque hack so blueprint only entities like those spawned from cards can receive hits
+		if (HitResult.bBlockingHit)
+		{
+			FHitResult UnusedHitResult;
+			HitResult.Actor->ReceiveHit(nullptr, nullptr, nullptr, false, FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), UnusedHitResult);
+		}
 		
 		// -- Applying Damage to hit EnemyCharacter -- //
 		AEnemyCharacter* HitEnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
@@ -128,26 +137,30 @@ void AWeapon::Fire()
 		}
 		else if (HitResult.Actor != nullptr && HitResult.Actor->Tags.Num() > 0)
 		{
-			FImpactPackage ImpactPackage = ImpactPackageMap[HitResult.Actor->Tags[0]];
-
-			if (ImpactPackage.ImpactSystem && ImpactPackage.ImpactCue)
+			// -- FXs -- //
+			if (ImpactPackageMap.Contains(HitResult.Actor->Tags[0]))
 			{
-				UGameplayStatics::PlaySoundAtLocation(this, ImpactPackage.ImpactCue, FVector(HitResult.ImpactPoint));
-				UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-					this,
-					ImpactPackage.ImpactSystem,
-					HitResult.ImpactPoint,
-					HitResult.ImpactNormal.Rotation()
-				);
+				FImpactPackage ImpactPackage = ImpactPackageMap[HitResult.Actor->Tags[0]];
+				if (ImpactPackage.IsValid())
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, ImpactPackage.ImpactCue, FVector(HitResult.ImpactPoint));
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+						this,
+						ImpactPackage.ImpactSystem,
+						HitResult.ImpactPoint,
+						HitResult.ImpactNormal.Rotation()
+					);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("AWeapon::Fire -- !ImpactSystem || !ImpactCue"));
+				}
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("AWeapon::Fire -- !ImpactSystem || !ImpactCue"));
+				UE_LOG(LogTemp, Error, TEXT("AWeapon::Fire / %s -- Don't have mapped value for hit surface"), *GetName());
 			}
 		}
-
-
-		// -- FXs -- //
 		// - Tracer Effect - //
 		if (BulletTracerSystem)
 		{
@@ -163,7 +176,7 @@ void AWeapon::Fire()
 				Tracer->SetVariableVec3(FName("BeamEnd"), (End - MuzzleLocation));
 			}	
 		}
-	}
+	}//~ HitScan
 
 	// -- Sound & Animation -- //
 	// NOTE: Sounds are notifies on the animation.

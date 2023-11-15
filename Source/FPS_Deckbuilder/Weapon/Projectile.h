@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
-
+#include "FPS_Deckbuilder/CommonHeaders/ImpactPackage.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
@@ -13,6 +13,7 @@ class AActor;
 class UProjectileMovementComponent;
 class USphereComponent;
 struct FDamageStruct;
+// struct FImpactPackage;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBeginOverlapNotifySignature, AGameCharacter*, HitGameCharacter, const FHitResult&, HitResult); // GameCharacter so projectiles spawned from things other than guns can hurt the player
 
@@ -43,11 +44,20 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnBeginOverlapNotifySignature OnBeginOverlapNotify;
 
-
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	USphereComponent* SphereComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UProjectileMovementComponent* ProjectileMovementComponent;
+
+	// -- Impact Systems -- //
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FName, FImpactPackage> ImpactPackageMap;
+
+	UPROPERTY(EditDefaultsOnly)
+	FImpactPackage DefaultImpactPackage;
+
+public:
+	FORCEINLINE void SetImpactPackageMap(TMap<FName, FImpactPackage> _ImpactPackageMap) { ImpactPackageMap = _ImpactPackageMap; }
 };

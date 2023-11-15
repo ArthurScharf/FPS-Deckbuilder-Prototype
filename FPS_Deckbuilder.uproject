@@ -16,5 +16,11 @@
 				"ProceduralMeshComponent"
 			]
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "CascadeToNiagaraConverter",
+			"Enabled": true
+		}
 	]
 }

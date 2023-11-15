@@ -55,7 +55,7 @@ void AGameCharacter::AttemptDestroy()
 	bool ToDestroy = true;
 	for (int i = 0; i < DependentActors.Num(); i++)
 	{
-		if (IsValid(DependentActors[i]))
+		if (DependentActors[i] != nullptr) // BUG && IsValid(DependentActors[i])
 		{
 			ToDestroy = false;
 		};
