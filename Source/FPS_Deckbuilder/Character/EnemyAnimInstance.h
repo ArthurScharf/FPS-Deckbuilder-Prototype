@@ -31,6 +31,9 @@ class FPS_DECKBUILDER_API UEnemyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+public:
+	void PlayHitReactMontage();
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void BroadcastOnAttackAnimationCompleteDelegate() { OnAttackAnimationCompleteDelegate.Broadcast(); }
@@ -42,6 +45,9 @@ protected:
 	/* Used to call FinishExecute on the Attack behavior tree node */
 	UPROPERTY(BlueprintAssignable)
 	FOnAttackAnimationCompleteSignature OnAttackAnimationCompleteDelegate;
+
+	UPROPERTY(EditDefaultsOnly)
+	TArray<UAnimMontage*> HitReactMontages;
 };
 
 

@@ -52,7 +52,6 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
-	// Being attacked
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
 		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
@@ -66,7 +65,9 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 	// Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
 	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
 	HitBoneName = "None";
-	AGameCharacter::ReceiveDamage(_DamageStruct); 
+	AGameCharacter::ReceiveDamage(_DamageStruct);
+
+	if (EnemyAnimInstance) EnemyAnimInstance->PlayHitReactMontage();
 }
 
 

@@ -253,7 +253,6 @@ void APlayerCharacter::DashButton_Pressed()
 	CharMovement->bCanWalkOffLedges = false;
 	DashDirection = CharMovement->GetLastUpdateVelocity().GetSafeNormal();
 	DashDirection.Z = 0;
-
 	
 	FTimerHandle DashHandle;
 	GetWorldTimerManager().SetTimer(
