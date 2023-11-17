@@ -41,6 +41,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) PURE_VIRTUAL(AGameCharacter::NotifyOfDamageDealt);
@@ -48,6 +50,9 @@ protected:
 	// Kills the game character and initiates cleanup effects on the game (effects can be delayed, in the case of Enemies)
 	//virtual void Die() PURE_VIRTUAL(AGameCharacter::Die, );
 	virtual void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void Dash();
 
 private:
 	/* See DependentActors */
@@ -57,6 +62,23 @@ private:
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	int32 Money;
+
+
+	// -- Movement -- //
+	UPROPERTY(EditDefaultsOnly)
+	float DashDistance;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DashSpeed;
+
+	UPROPERTY(BlueprintReadOnly)
+	float DashSeconds;
+
+	UPROPERTY(BlueprintReadWrite);
+	FVector DashDirection;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class
 
 
 

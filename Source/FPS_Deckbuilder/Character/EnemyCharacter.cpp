@@ -48,14 +48,19 @@ void AEnemyCharacter::BeginPlay()
 }
 
 
+void AEnemyCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
+	// UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
 		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
-		EnemyAIController->SetSearchTimer();
+		//EnemyAIController->SetSearchTimer();
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
 		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);

@@ -81,6 +81,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	virtual void Tick(float DeltaTime) override;
 
 private:
 	virtual void Die();

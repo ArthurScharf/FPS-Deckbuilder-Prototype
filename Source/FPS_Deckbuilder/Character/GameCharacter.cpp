@@ -11,6 +11,13 @@ AGameCharacter::AGameCharacter()
 //AGameCharacter::AGameCharacter(const FObjectInitializer& ObjectInitializer)
 //{
 //	PrimaryActorTick.bCanEverTick = true;
+//
+//	// -- Dashing -- //
+//	DashDirection.Normalize();
+//	if (bIsDashing)
+//	{
+//		GetCharacterMovement()->AddInputVector(DashDirection);
+//	}
 //}
 
 
@@ -20,10 +27,22 @@ void AGameCharacter::BeginPlay()
 	
 	Health = MaxHealth;
 	
+	// -- Dashing -- //
+	bIsDashing = false;
+	DashSeconds = DashDistance / DashSpeed;
+
 	Super::BeginPlay();
 }
 
-
+void AGameCharacter::Tick(float DeltaTime)
+{
+	// -- Dashing -- //
+	DashDirection.Normalize();
+	if (bIsDashing)
+	{
+		GetCharacterMovement()->AddInputVector(DashDirection);
+	}
+}
 
 void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
@@ -48,6 +67,52 @@ void AGameCharacter::Die()
 		true
 	);
 }
+
+
+
+void AGameCharacter::Dash()
+{
+	// TODO: Character speed is being hardcoded in this method. Should fetch dynamically
+	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
+
+	if (!CharMovement || bIsDashing || DashDirection.Size() == 0) return;
+
+	bIsDashing = true;
+	float Stored_MaxWalkSpeed = CharMovement->GetMaxSpeed();
+	CharMovement->MaxWalkSpeed = DashSpeed;
+	CharMovement->MaxAcceleration *= 20.f;
+	CharMovement->bCanWalkOffLedges = false;
+	// DashDirection = CharMovement->GetLastUpdateVelocity().GetSafeNormal();
+	DashDirection.Z = 0;
+
+	FTimerHandle DashHandle;
+	GetWorldTimerManager().SetTimer(
+		DashHandle,
+		[&, CharMovement]()
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
+			bIsDashing = false;
+			CharMovement->MaxWalkSpeed = 600;
+			CharMovement->MaxAcceleration /= 20.f;
+			CharMovement->StopActiveMovement();
+		},
+		DashSeconds,
+		false
+		);
+
+	// A hack to prevent the character from launching themselves from edges
+	FTimerHandle EdgeHandle;
+	GetWorldTimerManager().SetTimer(
+		EdgeHandle,
+		[&, CharMovement]()
+		{
+			CharMovement->bCanWalkOffLedges = true;
+		},
+		DashSeconds + 0.1f,
+		false
+		);
+}
+
 
 
 void AGameCharacter::AttemptDestroy()

@@ -113,18 +113,7 @@ private:
 	float MouseSensitivity;
 
 
-	// -- Movement -- //
-	UPROPERTY(EditDefaultsOnly)
-	float DashDistance;
 
-	UPROPERTY(EditDefaultsOnly)
-	float DashSpeed;
-
-	float DashSeconds;
-
-	FVector DashDirection;
-
-	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class
 
 
 	// -- Card Members -- //

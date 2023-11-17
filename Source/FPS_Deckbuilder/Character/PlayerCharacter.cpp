@@ -38,10 +38,6 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
-	// -- Dashing -- //
-	bIsDashing = false;
-	DashSeconds = DashDistance / DashSpeed;
-
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -71,6 +67,8 @@ void APlayerCharacter::BeginPlay()
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	// -- Target Interactable -- // 
 	FHitResult HitResult;
 	FVector Start = GetActorLocation() + FVector(0.f, 0.f, BaseEyeHeight);
@@ -98,12 +96,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
-
-	// -- Dashing -- //
-	if (bIsDashing)
-	{
-		GetCharacterMovement()->AddInputVector(DashDirection);
-	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -158,11 +150,15 @@ void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
-	AddMovementInput(GetActorForwardVector(), AxisValue);
+	FVector ForwardVector = GetActorForwardVector();
+	DashDirection +=  ForwardVector * AxisValue;
+	AddMovementInput(ForwardVector, AxisValue);
 }
 
 void APlayerCharacter::MoveRight(float AxisValue)
 {
+	FVector RightVector = GetActorRightVector();
+	DashDirection += RightVector * AxisValue;
 	AddMovementInput(GetActorRightVector(), AxisValue);
 }
 
@@ -240,46 +236,8 @@ void APlayerCharacter::ReloadButton_Pressed()
 
 void APlayerCharacter::DashButton_Pressed()
 {
-	// TODO: Character speed is being hardcoded in this method. Should fetch dynamically
-	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
-	
 
-	if (!CharMovement || bIsDashing || CharMovement->GetLastUpdateVelocity().Size() <= 1.f) return;
-
-	bIsDashing = true;
-	float Stored_MaxWalkSpeed = CharMovement->GetMaxSpeed();
-	CharMovement->MaxWalkSpeed = DashSpeed;
-	CharMovement->MaxAcceleration *= 20.f;
-	CharMovement->bCanWalkOffLedges = false;
-	DashDirection = CharMovement->GetLastUpdateVelocity().GetSafeNormal();
-	DashDirection.Z = 0;
-	
-	FTimerHandle DashHandle;
-	GetWorldTimerManager().SetTimer(
-		DashHandle,
-		[&, CharMovement]() 
-		{ 
-			//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
-			bIsDashing = false;
-			CharMovement->MaxWalkSpeed = 600;
-			CharMovement->MaxAcceleration /= 20.f;
-			CharMovement->StopActiveMovement();
-		},
-		DashSeconds,
-		false
-	);
-
-	// A hack to prevent the character from launching themselves from edges
-	FTimerHandle EdgeHandle;
-	GetWorldTimerManager().SetTimer(
-		EdgeHandle,
-		[&, CharMovement]()
-		{
-			CharMovement->bCanWalkOffLedges = true;
-		},
-		DashSeconds + 0.1f,
-		false
-	);
+	Dash();
 }
 
 
