@@ -125,7 +125,7 @@ void AWeapon::Fire()
 		if (HitResult.bBlockingHit)
 		{
 			FHitResult UnusedHitResult;
-			HitResult.Actor->ReceiveHit(nullptr, nullptr, nullptr, false, FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), UnusedHitResult);
+			HitResult.Actor->ReceiveHit(nullptr, nullptr, nullptr, false, FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), HitResult);
 		}
 		
 		// -- Applying Damage to hit EnemyCharacter -- //

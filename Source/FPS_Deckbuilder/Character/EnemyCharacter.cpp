@@ -111,14 +111,7 @@ void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 
 
 
-AProjectile* AEnemyCharacter::SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform)
-{
-	AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
-	Projectile->SetActorEnableCollision(false);
-	Projectile->FinishSpawning(Transform);
-	AddDependentActor(Projectile);
-	return Projectile;
-}
+
 
 
 

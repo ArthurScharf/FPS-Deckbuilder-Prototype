@@ -2,6 +2,7 @@
 #include "GameCharacter.h"
 #include "FPS_Deckbuilder/Character/GameCharacterMovementComponent.h"
 #include "FPS_Deckbuilder/Character/StatusEffect.h"
+#include "FPS_Deckbuilder/Weapon/Projectile.h"
 
 AGameCharacter::AGameCharacter()
 {
@@ -194,4 +195,16 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class)
 void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)
 {
 	int NumRemoved = StatusEffects.Remove(StatusEffect);
+}
+
+
+
+
+AProjectile* AGameCharacter::SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform)
+{
+	AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
+	Projectile->SetActorEnableCollision(false);
+	Projectile->FinishSpawning(Transform);
+	AddDependentActor(Projectile);
+	return Projectile;
 }

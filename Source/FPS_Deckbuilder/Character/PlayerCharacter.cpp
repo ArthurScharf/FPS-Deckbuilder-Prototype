@@ -38,6 +38,7 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
+
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -174,7 +175,7 @@ void APlayerCharacter::LookRight(float AxisValue)
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	if (EquippedWeapon)
+	if (EquippedWeapon && bWeaponEnabled)
 	{
 		EquippedWeapon->Fire();
 	}

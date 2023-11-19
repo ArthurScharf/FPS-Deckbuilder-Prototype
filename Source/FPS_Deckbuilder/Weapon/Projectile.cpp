@@ -37,7 +37,6 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		SweepResult.Actor->ReceiveHit(nullptr, nullptr, nullptr, false, FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), UnusedHitResult);
 	}
 
-
 	// NOTE: Shouldn't be doing multiple casts like this
 	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
 	if (EnemyCharacter)

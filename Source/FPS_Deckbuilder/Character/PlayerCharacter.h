@@ -75,6 +75,7 @@ private:
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 
+
 	// -- Card Methods -- //
 	UCard* DrawCard();
 	void ShuffleDeck();
@@ -108,6 +109,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bWeaponEnabled = true;
+
 
 	UPROPERTY(EditAnywhere)
 	float MouseSensitivity;
@@ -151,4 +156,5 @@ public:
 		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
 	}
 
+	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
 };
