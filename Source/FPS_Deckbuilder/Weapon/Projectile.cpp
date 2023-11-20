@@ -90,6 +90,27 @@ void AProjectile::OnSphereComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		}
 	}
 
-	// UE_LOG(LogTemp, Warning, TEXT("AProjectile::OnSphereComponentBeginOverlap"));
-	Destroy();
+	// - Post Overlap State - //
+	if (bDestroyOnImpact) Destroy();
+	else EnterPostOverlapState(); // If no BP implementation, will call native C++
+}
+
+
+
+void AProjectile::EnterPostOverlapState_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("AProjectile::EnterPostOverlapState_Implementation"));
+
+	SetActorEnableCollision(false);
+	ProjectileMovementComponent->SetComponentTickEnabled(false); // Don't need movement anymore
+
+	FTimerHandle DestructionHandle;
+	GetWorldTimerManager().SetTimer(
+		DestructionHandle,
+		[&]() {
+			Destroy();
+		},
+		ImpactToDestroySeconds,
+		false
+	);
 }

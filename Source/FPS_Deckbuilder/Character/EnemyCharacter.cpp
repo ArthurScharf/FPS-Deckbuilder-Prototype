@@ -57,6 +57,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
+	// -- Player detection -- //
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
 		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
@@ -66,6 +67,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);
 	}
 	
+	// -- Special DamageHandling -- //
 	// I need an new damage struct here as a workaround. 
 	// Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
 	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
@@ -129,6 +131,13 @@ void AEnemyCharacter::Die()
 	// TODO: Propery Die animation and etc
 	this->SetActorHiddenInGame(true);
 	this->SetActorEnableCollision(false);
+
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* Actor : AttachedActors)
+	{
+		Actor->Destroy();
+	}
 
 	Super::Die();
 }

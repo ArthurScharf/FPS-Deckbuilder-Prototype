@@ -152,11 +152,10 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
+	OnReceiveDamageDelegate.Broadcast(DamageStruct); // Status effects that need to know this is happening
+
 	DamageStruct.DamageReceiver = this;
-
-
 	Health -= DamageStruct.Damage;
-
 	if (Health <= 0.f)
 	{
 		DamageStruct.bWasLethal = true;

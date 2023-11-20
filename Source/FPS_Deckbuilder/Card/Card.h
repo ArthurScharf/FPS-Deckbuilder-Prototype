@@ -89,6 +89,7 @@ private:
 	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
 	UTexture2D* Texture; 
 
+
 public:
 	FORCEINLINE FCost GetCost() { return Cost; }
 

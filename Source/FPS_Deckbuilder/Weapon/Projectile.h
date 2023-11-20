@@ -26,6 +26,9 @@ class FPS_DECKBUILDER_API AProjectile : public AActor
 public:	
 	AProjectile();
 
+	UFUNCTION(BlueprintNativeEvent)
+	void EnterPostOverlapState();
+
 private:
 	UFUNCTION()
 	void OnSphereComponentBeginOverlap(
@@ -57,6 +60,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	FImpactPackage DefaultImpactPackage;
+
+	// --  Destruction -- //
+	UPROPERTY(EditDefaultsOnly)
+	bool bDestroyOnImpact = true;
+
+	/* Seconds until the actor is destroyed after it makes contact with something */
+	UPROPERTY(EditDefaultsOnly)
+	float ImpactToDestroySeconds;
+	
 
 public:
 	FORCEINLINE void SetImpactPackageMap(TMap<FName, FImpactPackage> _ImpactPackageMap) { ImpactPackageMap = _ImpactPackageMap; }

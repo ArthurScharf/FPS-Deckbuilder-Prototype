@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+#include "Engine/World.h"
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 
 #include "UObject/NoExportTypes.h"
@@ -11,7 +12,8 @@ class AGameCharacter;
 class UTexture2D;
 
 /**
- * 
+ * NumTriggers == 0 --> Effect is in listening mode
+ * NumTriggers  > 0  --> Effect is in triggered mode
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class FPS_DECKBUILDER_API UStatusEffect : public UObject
@@ -42,9 +44,12 @@ class FPS_DECKBUILDER_API UStatusEffect : public UObject
 
 
 public:
-	/* 1. (Native) : Adds icon to the GameCharacter's Widget..
+	/* NEVER call this directly. It is called in AGameCharacter::InstantiateEffect
+	 * 1. (Native) : Adds icon to the GameCharacter's Widget..
 	 * 2. (BPs)    : Binds Trigger to the appropriate event in the GameCharacter
 	 * 3. (BPs)    : Uses GameCharacter to Init EffectTimer.
+	 * 
+	 * TODO: Prevent user from ever calling this directly
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Init(AGameCharacter* _GameCharacter);
@@ -80,11 +85,13 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void Trigger_OnDamageDealt(FDamageStruct& DamageStruct);
 
-
 	void IncrementNumInstances();
+
+	// -- Trace functions -- //
+	UFUNCTION(BlueprintCallable)
+	void PerformSphereTrace(FVector& Location, float Radius);
 	
-
-
+	
 private:
 	/* Sets or resets lifetime timer, including whether or not timer does*/
 	void SetLifetimeTimer();
@@ -95,7 +102,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	AGameCharacter* GameCharacter;
 
-	/* Timer set with this does one of two things.
+	UPROPERTY(BlueprintReadOnly)
+	UWorld* World; // StatusEffects will sometimes need to interact with the world
+
+
+	/* NOTE: Where is this comment meant to be?
+	Timer set with this does one of two things.
 	*  1. Handles the lifetime of the effect, killing it once the timer has expired
 	*  2. Handles the recurrent timer that applies effects at an interval. In this case, the lifetime of the effect is EffectFrequency * MaxTriggers
 	*/ 

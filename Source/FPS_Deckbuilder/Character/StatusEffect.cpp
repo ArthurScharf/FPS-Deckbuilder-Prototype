@@ -10,7 +10,7 @@ void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
 	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Init"));
 
 	GameCharacter = _GameCharacter;
-
+	World = GameCharacter->GetWorld();
 	InitialNumTriggers = NumTriggers;
 
 	// TODO: Add icon to game character widget
@@ -23,6 +23,7 @@ void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
 
 void UStatusEffect::SetLifetimeTimer()
 {
+
 	// Listening mode
 	if (NumTriggers == 0)
 	{
@@ -58,6 +59,7 @@ void UStatusEffect::Cleanup_Native()
 
 	GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
 	GameCharacter->RemoveStatusEffect(this);
+
 	/* An `Outer` must be passed in BP's when an instance of this class is created.
 	*  I'm completely confident that this won't prevent garbage collection, I'd like to explicitly flag for collection here
 	*/

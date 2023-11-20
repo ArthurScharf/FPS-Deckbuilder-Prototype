@@ -14,6 +14,10 @@ class AProjectile;
 class UStatusEffect;
 
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveDamage, const FDamageStruct&, DamageStruct); // For binding effects that respond to damage being dealt
+
+
 /* An abstract class used by all characters in the game 
  * 
  * All subclasses MUST pass their healthbar widget up to GameCharacter in BeginPlay
@@ -45,6 +49,8 @@ public:
 	*
 	* TFunction's cannot be passed as parameters to BlueprintCallable methods
 	* The same is true of TFunctionRef
+	* 
+	* NOTE: This might need to be templated
 	*/
 	UFUNCTION(BlueprintCallable)
 	AProjectile* SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform);
@@ -68,6 +74,13 @@ protected:
 private:
 	/* See DependentActors */
 	void AttemptDestroy();
+
+
+public:
+	// -- Events -- //
+	UPROPERTY(BlueprintAssignable)
+	FOnReceiveDamage OnReceiveDamageDelegate;
+
 
 
 protected:
@@ -94,6 +107,7 @@ protected:
 
 
 private:
+	// -- Health & StatusEffects -- //
 	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive
 	UPROPERTY(VisibleAnywhere, Transient)
 	float Health;
