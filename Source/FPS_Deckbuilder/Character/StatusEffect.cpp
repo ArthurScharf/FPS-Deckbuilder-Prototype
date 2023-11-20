@@ -1,6 +1,6 @@
 
 #include "StatusEffect.h"
-
+#include "Kismet/KismetSystemLibrary.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 
 
@@ -17,7 +17,6 @@ void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
 	
 	SetLifetimeTimer();
 }
-
 
 
 
@@ -87,4 +86,30 @@ void UStatusEffect::IncrementNumInstances()
 		NumTriggers = InitialNumTriggers;
 		SetLifetimeTimer(); 
 	}
+}
+
+
+
+bool UStatusEffect::MultiSphereTraceForObjects(
+	FVector Start,
+	FVector End,
+	float Radius,
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes,
+	bool bIgnoreSelf,
+	TArray<FHitResult>& OutHits)
+{
+	
+	TArray<AActor*> ActorsToIgnore = { GameCharacter };
+	return UKismetSystemLibrary::SphereTraceMultiForObjects(
+		World,
+		Start,
+		End,
+		Radius,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		OutHits,
+		true
+	);
 }

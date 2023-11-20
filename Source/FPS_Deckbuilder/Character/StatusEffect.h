@@ -89,7 +89,14 @@ public:
 
 	// -- Trace functions -- //
 	UFUNCTION(BlueprintCallable)
-	void PerformSphereTrace(FVector& Location, float Radius);
+	bool MultiSphereTraceForObjects(
+		FVector Start, 
+		FVector End, 
+		float Radius,
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes,
+		bool bIgnoreSelf,
+		TArray<FHitResult>& OutHits
+	);
 	
 	
 private:
