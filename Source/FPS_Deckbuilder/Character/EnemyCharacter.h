@@ -25,7 +25,7 @@ public:
 
 
 
-	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
+	virtual void ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true) override;
 
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
@@ -67,9 +67,6 @@ public:
 	void OnAttackDamageEvent5();
 
 
-
-
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -78,6 +75,22 @@ protected:
 
 private:
 	virtual void Die();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FRotator CalculateAimAtRotation(const FVector& TargetLocation);
+
+public:
+	// -- Editor Only -- //
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = "Enemy|Debugging")
+	bool bDrawAim;
+#endif
+
+
+protected:
+	/* The distance above the location of the actor that aiming is done from. Usually between the EyeHeight and the half height of the capsule */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	float AimOffset;
 
 private:
 	UPROPERTY(EditDefaultsOnly)
@@ -94,7 +107,7 @@ private:
 	/* Name of the bone last hit by an attack.
 	* Only EnemyCharacter must keep track of which bone has been hit with an attack.
 	* Therefore, adding hit bone to the DamageStruct complicates it. 
-	* Thus, Enemy Character's set which bone is hit when they a collision occurs
+	* Thus, Enemy Characters set which bone is hit when an damage instigating overlap occurs
 	*/
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	FName HitBoneName;

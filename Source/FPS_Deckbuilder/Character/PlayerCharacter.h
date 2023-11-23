@@ -45,7 +45,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void ReceiveDamage(FDamageStruct& DamageStruct) override;
+	virtual void ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true) override;
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
 	// -- Gameplay Methods -- //

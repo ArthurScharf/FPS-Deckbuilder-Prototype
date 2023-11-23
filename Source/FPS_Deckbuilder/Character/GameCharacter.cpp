@@ -146,14 +146,17 @@ void AGameCharacter::AttemptDestroy()
 
 
 
-void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
+void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage); // TEMP
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
-	OnReceiveDamageDelegate.Broadcast(DamageStruct); // Status effects that need to know this is happening
-
+	if (bTriggersStatusEffects)
+	{
+		OnReceiveDamageDelegate.Broadcast(DamageStruct); // Status effects that need to know this is happening
+	}
+	
 	DamageStruct.DamageReceiver = this;
 	Health -= DamageStruct.Damage;
 	if (Health <= 0.f)
@@ -163,6 +166,10 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 		Die(); 
 	}
+	else if (Health >= MaxHealth)
+	{
+		Health = MaxHealth;
+	}
 
 	if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 	LazyHealthBar->SetPercent(Health / MaxHealth);
@@ -171,7 +178,7 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 
 
 
-void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class)
+void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)
 {
 	// Searching for stackable duplicate
 	for (UStatusEffect* Effect : StatusEffects)
@@ -185,6 +192,7 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class)
 
 	// No Stackable instance. Creating and adding new instance of of type Class
 	UStatusEffect* Effect = NewObject<UStatusEffect>(this, Class);
+	Effect->SetInstigatingGameCharacter(InstigatingGameCharacter);
 	StatusEffects.Add(Effect);
 	Effect->Init(this);
 }

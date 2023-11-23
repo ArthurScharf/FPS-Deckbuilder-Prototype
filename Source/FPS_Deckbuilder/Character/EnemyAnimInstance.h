@@ -34,6 +34,10 @@ class FPS_DECKBUILDER_API UEnemyAnimInstance : public UAnimInstance
 public:
 	void PlayHitReactMontage();
 
+	//virtual void NativeInitializeAnimation() override;
+
+	//virtual void NativeUpdateAnimation(float DeltaTime) override;
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void BroadcastOnAttackAnimationCompleteDelegate() { OnAttackAnimationCompleteDelegate.Broadcast(); }
@@ -48,6 +52,14 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<UAnimMontage*> HitReactMontages;
+
+	/* Speed the EnemyCharacter is moving at */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Speed;
+
+	/* Direction the enemy Charcter is moving in. relative to it's forward vector. [-180, 180] */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float Direction;
 };
 
 

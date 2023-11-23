@@ -89,6 +89,10 @@ private:
 	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
 	UTexture2D* Texture; 
 
+	/* Some cards can be set as right click cards. These don't become reshuffled on use, but instead go on cooldown*/
+	UPROPERTY(EditDefaultsOnly)
+	float RightClickCooldown;
+
 
 public:
 	FORCEINLINE FCost GetCost() { return Cost; }

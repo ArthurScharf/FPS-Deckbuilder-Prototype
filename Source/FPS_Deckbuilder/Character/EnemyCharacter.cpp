@@ -51,9 +51,32 @@ void AEnemyCharacter::BeginPlay()
 void AEnemyCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+#if WITH_EDITOR
+	if (EnemyAIController && bDrawAim)
+	{
+		AActor* TargetPlayerCharacter = Cast<AActor>(EnemyAIController->GetBlackboardComponent()->GetValueAsObject("TargetPlayerCharacter"));
+		if (TargetPlayerCharacter)
+		{
+			FRotator Rotation = CalculateAimAtRotation(TargetPlayerCharacter->GetActorLocation());
+
+			DrawDebugLine(
+				GetWorld(),
+				GetActorLocation(),
+				(Rotation.RotateVector(FVector(1.f, 0, 0)) * 500.f) + GetActorLocation(),
+				FColor::White,
+				false,
+				0.1f,
+				(uint8)0U,
+				1.f
+			);
+		}
+	}
+#endif 
 }
 
-void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
+
+void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
 
@@ -72,9 +95,9 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
 	// Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
 	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
 	HitBoneName = "None";
-	AGameCharacter::ReceiveDamage(_DamageStruct);
+	AGameCharacter::ReceiveDamage(_DamageStruct, bTriggersStatusEffects);
 
-	if (EnemyAnimInstance) EnemyAnimInstance->PlayHitReactMontage();
+	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
 }
 
 
@@ -91,7 +114,6 @@ FDamageStruct AEnemyCharacter::HandleSpecialDamageConditions_Implementation(FDam
 }
 
 
-
 FRotator AEnemyCharacter::GetViewRotation() const
 {
 	if (EnemyAIController->GetFocusActor())
@@ -104,17 +126,10 @@ FRotator AEnemyCharacter::GetViewRotation() const
 }
 
 
-
-
 void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 {
 	EnemyAnimInstance->Montage_Play(AttackMontage);
 }
-
-
-
-
-
 
 
 void AEnemyCharacter::Die()
@@ -140,4 +155,14 @@ void AEnemyCharacter::Die()
 	}
 
 	Super::Die();
+}
+
+
+FRotator AEnemyCharacter::CalculateAimAtRotation(const FVector& TargetLocation)
+{
+	return	FRotator(
+		(TargetLocation - (GetActorLocation() + FVector(0, 0, AimOffset))).Rotation().Pitch,
+		GetActorRotation().Yaw,
+		0.f
+	);
 }

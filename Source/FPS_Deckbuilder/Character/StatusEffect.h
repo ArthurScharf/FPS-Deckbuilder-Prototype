@@ -97,6 +97,17 @@ public:
 		bool bIgnoreSelf,
 		TArray<FHitResult>& OutHits
 	);
+
+	UFUNCTION(BlueprintCallable)
+	bool SphereOverlapActors(
+		const FVector Location,
+		float Radius,
+		const TArray< TEnumAsByte<EObjectTypeQuery>>& ObjectTypes,
+		UClass* ActorClassFilter,
+		const TArray<AActor*>& ActorsToIgnore,
+		bool bIgnoreSelf,
+		TArray<AActor*>& OutActors
+	);
 	
 	
 private:
@@ -105,9 +116,13 @@ private:
 
 
 protected:
-	// The character this effect is affecting
+	/* The character this effect is affecting */
 	UPROPERTY(BlueprintReadOnly)
 	AGameCharacter* GameCharacter;
+
+	/* The Character that instigated the effect */
+	UPROPERTY(BlueprintReadOnly)
+	AGameCharacter* InstigatingGameCharacter;
 
 	UPROPERTY(BlueprintReadOnly)
 	UWorld* World; // StatusEffects will sometimes need to interact with the world
@@ -149,4 +164,7 @@ protected:
 
 public:
 	FORCEINLINE bool IsStackable() { return bIsStackable; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetInstigatingGameCharacter(AGameCharacter* _InstigatingGameCharacter) { InstigatingGameCharacter = _InstigatingGameCharacter; }
 };

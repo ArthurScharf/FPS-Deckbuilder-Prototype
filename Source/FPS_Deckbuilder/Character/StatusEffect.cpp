@@ -3,11 +3,11 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 
-
+#include "DrawDebugHelpers.h"
 
 void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
 {
-	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Init"));
+	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Init / %s"), *_GameCharacter->GetName());
 
 	GameCharacter = _GameCharacter;
 	World = GameCharacter->GetWorld();
@@ -90,17 +90,10 @@ void UStatusEffect::IncrementNumInstances()
 
 
 
-bool UStatusEffect::MultiSphereTraceForObjects(
-	FVector Start,
-	FVector End,
-	float Radius,
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes,
-	bool bIgnoreSelf,
-	TArray<FHitResult>& OutHits)
+bool UStatusEffect::MultiSphereTraceForObjects(FVector Start, FVector End, float Radius, TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes, bool bIgnoreSelf, TArray<FHitResult>& OutHits)
 {
-	
 	TArray<AActor*> ActorsToIgnore = { GameCharacter };
-	return UKismetSystemLibrary::SphereTraceMultiForObjects(
+	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
 		World,
 		Start,
 		End,
@@ -108,8 +101,41 @@ bool UStatusEffect::MultiSphereTraceForObjects(
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::Persistent,
 		OutHits,
 		true
+	);
+
+
+	for (FHitResult Hit : OutHits)
+	{
+		DrawDebugPoint(
+			World,
+			Hit.ImpactPoint,
+			5.f,
+			FColor::Blue,
+			true
+		);
+	}
+
+	return bHit;
+}
+
+
+bool UStatusEffect::SphereOverlapActors(const FVector Location, float Radius, const TArray< TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, UClass* ActorClassFilter, const TArray<AActor*>& ActorsToIgnore, bool bIgnoreSelf, TArray<AActor*>& OutActors)
+{
+	//if (bIgnoreSelf)
+	//{
+	//	ActorsToIgnore.Add(GameCharacter);
+	//}
+
+	return UKismetSystemLibrary::SphereOverlapActors(
+		World,
+		Location,
+		Radius,
+		ObjectTypes,
+		ActorClassFilter,
+		ActorsToIgnore,
+		OutActors
 	);
 }

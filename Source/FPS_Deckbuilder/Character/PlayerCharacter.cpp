@@ -60,7 +60,11 @@ void APlayerCharacter::BeginPlay()
 		Tray.Add(nullptr);
 		HUDWidget->AddTraySlot();
 	} 
-	for (int i = 0; i < TraySize; i++) { Tray[i] = DrawCard();  }
+	for (int i = 0; i < TraySize; i++) 
+	{ 
+		Tray[i] = DrawCard();  
+		HUDWidget->SetCardForSlotAtIndex(i, Tray[i]);
+	}
 	Resources = { 0, 0, 0 };
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
@@ -133,12 +137,12 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
-void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct)
+void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
 	// if (OnDamageReceived.IsBound()) 
 
 	OnDamageReceived.Broadcast(DamageStruct);
-	AGameCharacter::ReceiveDamage(DamageStruct);
+	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 }
 
 

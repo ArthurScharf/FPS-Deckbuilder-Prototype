@@ -32,13 +32,13 @@ public:
 	// AGameCharacter(const FObjectInitializer& ObjectInitializer); // Needed so child classes can use member initialization syntax to init type of movement component used
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct); 
+	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true); 
 
 	/* Adds a status effect to the list of those attached to this character.
 	 * Will either add a new effect, or increase the stack value of one if a stackable instance of Class is already on the character 
 	 */
 	UFUNCTION(BlueprintCallable)
-	void InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class);
+	void InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter = nullptr);
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveStatusEffect(UStatusEffect* StatusEffect);
