@@ -76,11 +76,14 @@ private:
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 
+	void HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
+
 
 	// -- Card Methods -- //
 	UCard* DrawCard();
 	void ShuffleDeck();
 	void UseCardInTray(int Index);
+
 	
 
 
@@ -112,6 +115,9 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter")
 	UHUDWidget* HUDWidget;
 
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter")
+	TSubclassOf<UMatineeCameraShake> HitReactShakeClass;
+
 	TScriptInterface<IInteractable> TargetInteractable;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -128,7 +134,10 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
 
-
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category="PlayerCharacter")
+	float DamageDelaySeconds;
+	
+	TArray<FTimerHandle*> DamageBuffer;
 
 
 	// -- Card Members -- //

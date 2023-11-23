@@ -145,10 +145,28 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	// if (OnDamageReceived.IsBound()) 
+	// Allows the player a small window to react late to an attack
+	FTimerHandle DamageHandle;
+	DamageBuffer.Add(&DamageHandle);
 
-	OnDamageReceived.Broadcast(DamageStruct);
-	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &APlayerCharacter::HandleDelayedDamage, DamageStruct, bTriggersStatusEffects);
+
+	GetWorldTimerManager().SetTimer(
+		DamageHandle,
+		TimerDelegate,
+		DamageDelaySeconds,
+		false
+	);
+}
+
+void APlayerCharacter::HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects)
+{
+	OnReceiveDamageDelegate.Broadcast(DamageStruct);
+	Super::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
+
+	// -- FX -- //
+	if (HitReactShakeClass) ShakeCamera(HitReactShakeClass);
 }
 
 
@@ -248,6 +266,12 @@ void APlayerCharacter::ReloadButton_Pressed()
 void APlayerCharacter::DashButton_Pressed()
 {
 	if (!Dash()) return;
+
+	UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::DashButton_Pressed -- %i"), DamageBuffer.Num());
+
+	FTimerManager& TimerManager = GetWorldTimerManager();
+	TimerManager.ClearAllTimersForObject(this);
+
 
 	/* Dashing gives I-frames to the player */
 	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);

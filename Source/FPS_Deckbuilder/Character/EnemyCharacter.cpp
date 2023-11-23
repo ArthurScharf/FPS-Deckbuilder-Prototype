@@ -85,8 +85,9 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	// -- Player detection -- //
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
-		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
+		// UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage -- Entering Search Mode"));
 		//EnemyAIController->SetSearchTimer();
+		EnemyAIController->SetFocus(DamageStruct.DamageCauser);
 		EnemyAIController->SetBlackboardTargetLocation(DamageStruct.DamageCauser->GetActorLocation()); // needs this for seeking mode
 		EnemyAIController->SetBlackboardTargetPlayerCharacter(Cast<APlayerCharacter>(DamageStruct.DamageCauser)); // Downcasting !!!
 		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);
@@ -102,7 +103,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 
 	// -- Hitstun -- //
 	FTimerHandle UnpauseTickHandle;
-	CustomTimeDilation = 0.f;
+	CustomTimeDilation = 0.2f;
 	// EnemyAIController->BrainComponent->PauseLogic("test"); // Alternate method that allows for more control over hit react animations
 	GetWorldTimerManager().SetTimer
 	(
