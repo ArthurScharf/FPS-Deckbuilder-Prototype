@@ -112,6 +112,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	FName HitBoneName;
 
+	/* Used to halt tick for a short delay to simulate hitstun */
+	bool bPausedTick;
+
 public:
 	// Too much casting. This has been a reccurant issue throughout the code base
 	FORCEINLINE APlayerCharacter* GetTargetPlayerCharacter() { return Cast<APlayerCharacter>(EnemyAIController->GetBlackboardComponent()->GetValueAsObject("TargetPlayerCharacter")); }

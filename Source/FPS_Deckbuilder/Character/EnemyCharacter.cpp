@@ -50,6 +50,8 @@ void AEnemyCharacter::BeginPlay()
 
 void AEnemyCharacter::Tick(float DeltaTime)
 {
+	if (bPausedTick) return;
+
 	Super::Tick(DeltaTime);
 
 #if WITH_EDITOR
@@ -97,6 +99,23 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	HitBoneName = "None";
 	AGameCharacter::ReceiveDamage(_DamageStruct, bTriggersStatusEffects);
 
+
+	// -- Hitstun -- //
+	FTimerHandle UnpauseTickHandle;
+	CustomTimeDilation = 0.f;
+	// EnemyAIController->BrainComponent->PauseLogic("test"); // Alternate method that allows for more control over hit react animations
+	GetWorldTimerManager().SetTimer
+	(
+		UnpauseTickHandle,
+		[&]() {
+			CustomTimeDilation = 1.f;
+			// EnemyAIController->BrainComponent->ResumeLogic("test");
+		},
+		0.03,
+		false
+	);
+
+	// -- Animation -- //
 	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
 }
 

@@ -69,7 +69,7 @@ protected:
 	virtual void Die();
 
 	UFUNCTION(BlueprintCallable)
-	void Dash();
+	bool Dash();
 
 private:
 	/* See DependentActors */

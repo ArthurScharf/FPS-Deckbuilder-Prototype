@@ -13,6 +13,7 @@
 
 class AWeapon;
 class IInteractable;
+class UCapsuleComponent;
 class UCard;
 class UHUDWidget;
 class USpringArmComponent;
@@ -90,12 +91,21 @@ public:
 	FOnDamageReceivedEvent OnDamageReceived;
 
 private:
+	// -- Components -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	UCameraComponent* CameraComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	USpringArmComponent* SpringArmComponent;
 
+	//UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
+	//UCapsuleComponent* EnemyAttackDetection;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
+	UCapsuleComponent* AttackCollision;
+
+
+	// -- Input & Interaction -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter")
 	TSubclassOf<UHUDWidget> HUDWidgetClass;
 
@@ -107,16 +117,16 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float InteractionDistance;
 
+	UPROPERTY(EditAnywhere)
+	float MouseSensitivity;
+
+
+	// -- Gameplay -- //
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
-
-
-	UPROPERTY(EditAnywhere)
-	float MouseSensitivity;
-
 
 
 

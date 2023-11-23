@@ -1,5 +1,7 @@
 #include "PlayerCharacter.h"
 
+#include "Components/CapsuleComponent.h"
+// #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
@@ -7,9 +9,6 @@
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
-#include "GameFramework/CharacterMovementComponent.h"
-
-#include "Components/CapsuleComponent.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -20,8 +19,15 @@ APlayerCharacter::APlayerCharacter()
 {
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
 	CameraComponent->SetupAttachment(RootComponent);
+	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 	SpringArmComponent->SetupAttachment(CameraComponent);
+	
+	//EnemyAttackDetection = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Enemy Attack Detection"));
+	//EnemyAttackDetection->SetupAttachment(RootComponent);
+
+	AttackCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Enemy Attack Detection"));
+	AttackCollision->SetupAttachment(RootComponent);
 }
 
 
@@ -241,8 +247,19 @@ void APlayerCharacter::ReloadButton_Pressed()
 
 void APlayerCharacter::DashButton_Pressed()
 {
+	if (!Dash()) return;
 
-	Dash();
+	/* Dashing gives I-frames to the player */
+	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	FTimerHandle NoCollisionHandle;
+	GetWorldTimerManager().SetTimer(
+		NoCollisionHandle,
+		[&]() {
+			AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		},
+		DashSeconds,
+		false
+	);
 }
 
 

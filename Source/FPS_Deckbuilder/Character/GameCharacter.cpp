@@ -41,6 +41,9 @@ void AGameCharacter::Tick(float DeltaTime)
 	DashDirection.Normalize();
 	if (bIsDashing)
 	{
+		//FTimerHandle DashHandle;
+		//GetWorldTimerManager().GetTimerElapsed(DashHandle);
+
 		GetCharacterMovement()->AddInputVector(DashDirection);
 	}
 }
@@ -71,12 +74,12 @@ void AGameCharacter::Die()
 
 
 
-void AGameCharacter::Dash()
+bool AGameCharacter::Dash()
 {
 	// TODO: Character speed is being hardcoded in this method. Should fetch dynamically
 	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
 
-	if (!CharMovement || bIsDashing || DashDirection.Size() == 0) return;
+	if (!CharMovement || bIsDashing || DashDirection.Size() == 0) return false;
 
 	bIsDashing = true;
 	float Stored_MaxWalkSpeed = CharMovement->GetMaxSpeed();
@@ -95,7 +98,9 @@ void AGameCharacter::Dash()
 			bIsDashing = false;
 			CharMovement->MaxWalkSpeed = 600;
 			CharMovement->MaxAcceleration /= 20.f;
+			//CharMovement->StopMovementImmediately();
 			CharMovement->StopActiveMovement();
+			CharMovement->Velocity = CharMovement->Velocity.GetSafeNormal() * CharMovement->MaxWalkSpeed;
 		},
 		DashSeconds,
 		false
@@ -112,6 +117,7 @@ void AGameCharacter::Dash()
 		DashSeconds + 0.1f,
 		false
 		);
+	return true;
 }
 
 
