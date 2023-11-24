@@ -49,9 +49,11 @@ public:
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true) override;
 	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
-	// -- Gameplay Methods -- //
 	void EquipWeapon(AWeapon* Weapon);
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
+	
+
+
 	
 	
 private:
@@ -73,11 +75,12 @@ private:
 	void DashButton_Pressed();
 	/*void DashButton_Released();*/
 
+
 	// -- Gameplay Methods -- // 
 	virtual void Die();
-
 	void HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
-
+	UFUNCTION(BlueprintCallable) 
+	void FireWeapon(); // Needed for cards & StatusEffects to interact with
 
 	// -- Card Methods -- //
 	UCard* DrawCard();
@@ -175,5 +178,17 @@ public:
 		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
 	}
 
+	///* Used by cards and status effects for various things */
+	//UFUNCTION(BlueprintCallable)
+	//FVector GetWeaponMuzzleLocation()
+	//{
+	//	if (EquippedWeapon)
+	//	{
+	//		EquippedWeapon->
+	//	}
+	//}
+
 	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
+
+
 };

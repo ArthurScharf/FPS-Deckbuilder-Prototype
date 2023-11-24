@@ -16,14 +16,15 @@ AActor* UCard::SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, co
 }
 
 
-
+// DEPRECATED //
 AProjectile* UCard::SpawnProjectile(TSubclassOf<AProjectile> ProjectileClass, const FRotator Rotation, const FVector Location)
 {
+	// DEPRECATED //
 	if (!PlayerCharacter) { UE_LOG(LogTemp, Error, TEXT("UCard::SpawnProjectile -- !PlayerCharacter")); return nullptr; } // I'd need to check for nullptr whenever I spawn an actor with a card. Card's aren't spawning super fast so maybe this is ok?
 
 	FTransform Transform = FTransform(Rotation, Location);
 	AProjectile* Projectile = PlayerCharacter->GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
-	// Projectile->OnBeginOverlapNotifyEvent.AddUObject(this, &UCard::SpawnedActorCallback);
+	//Projectile->OnBeginOverlapNotify.AddDynamic(this, &UCard::SpawnedActorCallback);
 	Projectile->FinishSpawning(Transform);
 	return Projectile;
 }

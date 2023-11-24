@@ -154,13 +154,29 @@ void AGameCharacter::AttemptDestroy()
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage); // TEMP
+	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
+
+
 	if (bTriggersStatusEffects)
 	{
-		OnReceiveDamageDelegate.Broadcast(DamageStruct); // Status effects that need to know this is happening
+		UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- BEFORE: %f"), DamageStruct.Damage);
+		for (FOnReceiveDamageDelegate Delegate : Observers_OnDamageReceived)
+		{
+			if (Delegate.IsBound())
+			{
+				Delegate.Execute(DamageStruct);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- Delegate Not Bound"));
+			}
+		}
+
+		//OnReceiveDamageDelegate.Broadcast(DamageStruct); // Status effects that need to know this is happening
+		UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- AFTER : %f"), DamageStruct.Damage);
 	}
 	
 	DamageStruct.DamageReceiver = this;

@@ -89,6 +89,12 @@ void UStatusEffect::IncrementNumInstances()
 }
 
 
+void UStatusEffect::Trigger_OnDamageDealt_Implementation(FDamageStruct& DamageStruct)
+{
+
+}
+
+
 
 bool UStatusEffect::MultiSphereTraceForObjects(FVector Start, FVector End, float Radius, TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes, bool bIgnoreSelf, TArray<FHitResult>& OutHits)
 {

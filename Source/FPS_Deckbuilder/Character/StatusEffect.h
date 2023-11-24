@@ -62,8 +62,10 @@ public:
 
 	/* 1. Unbinds Trigger from the GameCharacterEvent;
 	*  2. Does anything effect specific 
+	* 
+	*  IMPORTANT: Must call Cleanup_Native
 	*/
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void Cleanup();
 
 	/* WARNING: Only call this within the BP implementation of `Cleanup`
@@ -80,10 +82,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void Trigger(AGameCharacter* _GameCharacter);
 
-	// Specific enough that a unique trigger is required here. Must less time expensive than writing another class
-	// Should only be called by Trigger
-	UFUNCTION(BlueprintImplementableEvent)
-	void Trigger_OnDamageDealt(FDamageStruct& DamageStruct);
+	/* Specific enough that a unique trigger is required here.Must less time expensive than writing another class
+	* Should be called instead of trigger when needed
+	*/
+	UFUNCTION(BlueprintNativeEvent)
+	void Trigger_OnDamageDealt(UPARAM(ref) FDamageStruct& DamageStruct);
 
 	void IncrementNumInstances();
 

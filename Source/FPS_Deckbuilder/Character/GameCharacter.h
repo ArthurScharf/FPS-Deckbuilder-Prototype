@@ -14,8 +14,17 @@ class AProjectile;
 class UStatusEffect;
 
 
-
+/* -- MAJOR ISSUE --
+*  Since multicast dynamic delegates don't support
+*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveDamage, const FDamageStruct&, DamageStruct); // For binding effects that respond to damage being dealt
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackMade); 
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnReceiveDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
+
+
+// M for method
+// using TDamageFunction = TFunction<void(FDamageStruct&)>;
 
 
 /* An abstract class used by all characters in the game 
@@ -81,6 +90,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnReceiveDamage OnReceiveDamageDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAttackMade OnAttackMadeDelegate;
 
 
 protected:
@@ -126,6 +137,22 @@ private:
 	* Thus, we maintain an array of actors we've spawned and bound to. The actor is only destroyed once they are dead, and this list is empty
 	*/
 	TArray<AActor*> DependentActors;
+
+
+
+	/* -- Custom Delegates --
+	* Possible for multiple effects to need to act on data structure in a sequence. 
+	* Dynamic multicast delegates don't support non-const references.
+	* Therefore, a custom solution is necessary 
+	* 
+	* WARNING: Delegates bound in blueprints MUST be with the Create Event node using a function.
+	*/
+	TArray<FOnReceiveDamageDelegate> Observers_OnDamageReceived;
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) { Observers_OnDamageReceived.Add(Delegate); }
+
 
 // -- Getters & Setters -- //
 protected:

@@ -162,20 +162,18 @@ void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggers
 
 void APlayerCharacter::HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects)
 {
-	OnReceiveDamageDelegate.Broadcast(DamageStruct);
+	// OnReceiveDamageDelegate.Broadcast(DamageStruct);
 	Super::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
 	// -- FX -- //
 	if (HitReactShakeClass) ShakeCamera(HitReactShakeClass);
 }
 
-
 void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
 	OnDamageDealt.Broadcast(DamageStruct);
 }
-
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
@@ -203,10 +201,7 @@ void APlayerCharacter::LookRight(float AxisValue)
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	if (EquippedWeapon && bWeaponEnabled)
-	{
-		EquippedWeapon->Fire();
-	}
+	FireWeapon();
 }
 
 void APlayerCharacter::LeftMouseButton_Released()
@@ -400,4 +395,14 @@ void APlayerCharacter::ShuffleDeck()
 void APlayerCharacter::ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass)
 {
 	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(CameraShakeClass);
+}
+
+
+
+void APlayerCharacter::FireWeapon()
+{
+	if (!(EquippedWeapon && bWeaponEnabled)) return;
+	
+	EquippedWeapon->Fire();
+	OnAttackMadeDelegate.Broadcast();
 }
