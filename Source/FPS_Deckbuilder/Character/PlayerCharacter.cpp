@@ -145,24 +145,29 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	// Allows the player a small window to react late to an attack
-	FTimerHandle DamageHandle;
-	DamageBuffer.Add(&DamageHandle);
-
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUObject(this, &APlayerCharacter::HandleDelayedDamage, DamageStruct, bTriggersStatusEffects);
-
-	GetWorldTimerManager().SetTimer(
-		DamageHandle,
-		TimerDelegate,
-		DamageDelaySeconds,
-		false
-	);
+	/* Allows the player a small window to react late to an attack
+	*
+	* The player doesn't get a delayed damage if they're not moving. Helps to avoid situations where the player
+	* See's that it's obvious they should have taken damage immediately. Also encourages moving
+	*/
+	if (GetCharacterMovement()->Velocity.Size() > 10.f) // Arbitrary number. Might need tweeking
+	{
+		FTimerHandle DamageHandle;
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUObject(this, &APlayerCharacter::HandleReceiveDamage, DamageStruct, bTriggersStatusEffects);
+		GetWorldTimerManager().SetTimer(
+			DamageHandle,
+			TimerDelegate,
+			DamageDelaySeconds,
+			false
+		);
+		return;
+	}
+	HandleReceiveDamage(DamageStruct, bTriggersStatusEffects);
 }
 
-void APlayerCharacter::HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects)
+void APlayerCharacter::HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects)
 {
-	// OnReceiveDamageDelegate.Broadcast(DamageStruct);
 	Super::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
 	// -- FX -- //
@@ -399,10 +404,13 @@ void APlayerCharacter::ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeC
 
 
 
-void APlayerCharacter::FireWeapon()
+void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 {
 	if (!(EquippedWeapon && bWeaponEnabled)) return;
 	
 	EquippedWeapon->Fire();
-	OnAttackMadeDelegate.Broadcast();
+	if (bTriggersStatusEffects)
+	{
+		OnAttackMadeDelegate.Broadcast();
+	}
 }

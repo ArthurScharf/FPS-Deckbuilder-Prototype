@@ -20,6 +20,7 @@ class UStatusEffect;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveDamage, const FDamageStruct&, DamageStruct); // For binding effects that respond to damage being dealt
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackMade); 
 
+
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnReceiveDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
 
 
@@ -153,6 +154,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) { Observers_OnDamageReceived.Add(Delegate); }
 
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) 
+	{
+		if (Observers_OnDamageReceived.Remove(Delegate) > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AGameCharecter.h::RemoveObserver_OnDamageReceived"));
+		}
+	}
 
 // -- Getters & Setters -- //
 protected:

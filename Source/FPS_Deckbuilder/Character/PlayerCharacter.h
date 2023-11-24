@@ -78,9 +78,9 @@ private:
 
 	// -- Gameplay Methods -- // 
 	virtual void Die();
-	void HandleDelayedDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
+	void HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
 	UFUNCTION(BlueprintCallable) 
-	void FireWeapon(); // Needed for cards & StatusEffects to interact with
+	void FireWeapon(bool bTriggersStatusEffects = true); // Needed for cards & StatusEffects to interact with
 
 	// -- Card Methods -- //
 	UCard* DrawCard();
