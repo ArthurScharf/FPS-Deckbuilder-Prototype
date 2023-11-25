@@ -54,6 +54,17 @@ void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 }
 
 
+void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
+{
+	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::NotifyOfDamageDealt"));
+
+	for (FOnDamageDealtDelegate Delegate : Observers_OnDamageDealt)
+	{
+		if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::NotifyOfDamageDealt -- Delegate not bound")); }
+	}
+}
+
 
 
 void AGameCharacter::Die()
@@ -154,14 +165,14 @@ void AGameCharacter::AttemptDestroy()
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
+	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
 	if (bTriggersStatusEffects)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- BEFORE: %f"), DamageStruct.Damage);
-		for (FOnReceiveDamageDelegate Delegate : Observers_OnDamageReceived)
+		for (FOnReceiveDamageDelegate Delegate : Observers_OnReceiveDamage)
 		{
 			if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
 			else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- Delegate Not Bound")); }
@@ -192,6 +203,12 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 
 void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)
 {
+	if (!Class)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- !Class"), *GetName());
+		return;
+	}
+
 	// Searching for stackable duplicate
 	for (UStatusEffect* Effect : StatusEffects)
 	{
@@ -204,9 +221,8 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, A
 
 	// No Stackable instance. Creating and adding new instance of of type Class
 	UStatusEffect* Effect = NewObject<UStatusEffect>(this, Class);
-	Effect->SetInstigatingGameCharacter(InstigatingGameCharacter);
 	StatusEffects.Add(Effect);
-	Effect->Init(this);
+	Effect->Init(this, InstigatingGameCharacter);
 }
 
 

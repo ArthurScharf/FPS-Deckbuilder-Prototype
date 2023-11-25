@@ -5,13 +5,15 @@
 
 #include "DrawDebugHelpers.h"
 
-void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
+void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter, AGameCharacter* _InstigatingGameCharacter)
 {
-	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Init / %s"), *_GameCharacter->GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Init / %s"), *_GameCharacter->GetName());
 
 	GameCharacter = _GameCharacter;
+	InstigatingGameCharacter = _InstigatingGameCharacter;
 	World = GameCharacter->GetWorld();
 	InitialNumTriggers = NumTriggers;
+	NumInstances = 1;
 
 	// TODO: Add icon to game character widget
 	
@@ -22,9 +24,10 @@ void UStatusEffect::Init_Implementation(AGameCharacter* _GameCharacter)
 
 void UStatusEffect::SetLifetimeTimer()
 {
+	// NOTE: Calling a timer with a handle will stop any timer previously associated with that handle
 
 	// Listening mode
-	if (NumTriggers == 0)
+	if (NumTriggers == 0 && bSelfCallsCleanup)
 	{
 		// Setting lifetime timer
 		GameCharacter->GetWorldTimerManager().SetTimer(
@@ -56,15 +59,20 @@ void UStatusEffect::Cleanup_Native()
 	// TODO: Remove icon from game character widget
 
 
-	GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
-	GameCharacter->RemoveStatusEffect(this);
+	// BUG: Timer might keep ticking if game character is around
+	if (GameCharacter)
+	{
+		GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
+		GameCharacter->RemoveStatusEffect(this);
+	}
 
 	/* An `Outer` must be passed in BP's when an instance of this class is created.
 	*  I'm completely confident that this won't prevent garbage collection, I'd like to explicitly flag for collection here
 	*/
-	GEngine->ForceGarbageCollection();
 	// GameCharacter->GetWorld()->ForceGarbageCollection(true);
 	GameCharacter = nullptr;
+	InstigatingGameCharacter = nullptr;
+	GEngine->ForceGarbageCollection();
 }
 
 
@@ -72,7 +80,7 @@ void UStatusEffect::Cleanup_Native()
 void UStatusEffect::DecrementNumTriggers()
 {
 	--NumTriggers;
-	if (NumTriggers == 0) { Cleanup(); }
+	if (NumTriggers == 0 && bSelfCallsCleanup) { Cleanup(); }
 }
 
 
@@ -93,6 +101,9 @@ void UStatusEffect::Trigger_OnDamageDealt_Implementation(FDamageStruct& DamageSt
 {
 
 }
+
+
+
 
 
 

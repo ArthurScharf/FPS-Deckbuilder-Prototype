@@ -219,5 +219,20 @@ void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, const FHitResult& Hi
 	DamageStruct.DamageCauser = this->EquippedPlayerCharacter;
 	DamageStruct.DamageLocation = HitResult.ImpactPoint;
 	DamageStruct.HitResult = HitResult;
+
+	UE_LOG(LogTemp, Warning, TEXT("BEFORE: %f"), DamageStruct.Damage);
+	// -- Notifying Observers -- //
+	if (EquippedPlayerCharacter)
+	{
+		for (FOnApplyDamageDelegate Delegate : EquippedPlayerCharacter->Observers_OnApplyDamage)
+		{
+			if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
+			else { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::NotifyOfDamageDealt -- Delegate Not Bound")); }
+
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("After : %f"), DamageStruct.Damage);
+
+
 	HitGameCharacter->ReceiveDamage(DamageStruct);
 }

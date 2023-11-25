@@ -14,6 +14,8 @@ class UTexture2D;
 /**
  * NumTriggers == 0 --> Effect is in listening mode
  * NumTriggers  > 0  --> Effect is in triggered mode
+ * 
+ * WARNING: Must always call Cleanup_Native in blueprint.
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
 class FPS_DECKBUILDER_API UStatusEffect : public UObject
@@ -52,7 +54,7 @@ public:
 	 * TODO: Prevent user from ever calling this directly
 	 */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void Init(AGameCharacter* _GameCharacter);
+	void Init(AGameCharacter* _GameCharacter,  AGameCharacter* _InstigatingGameCharacter);
 
 
 	/* -- NOTE -- 
@@ -137,10 +139,18 @@ protected:
 	*  2. Handles the recurrent timer that applies effects at an interval. In this case, the lifetime of the effect is EffectFrequency * MaxTriggers
 	*/ 
 	
+
+	/* if True:
+	*	Will trigger indefinitely if in trigger mode, or will never remove itself if it listening mode
+	*/
+	UPROPERTY(EditDefaultsOnly)
+	bool bSelfCallsCleanup = true;
+
 	/* Decides whether or not repeated attempts to add instances to a game character result in multiplied strength of effect or several unique stacks of an effect */
 	UPROPERTY(EditDefaultsOnly)
 	bool bIsStackable;
 
+	UPROPERTY(BlueprintReadOnly)
 	int NumInstances;
 
 	UPROPERTY(EditDefaultsOnly, meta=(EditCondition = "bIsStackable"))
@@ -168,6 +178,6 @@ protected:
 public:
 	FORCEINLINE bool IsStackable() { return bIsStackable; }
 
-	UFUNCTION(BlueprintCallable)
-	void SetInstigatingGameCharacter(AGameCharacter* _InstigatingGameCharacter) { InstigatingGameCharacter = _InstigatingGameCharacter; }
+	//UFUNCTION(BlueprintCallable)
+	//void SetInstigatingGameCharacter(AGameCharacter* _InstigatingGameCharacter) { InstigatingGameCharacter = _InstigatingGameCharacter; }
 };

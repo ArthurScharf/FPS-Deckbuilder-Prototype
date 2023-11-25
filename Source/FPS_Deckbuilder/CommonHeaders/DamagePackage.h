@@ -42,7 +42,10 @@ public:
 	FName HitBoneName;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bWasLethal;
+	bool bWasLethal = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bTriggersStatusEffects;
 
 	UPROPERTY(BlueprintReadWrite)
 	FHitResult HitResult;

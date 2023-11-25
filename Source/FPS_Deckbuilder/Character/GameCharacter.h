@@ -14,18 +14,14 @@ class AProjectile;
 class UStatusEffect;
 
 
-/* -- MAJOR ISSUE --
-*  Since multicast dynamic delegates don't support
-*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReceiveDamage, const FDamageStruct&, DamageStruct); // For binding effects that respond to damage being dealt
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackMade); 
 
-
+// -- Delegate Declarations -- //
+// Some of these don't make sense here. See custom delegates declarations for more info
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnReceiveDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
-
-
-// M for method
-// using TDamageFunction = TFunction<void(FDamageStruct&)>;
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnApplyDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDamageDealtDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
+DECLARE_DYNAMIC_DELEGATE(FOnReloadDelegate);
+DECLARE_DYNAMIC_DELEGATE(FOnAttackDelegate);
 
 
 /* An abstract class used by all characters in the game 
@@ -72,7 +68,7 @@ protected:
 
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
-	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) PURE_VIRTUAL(AGameCharacter::NotifyOfDamageDealt);
+	void NotifyOfDamageDealt(FDamageStruct& DamageStruct); //PURE_VIRTUAL(AGameCharacter::NotifyOfDamageDealt);
 
 	// Kills the game character and initiates cleanup effects on the game (effects can be delayed, in the case of Enemies)
 	//virtual void Die() PURE_VIRTUAL(AGameCharacter::Die, );
@@ -86,14 +82,31 @@ private:
 	void AttemptDestroy();
 
 
+
 public:
-	// -- Events -- //
-	UPROPERTY(BlueprintAssignable)
-	FOnReceiveDamage OnReceiveDamageDelegate;
+	/* -- Custom Delegates --
+	* Possible for multiple effects to need to act on data structure in a sequence.
+	* Dynamic multicast delegates don't support non-const references.
+	* Therefore, a custom solution is necessary
+	* 
+	* WARNING: Some of these are only used by PlayerCharacter. This is a code smell and would make working with this system confusing in the future. Should fix
+	*
+	* WARNING: Delegates bound in blueprints MUST be with the Create Event node using a function.
+	*/
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FOnReceiveDamageDelegate> Observers_OnReceiveDamage; // AGameCharacter::ReceiveDamage
+	
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FOnApplyDamageDelegate> Observers_OnApplyDamage; // AWeapon::ApplyDamage. Pre-notify damage instigator. Used for damage modifiers. Only used by APlayerCharacter
+	
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FOnDamageDealtDelegate> Observers_OnDamageDealt; // AGameCharacter::NotifyOfDamageDealt. During notify of damage instigator. Used for damage checkers (was lethal, final damage amount etc)
 
-	UPROPERTY(BlueprintAssignable)
-	FOnAttackMade OnAttackMadeDelegate;
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FOnReloadDelegate> Observers_OnReload;
 
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FOnAttackDelegate> Observers_OnAttack;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -101,9 +114,9 @@ protected:
 
 
 	// -- Movement -- //
+
 	UPROPERTY(EditDefaultsOnly)
 	float DashDistance;
-
 	UPROPERTY(EditDefaultsOnly)
 	float DashSpeed;
 
@@ -139,29 +152,53 @@ private:
 	*/
 	TArray<AActor*> DependentActors;
 
-
-
-	/* -- Custom Delegates --
-	* Possible for multiple effects to need to act on data structure in a sequence. 
-	* Dynamic multicast delegates don't support non-const references.
-	* Therefore, a custom solution is necessary 
-	* 
-	* WARNING: Delegates bound in blueprints MUST be with the Create Event node using a function.
-	*/
-	TArray<FOnReceiveDamageDelegate> Observers_OnDamageReceived;
 	
 public:
+	// NOTE: Blueprints don't recognize the signature for each type of observer without these. These shouldn't be necessary
+	// -- Add & Remove Methods for Observers -- //
 	UFUNCTION(BlueprintCallable)
-	void AddObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) { Observers_OnDamageReceived.Add(Delegate); }
-
+	void AddObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) { Observers_OnReceiveDamage.Add(Delegate); }
 	UFUNCTION(BlueprintCallable)
 	void RemoveObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) 
 	{
-		if (Observers_OnDamageReceived.Remove(Delegate) > 0)
+		if (Observers_OnReceiveDamage.Remove(Delegate) > 0)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AGameCharecter.h::RemoveObserver_OnDamageReceived"));
 		}
 	}
+
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_OnApplyDamage(const FOnApplyDamageDelegate& Delegate) { Observers_OnApplyDamage.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_OnApplyDamage(const FOnApplyDamageDelegate& Delegate)
+	{
+		if (Observers_OnApplyDamage.Remove(Delegate) > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AGameCharecter.h::RemoveObserver_OnApplyDamage"));
+		}
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_OnDamageDealt(const FOnDamageDealtDelegate& Delegate) { Observers_OnDamageDealt.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_OnDamageDealt(const FOnDamageDealtDelegate& Delegate)
+	{
+		if (Observers_OnDamageDealt.Remove(Delegate) > 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AGameCharecter.h::RemoveObserver_OnDamageDealt"));
+		}
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_OnReload(const FOnReloadDelegate& Delegate) { Observers_OnReload.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_OnReload(const FOnReloadDelegate& Delegate) { Observers_OnReload.Remove(Delegate); }
+
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_OnAttack(const FOnAttackDelegate& Delegate) { Observers_OnAttack.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_OnAttack(const FOnAttackDelegate& Delegate) { Observers_OnAttack.Remove(Delegate); }
+
 
 // -- Getters & Setters -- //
 protected:

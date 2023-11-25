@@ -27,15 +27,15 @@ public:
 
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true) override;
 
-	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+	//virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
 	/* Handles bones being hit or anything else unique to how a blueprint subclass takes damage 
 	* 
 	* NOTE: I can't seem to have pass-by-reference variables used in this way change once the blueprint implementation is popped
 	* from the stack
 	*/
-	UFUNCTION(BlueprintNativeEvent)
-	FDamageStruct HandleSpecialDamageConditions(FDamageStruct DamageStruct);
+	UFUNCTION(BlueprintImplementableEvent)
+	void HandleSpecialDamageConditions(UPARAM(ref) FDamageStruct& DamageStruct);
 
 	/* overridden to force sight cone facing to align with the character's facing 
 	 * NOTE: I wasn't able to understand where this method was being called in the engine code such that overriding it does this, but it works. Wouldn't mind understanding better 

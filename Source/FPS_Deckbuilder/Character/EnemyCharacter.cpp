@@ -94,12 +94,9 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	}
 	
 	// -- Special DamageHandling -- //
-	// I need an new damage struct here as a workaround. 
-	// Look at the comment for AEnemyCharacter::HandleSpecialDamageConditions for context
-	FDamageStruct _DamageStruct = HandleSpecialDamageConditions(DamageStruct);
+	HandleSpecialDamageConditions(DamageStruct);
 	HitBoneName = "None";
-	AGameCharacter::ReceiveDamage(_DamageStruct, bTriggersStatusEffects);
-
+	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
 	// -- Hitstun -- //
 	FTimerHandle UnpauseTickHandle;
@@ -121,17 +118,17 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 }
 
 
-void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
-{
-	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
-}
+//void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));
+//}
 
 
-FDamageStruct AEnemyCharacter::HandleSpecialDamageConditions_Implementation(FDamageStruct DamageStruct)
-{
-	UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::HandleSpecialDamageConditions_Implementation -- This is a stub. Do you need to implement a BP override?"));
-	return DamageStruct;
-}
+//FDamageStruct AEnemyCharacter::HandleSpecialDamageConditions_Implementation(FDamageStruct& DamageStruct)
+//{
+//	UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::HandleSpecialDamageConditions_Implementation -- This is a stub. Do you need to implement a BP override?"));
+//	return DamageStruct;
+//}
 
 
 FRotator AEnemyCharacter::GetViewRotation() const

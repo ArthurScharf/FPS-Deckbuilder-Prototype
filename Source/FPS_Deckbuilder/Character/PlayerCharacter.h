@@ -20,8 +20,8 @@ class USpringArmComponent;
 
 
 // -- Events -- //
-DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
-DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
+//DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
+//DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
 
 
 /**
@@ -47,7 +47,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true) override;
-	virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
+	//virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
 	void EquipWeapon(AWeapon* Weapon);
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
@@ -75,7 +75,6 @@ private:
 	void DashButton_Pressed();
 	/*void DashButton_Released();*/
 
-
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 	void HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
@@ -93,8 +92,8 @@ private:
 
 public:
 	// NOTE: These events can be public because only this class can call them. Makes binding simple
-	FOnDamageDealtEvent OnDamageDealt;
-	FOnDamageReceivedEvent OnDamageReceived;
+	//FOnDamageDealtEvent OnDamageDealt;
+	//FOnDamageReceivedEvent OnDamageReceived;
 
 private:
 	// -- Components -- //
@@ -107,7 +106,7 @@ private:
 	//UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	//UCapsuleComponent* EnemyAttackDetection;
 
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess="true"), Category = "PlayerCharacter|Components")
 	UCapsuleComponent* AttackCollision;
 
 
@@ -140,8 +139,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category="PlayerCharacter")
 	float DamageDelaySeconds;
 	
-	TArray<FTimerHandle*> DamageBuffer;
-
 
 	// -- Card Members -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")
@@ -189,6 +186,4 @@ public:
 	//}
 
 	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
-
-
 };

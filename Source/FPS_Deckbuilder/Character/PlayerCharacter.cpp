@@ -174,11 +174,10 @@ void APlayerCharacter::HandleReceiveDamage(FDamageStruct DamageStruct, bool bTri
 	if (HitReactShakeClass) ShakeCamera(HitReactShakeClass);
 }
 
-void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
-{
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
-	OnDamageDealt.Broadcast(DamageStruct);
-}
+//void APlayerCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::NotifyOfDamageDealt"));
+//}
 
 void APlayerCharacter::MoveForward(float AxisValue)
 {
@@ -218,7 +217,8 @@ void APlayerCharacter::RightMouseButton_Pressed()
 {
 	if (GetMovementComponent()->GetClass())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%s"), *GetMovementComponent()->GetClass()->GetName()));
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%i"), Observers_OnDamageDealt.Num()));
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%i"), Observers_OnAttack.Num()));
 	}
 
 
@@ -260,18 +260,23 @@ void APlayerCharacter::CrouchButton_Released()
 
 void APlayerCharacter::ReloadButton_Pressed()
 {
-	if (EquippedWeapon) { EquippedWeapon->Reload(); }
+	if (EquippedWeapon) 
+	{
+		for (FOnReloadDelegate Delegate : Observers_OnReload)
+		{
+			if (Delegate.IsBound()) { Delegate.Execute(); }
+		}
+
+		EquippedWeapon->Reload(); 
+	}
 }
 
 void APlayerCharacter::DashButton_Pressed()
 {
 	if (!Dash()) return;
 
-	UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::DashButton_Pressed -- %i"), DamageBuffer.Num());
-
 	FTimerManager& TimerManager = GetWorldTimerManager();
 	TimerManager.ClearAllTimersForObject(this);
-
 
 	/* Dashing gives I-frames to the player */
 	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -403,14 +408,16 @@ void APlayerCharacter::ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeC
 }
 
 
-
 void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 {
 	if (!(EquippedWeapon && bWeaponEnabled)) return;
 	
-	EquippedWeapon->Fire();
 	if (bTriggersStatusEffects)
 	{
-		OnAttackMadeDelegate.Broadcast();
+		for (FOnAttackDelegate Delegate : Observers_OnAttack)
+		{
+			if (Delegate.IsBound()) { Delegate.Execute(); }
+		}
 	}
+	EquippedWeapon->Fire();
 }
