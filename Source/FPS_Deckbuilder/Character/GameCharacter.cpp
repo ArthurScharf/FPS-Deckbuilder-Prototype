@@ -57,11 +57,14 @@ void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::NotifyOfDamageDealt"));
+	
+	// BUG: possible for Observers that should be no longer valid to still be called. This is also slow
+	TArray<FOnDamageDealtDelegate> LocalObserverArray(Observers_OnDamageDealt); // Delegates can self remove. This avoids bugs associated with removing during iteration.
 
 	for (FOnDamageDealtDelegate Delegate : Observers_OnDamageDealt)
 	{
 		if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
-		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::NotifyOfDamageDealt -- Delegate not bound")); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::NotifyOfDamageDealt / %s() -- Delegate not bound"), *Delegate.GetFunctionName().ToString()); }
 	}
 }
 
@@ -165,7 +168,7 @@ void AGameCharacter::AttemptDestroy()
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
+	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
@@ -175,7 +178,7 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 		for (FOnReceiveDamageDelegate Delegate : Observers_OnReceiveDamage)
 		{
 			if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
-			else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- Delegate Not Bound")); }
+			else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage / %s -- Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
 		}
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- AFTER : %f"), DamageStruct.Damage);
 	}
@@ -187,7 +190,8 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 		DamageStruct.bWasLethal = true;
 
 		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
-		Die(); 
+		Die();
+		return;
 	}
 	else if (Health >= MaxHealth)
 	{

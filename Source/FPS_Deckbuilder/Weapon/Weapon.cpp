@@ -220,7 +220,7 @@ void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, const FHitResult& Hi
 	DamageStruct.DamageLocation = HitResult.ImpactPoint;
 	DamageStruct.HitResult = HitResult;
 
-	UE_LOG(LogTemp, Warning, TEXT("BEFORE: %f"), DamageStruct.Damage);
+	// UE_LOG(LogTemp, Warning, TEXT("BEFORE: %f"), DamageStruct.Damage);
 	// -- Notifying Observers -- //
 	if (EquippedPlayerCharacter)
 	{
@@ -231,7 +231,7 @@ void AWeapon::ApplyDamage(AGameCharacter* HitGameCharacter, const FHitResult& Hi
 
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("After : %f"), DamageStruct.Damage);
+	// UE_LOG(LogTemp, Warning, TEXT("After : %f"), DamageStruct.Damage);
 
 
 	HitGameCharacter->ReceiveDamage(DamageStruct);

@@ -19,10 +19,6 @@ class UHUDWidget;
 class USpringArmComponent;
 
 
-// -- Events -- //
-//DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageDealtEvent, FDamageStruct&)
-//DECLARE_EVENT_OneParam(APlayerCharacter, FOnDamageReceivedEvent, FDamageStruct&)
-
 
 /**
  * Character controlled by the player
@@ -75,11 +71,13 @@ private:
 	void DashButton_Pressed();
 	/*void DashButton_Released();*/
 
+
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 	void HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
 	UFUNCTION(BlueprintCallable) 
 	void FireWeapon(bool bTriggersStatusEffects = true); // Needed for cards & StatusEffects to interact with
+
 
 	// -- Card Methods -- //
 	UCard* DrawCard();
@@ -87,14 +85,6 @@ private:
 	void UseCardInTray(int Index);
 
 	
-
-
-
-public:
-	// NOTE: These events can be public because only this class can call them. Makes binding simple
-	//FOnDamageDealtEvent OnDamageDealt;
-	//FOnDamageReceivedEvent OnDamageReceived;
-
 private:
 	// -- Components -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
@@ -138,7 +128,20 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category="PlayerCharacter")
 	float DamageDelaySeconds;
+
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category = "PlayerCharacter")
+	float DashRechargeSeconds;
+
+	float SecondsSinceLastDash;
 	
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category = "PlayerCharacter")
+	int MaxDashCharges;
+
+	int DashCharges;
+
+
+	
+
 
 	// -- Card Members -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")

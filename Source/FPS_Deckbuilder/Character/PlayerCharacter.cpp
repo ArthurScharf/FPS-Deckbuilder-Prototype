@@ -72,6 +72,7 @@ void APlayerCharacter::BeginPlay()
 		HUDWidget->SetCardForSlotAtIndex(i, Tray[i]);
 	}
 	Resources = { 0, 0, 0 };
+	DashCharges = MaxDashCharges;
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -103,6 +104,18 @@ void APlayerCharacter::Tick(float DeltaTime)
 	else
 	{
 		TargetInteractable = nullptr;
+	}
+
+	// -- Dash Recharge -- //
+	if (DashCharges < MaxDashCharges)
+	{
+		SecondsSinceLastDash += DeltaTime;
+		if (SecondsSinceLastDash >= DashRechargeSeconds)
+		{
+			SecondsSinceLastDash = 0.f;
+			++DashCharges;
+			// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter:Tick -- Adding Dash Charge"));
+		}
 	}
 
 	// -- Weapon Spread -- //
@@ -215,15 +228,10 @@ void APlayerCharacter::LeftMouseButton_Released()
 
 void APlayerCharacter::RightMouseButton_Pressed()
 {
-	if (GetMovementComponent()->GetClass())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%i"), Observers_OnDamageDealt.Num()));
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("%i"), Observers_OnAttack.Num()));
-	}
-
-
-	// 
-	//HUDWidget->RemoveTraySlot();
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("DashCharges: %i, MaxDashCharges: %i"), DashCharges, MaxDashCharges));
+	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnDamageDealt: %i"), Observers_OnDamageDealt.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnApplyDamage: %i"), Observers_OnApplyDamage.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnReload: %i"), Observers_OnReload.Num()));
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -273,22 +281,23 @@ void APlayerCharacter::ReloadButton_Pressed()
 
 void APlayerCharacter::DashButton_Pressed()
 {
-	if (!Dash()) return;
+	if (DashCharges == 0 || !Dash()) return;
 
+	// -- I-Frames -- //
 	FTimerManager& TimerManager = GetWorldTimerManager();
 	TimerManager.ClearAllTimersForObject(this);
-
-	/* Dashing gives I-frames to the player */
 	AttackCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FTimerHandle NoCollisionHandle;
 	GetWorldTimerManager().SetTimer(
 		NoCollisionHandle,
-		[&]() {
+		[&]() 
+		{
 			AttackCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		},
 		DashSeconds,
 		false
 	);
+	--DashCharges;
 }
 
 
@@ -421,3 +430,5 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 	}
 	EquippedWeapon->Fire();
 }
+
+

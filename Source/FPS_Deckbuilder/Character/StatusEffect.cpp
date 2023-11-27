@@ -54,7 +54,7 @@ void UStatusEffect::SetLifetimeTimer()
 // WARNING: Only call this within the BP implementation of `Cleanup`
 void UStatusEffect::Cleanup_Native()
 {
-	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Cleanup_Native"));
+	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::Cleanup_Native / %s"), *GetName());
 
 	// TODO: Remove icon from game character widget
 
