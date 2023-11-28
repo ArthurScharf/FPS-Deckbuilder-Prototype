@@ -337,6 +337,22 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 }
 
 
+void APlayerCharacter::Stun(float StunSeconds)
+{
+	bIsStunned = true;
+	FTimerHandle StunnedHandle;
+	GetWorldTimerManager().SetTimer(
+		StunnedHandle,
+		[&]()
+		{
+			bIsStunned = false;
+		},
+		StunSeconds,
+		false
+	);
+}
+
+
 UCard* APlayerCharacter::DrawCard()
 {
 	// Checking if deck needs reshuffling
@@ -378,21 +394,11 @@ void APlayerCharacter::UseCardInTray(int Index)
 		return;
 	}
 
-	// Spending resources
-	Resources -= FIntVector(Cost.Resource_X, Cost.Resource_Y, Cost.Resource_Z);
-	HUDWidget->SetResourceText(Resources);
-	Money -= Cost.Money;
-	HUDWidget->SetMoneyText(Money);
-	if (Cost.Health != 0.f)
-	{
-		FDamageStruct DamageStruct;
-		DamageStruct.Damage = Cost.Health;
-		DamageStruct.DamageType = EDT_MAX; // TODO: Consider implementing self damage type, or that cards should specify how damage is dealt
-		ReceiveDamage(DamageStruct);
-	}
+	// -- Spending Resources -- //
+	DoTransaction(Cost);
 	
+	// -- Using Card, updating tray & updating tray slot -- //
 	// TODO: not appropriate for DrawCard() to sometimes return nullptr;
-	// Using Card, updating tray & updating tray slot
 	Tray[Index]->Use();
 	DiscardPile.Add(Tray[Index]);
 	Tray[Index] = DrawCard();
@@ -432,3 +438,20 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 }
 
 
+
+
+void APlayerCharacter::DoTransaction(FCost Cost)
+{
+	// Spending resources
+	Resources -= FIntVector(Cost.Resource_X, Cost.Resource_Y, Cost.Resource_Z);
+	HUDWidget->SetResourceText(Resources);
+	Money -= Cost.Money;
+	HUDWidget->SetMoneyText(Money);
+	if (Cost.Health != 0.f)
+	{
+		FDamageStruct DamageStruct;
+		DamageStruct.Damage = Cost.Health;
+		DamageStruct.DamageType = EDT_MAX; // TODO: Consider implementing self damage type, or that cards should specify how damage is dealt
+		ReceiveDamage(DamageStruct);
+	}
+}

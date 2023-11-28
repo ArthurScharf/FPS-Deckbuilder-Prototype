@@ -118,6 +118,39 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 }
 
 
+void AEnemyCharacter::Stun(float StunSeconds)
+{
+	if (!EnemyAIController)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::Stun / %s -- !EnemyAIController"), *GetName());
+		return;
+	}
+
+	// -- Setting stun timer -- //
+	UCharacterMovementComponent* CharMovement = GetCharacterMovement();
+	if (!bIsStunned)
+	{
+		bIsStunned = true;
+		EnemyAIController->BrainComponent->PauseLogic("Stunned");
+		EnemyAnimInstance->SetIsStunned(true);
+		StoredRotationRate = CharMovement->RotationRate;
+		CharMovement->RotationRate = FRotator(0.f);
+	}
+
+	GetWorldTimerManager().SetTimer(
+		StunnedHandle,
+		[&]()
+		{
+			bIsStunned = false;
+			EnemyAIController->BrainComponent->ResumeLogic("Stun Completed");
+			EnemyAnimInstance->SetIsStunned(false);
+			GetCharacterMovement()->RotationRate = StoredRotationRate;
+		},
+		StunSeconds,
+		false
+	);
+}
+
 //void AEnemyCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 //{
 //	UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::NotifyOfDamageDealt"));

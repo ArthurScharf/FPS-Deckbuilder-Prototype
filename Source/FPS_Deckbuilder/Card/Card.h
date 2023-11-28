@@ -5,37 +5,10 @@
 
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
+#include "FPS_Deckbuilder/CommonHeaders/CostPackage.h"
 
 #include "UObject/NoExportTypes.h"
 #include "Card.generated.h"
-
-
-
-
-/*
-* Struct because costs aren't all the same data type
-*/
-USTRUCT(BlueprintType)
-struct FCost
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Resource_X = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Resource_Y = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Resource_Z = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Health;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Money;
-};
 
 
 
@@ -71,6 +44,27 @@ private:
 	UFUNCTION(BlueprintCallable)
 	AProjectile* SpawnProjectile(TSubclassOf<AProjectile> ProjectileClass, const FRotator Rotation, const FVector Location);
 
+	UFUNCTION(BlueprintCallable)
+	void LineTraceSingleByChannel(
+		FHitResult& OutHit,
+		const FVector& Start,
+		const FVector& End,
+		ECollisionChannel TraceChannel,
+		TArray<AActor*> ActorsToIgnore,
+		bool bIgnoreUserPlayerCharacter
+	) const;
+
+
+	UFUNCTION(BlueprintCallable)
+	bool SphereOverlapActors(
+		const FVector Location,
+		float Radius,
+		const TArray< TEnumAsByte<EObjectTypeQuery>>& ObjectTypes,
+		UClass* ActorClassFilter,
+		const TArray<AActor*>& ActorsToIgnore,
+		bool bIgnoreSelf,
+		TArray<AActor*>& OutActors
+	);
 
 private:
 	// PlayerCharacter this is held by
@@ -91,8 +85,8 @@ private:
 	UTexture2D* Texture; 
 
 	/* Some cards can be set as right click cards. These don't become reshuffled on use, but instead go on cooldown*/
-	UPROPERTY(EditDefaultsOnly)
-	float RightClickCooldown;
+	//UPROPERTY(EditDefaultsOnly)
+	//float RightClickCooldown;
 
 
 public:

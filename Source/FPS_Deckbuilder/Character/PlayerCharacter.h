@@ -4,9 +4,12 @@
 #include "CoreMinimal.h"
 
 #include "Camera/CameraComponent.h"
+//#include "FPS_Deckbuilder/Card/Card.h"
+#include "FPS_Deckbuilder/CommonHeaders/CostPackage.h"
 #include "GameFramework/CharacterMovementComponent.h" // I'm using this in a getter. Is there no other way to do this?
 #include "GameCharacter.h"
 #include "Math/IntVector.h"
+
 #include "PlayerCharacter.generated.h"
 
 
@@ -17,6 +20,7 @@ class UCapsuleComponent;
 class UCard;
 class UHUDWidget;
 class USpringArmComponent;
+
 
 
 
@@ -47,8 +51,7 @@ public:
 
 	void EquipWeapon(AWeapon* Weapon);
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
-	
-
+	virtual void Stun(float StunSeconds) override;
 
 	
 	
@@ -75,8 +78,13 @@ private:
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 	void HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
+	
 	UFUNCTION(BlueprintCallable) 
 	void FireWeapon(bool bTriggersStatusEffects = true); // Needed for cards & StatusEffects to interact with
+	
+	UFUNCTION(BlueprintCallable)
+	void DoTransaction(FCost Cost); // Spends or gains resources, health, and money
+
 
 
 	// -- Card Methods -- //
@@ -85,6 +93,7 @@ private:
 	void UseCardInTray(int Index);
 
 	
+
 private:
 	// -- Components -- //
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
@@ -164,12 +173,12 @@ private:
 
 	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding 1
 
-	/* The count of each type of resource. Resources are spent on cards to use them */
 	FIntVector Resources;
 
 
 public:
-	FORCEINLINE void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
+	UFUNCTION(BlueprintCallable)
+	void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
 
 	// returns value [0, 1]
 	FORCEINLINE float GetPercentOfMaxWalkingSpeed() 
@@ -189,4 +198,5 @@ public:
 	//}
 
 	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
+
 };

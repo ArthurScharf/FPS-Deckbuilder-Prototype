@@ -37,6 +37,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void HandleSpecialDamageConditions(UPARAM(ref) FDamageStruct& DamageStruct);
 
+	void Stun(float StunSeconds) override;
+
+
 	/* overridden to force sight cone facing to align with the character's facing 
 	 * NOTE: I wasn't able to understand where this method was being called in the engine code such that overriding it does this, but it works. Wouldn't mind understanding better 
 	 */
@@ -114,6 +117,11 @@ private:
 
 	/* Used to halt tick for a short delay to simulate hitstun */
 	bool bPausedTick;
+
+	FTimerHandle StunnedHandle;
+
+	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter")
+	FRotator StoredRotationRate; // Rotation rate is set to 0 when stunned. Stored to return to normal state once stun is complete
 
 public:
 	// Too much casting. This has been a reccurant issue throughout the code base

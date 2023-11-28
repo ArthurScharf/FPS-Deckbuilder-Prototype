@@ -21,7 +21,6 @@ AGameCharacter::AGameCharacter()
 //	}
 //}
 
-
 void AGameCharacter::BeginPlay()
 {	
 	if (MaxHealth <= 0) MaxHealth = 1; // Avoids divide by zero errors
@@ -53,7 +52,6 @@ void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::EndPlay"));
 }
 
-
 void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::NotifyOfDamageDealt"));
@@ -67,8 +65,6 @@ void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::NotifyOfDamageDealt / %s() -- Delegate not bound"), *Delegate.GetFunctionName().ToString()); }
 	}
 }
-
-
 
 void AGameCharacter::Die()
 {
@@ -85,8 +81,6 @@ void AGameCharacter::Die()
 		true
 	);
 }
-
-
 
 bool AGameCharacter::Dash()
 {
@@ -134,8 +128,6 @@ bool AGameCharacter::Dash()
 	return true;
 }
 
-
-
 void AGameCharacter::AttemptDestroy()
 {
 	bool ToDestroy = true;
@@ -164,8 +156,6 @@ void AGameCharacter::AttemptDestroy()
 	}
 }
 
-
-
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
@@ -185,25 +175,14 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 	
 	DamageStruct.DamageReceiver = this;
 	Health -= DamageStruct.Damage;
-	if (Health <= 0.f)
-	{
-		DamageStruct.bWasLethal = true;
-
-		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
-		Die();
-		return;
-	}
-	else if (Health >= MaxHealth)
-	{
-		Health = MaxHealth;
-	}
+	if (Health <= 0.f) { DamageStruct.bWasLethal = true; }
+	else if (Health >= MaxHealth) { Health = MaxHealth; }
 
 	if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
 	LazyHealthBar->SetPercent(Health / MaxHealth);
+
+	if (DamageStruct.bWasLethal) Die();
 }
-
-
-
 
 void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)
 {
@@ -228,8 +207,6 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, A
 	StatusEffects.Add(Effect);
 	Effect->Init(this, InstigatingGameCharacter);
 }
-
-
 
 void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)
 {

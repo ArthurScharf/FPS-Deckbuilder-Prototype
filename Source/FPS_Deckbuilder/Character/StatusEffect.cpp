@@ -51,6 +51,16 @@ void UStatusEffect::SetLifetimeTimer()
 
 
 
+
+AActor* UStatusEffect::SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location)
+{
+	if (!GameCharacter) { UE_LOG(LogTemp, Error, TEXT("UCard::SpawnActor -- !PlayerCharacter")); return nullptr; } // I'd need to check for nullptr whenever I spawn an actor with a card. Card's aren't spawning super fast so maybe this is ok?
+
+	FActorSpawnParameters SpawnParams;
+	return GameCharacter->GetWorld()->SpawnActor(Class, &Location, &Rotation, SpawnParams);
+}
+
+
 // WARNING: Only call this within the BP implementation of `Cleanup`
 void UStatusEffect::Cleanup_Native()
 {

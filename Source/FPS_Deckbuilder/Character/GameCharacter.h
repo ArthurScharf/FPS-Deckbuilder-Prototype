@@ -40,6 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void ReceiveDamage(UPARAM(ref) FDamageStruct& DamageStruct, bool bTriggersStatusEffects = true); 
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Stun(float StunSeconds) PURE_VIRTUAL(&AGameCharacter::Stun, );
+
 	/* Adds a status effect to the list of those attached to this character.
 	 * Will either add a new effect, or increase the stack value of one if a stackable instance of Class is already on the character 
 	 */
@@ -127,8 +130,10 @@ protected:
 	FVector DashDirection;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class
+	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class. See Second timer set in dash method for context
 
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	bool bIsStunned;	// Maintained so effects can verify if a character is stunned
 
 
 private:
@@ -154,7 +159,7 @@ private:
 
 	
 public:
-	// NOTE: Blueprints don't recognize the signature for each type of observer without these. These shouldn't be necessary
+	// NOTE: Blueprints don't recognize the signature for each type of observer without these. Silly that I need these
 	// -- Add & Remove Methods for Observers -- //
 	UFUNCTION(BlueprintCallable)
 	void AddObserver_OnDamageReceived(const FOnReceiveDamageDelegate& Delegate) { Observers_OnReceiveDamage.Add(Delegate); }

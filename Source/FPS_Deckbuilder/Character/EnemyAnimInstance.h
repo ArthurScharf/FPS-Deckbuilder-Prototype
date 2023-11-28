@@ -60,6 +60,12 @@ protected:
 	/* Direction the enemy Charcter is moving in. relative to it's forward vector. [-180, 180] */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Direction;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsStunned;
+
+public:
+	FORCEINLINE void SetIsStunned(bool _bIsStunned) { bIsStunned = _bIsStunned; } // Used exclusively by AEnemyCharacter::Stun to control animation state
 };
 
 

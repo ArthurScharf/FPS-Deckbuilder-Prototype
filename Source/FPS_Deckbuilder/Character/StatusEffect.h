@@ -119,6 +119,9 @@ private:
 	/* Sets or resets lifetime timer, including whether or not timer does*/
 	void SetLifetimeTimer();
 
+	UFUNCTION(BlueprintCallable)
+	AActor* SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location);
+
 
 protected:
 	/* The character this effect is affecting */

@@ -2,6 +2,7 @@
 
 #include "Card.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 
@@ -29,3 +30,37 @@ AProjectile* UCard::SpawnProjectile(TSubclassOf<AProjectile> ProjectileClass, co
 	return Projectile;
 }
 
+
+
+void UCard::LineTraceSingleByChannel(FHitResult& OutHit, const FVector& Start, const FVector& End, ECollisionChannel TraceChannel, TArray<AActor*> ActorsToIgnore, bool bIgnoreUserPlayerCharacter) const
+{
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActors(ActorsToIgnore);
+	if (bIgnoreUserPlayerCharacter) Params.AddIgnoredActor(PlayerCharacter);
+	FCollisionResponseParams ResponseParams;
+	PlayerCharacter->GetWorld()->LineTraceSingleByChannel
+	(
+		OutHit,
+		Start,
+		End,
+		TraceChannel,
+		Params,
+		ResponseParams
+	);
+}
+
+
+
+
+bool UCard::SphereOverlapActors(const FVector Location, float Radius, const TArray< TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, UClass* ActorClassFilter, const TArray<AActor*>& ActorsToIgnore, bool bIgnoreSelf, TArray<AActor*>& OutActors)
+{
+	return UKismetSystemLibrary::SphereOverlapActors(
+		PlayerCharacter->GetWorld(),
+		Location,
+		Radius,
+		ObjectTypes,
+		ActorClassFilter,
+		ActorsToIgnore,
+		OutActors
+	);
+}
