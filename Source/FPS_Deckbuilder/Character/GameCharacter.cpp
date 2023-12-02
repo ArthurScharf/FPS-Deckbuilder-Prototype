@@ -1,8 +1,12 @@
 
 #include "GameCharacter.h"
+#include "Components/HorizontalBox.h"
 #include "FPS_Deckbuilder/Character/GameCharacterMovementComponent.h"
 #include "FPS_Deckbuilder/Character/StatusEffect.h"
+#include "FPS_Deckbuilder/UI/StatusEffectWidget.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
+
+
 
 AGameCharacter::AGameCharacter()
 {
@@ -97,18 +101,24 @@ bool AGameCharacter::Dash()
 	// DashDirection = CharMovement->GetLastUpdateVelocity().GetSafeNormal();
 	DashDirection.Z = 0;
 
+
+
 	FTimerHandle DashHandle;
+	FTimerDelegate DashDelegate;
 	GetWorldTimerManager().SetTimer(
 		DashHandle,
 		[&, CharMovement]()
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
-			bIsDashing = false;
-			CharMovement->MaxWalkSpeed = 600;
-			CharMovement->MaxAcceleration /= 20.f;
-			//CharMovement->StopMovementImmediately();
-			CharMovement->StopActiveMovement();
-			CharMovement->Velocity = CharMovement->Velocity.GetSafeNormal() * CharMovement->MaxWalkSpeed;
+			if (CharMovement) // Can fail to exist if character dies during dash
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
+				bIsDashing = false;
+				CharMovement->MaxWalkSpeed = 600;
+				CharMovement->MaxAcceleration /= 20.f;
+				//CharMovement->StopMovementImmediately();
+				CharMovement->StopActiveMovement();
+				CharMovement->Velocity = CharMovement->Velocity.GetSafeNormal() * CharMovement->MaxWalkSpeed;
+			}
 		},
 		DashSeconds,
 		false
@@ -192,25 +202,68 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, A
 		return;
 	}
 
-	// Searching for stackable duplicate
-	for (UStatusEffect* Effect : StatusEffects)
+	// -- Notifying Pre-Observers -- //
+	for (FPreInstantiateStatusEffect Delegate : Observers_PreInstantiateStatusEffect)
 	{
-		if (Effect->GetClass() == Class && Effect->IsStackable())
+		if (Delegate.IsBound()) { Delegate.Execute(Class); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- Pre-Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
+	}
+
+	UStatusEffect* Effect = nullptr; // Both stack and non-stack control paths set this. Needed for notifying post-observers 
+
+	bool bWasStacked = false;
+	// -- Searching for stackable duplicate -- //
+	for (UStatusEffect* ToStackEffect : StatusEffects)
+	{
+		if (ToStackEffect->GetClass() == Class && ToStackEffect->IsStackable())
 		{
-			Effect->IncrementNumInstances();
-			return;
+			ToStackEffect->IncrementNumInstances();
+			Effect = ToStackEffect;
+			bWasStacked = true;
+			break;
 		}
 	}
 
-	// No Stackable instance. Creating and adding new instance of of type Class
-	UStatusEffect* Effect = NewObject<UStatusEffect>(this, Class);
-	StatusEffects.Add(Effect);
-	Effect->Init(this, InstigatingGameCharacter);
+	// -- Failed to stack. Instantiating new effect -- //
+	if (!bWasStacked)
+	{
+		// -- No Stackable instance. Creating and adding new instance of of type Class -- //
+		Effect = NewObject<UStatusEffect>(this, Class);
+		UTexture2D* Texture = Effect->GetTexture();
+		if (Texture)
+		{
+			if (StatusEffectWidgetClass)
+			{
+				UStatusEffectWidget* StatusEffectWidget = CreateWidget<UStatusEffectWidget>(StatusEffectHorizontalBox, StatusEffectWidgetClass);
+				StatusEffectWidget->Image->SetBrushFromTexture(Texture);
+				StatusEffectHorizontalBox->AddChildToHorizontalBox(StatusEffectWidget);
+				Effect->SetWidget(StatusEffectWidget);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- !StatusEffectWidgetClass"), *GetName());
+			}
+		}
+		StatusEffects.Add(Effect);
+		Effect->Init(this, InstigatingGameCharacter);
+	}
+
+	// -- Notifying Post-Observers -- //
+	for (FPostInstantiateStatusEffect Delegate : Observers_PostInstantiateStatusEffect)
+	{
+		if (Delegate.IsBound()) { Delegate.Execute(Effect); }
+		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- Post-Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
+	}
 }
 
 void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)
 {
-	int NumRemoved = StatusEffects.Remove(StatusEffect);
+	UUserWidget* Widget = StatusEffect->GetWidget();
+	if (Widget)
+	{
+		StatusEffectHorizontalBox->RemoveChild(Widget);
+	}
+	StatusEffects.Remove(StatusEffect);
 }
 
 

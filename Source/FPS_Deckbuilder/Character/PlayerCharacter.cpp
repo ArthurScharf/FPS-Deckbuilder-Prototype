@@ -57,6 +57,7 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
+	SetStatusEffectHorizontalBox(HUDWidget->GetStatusEffectHorizontalBox());
 
 	// -- Cards -- //
 	for (int i = 0; i < StartingDeck.Num(); i++) { Deck.Add(NewObject<UCard>(this, StartingDeck[i])); }

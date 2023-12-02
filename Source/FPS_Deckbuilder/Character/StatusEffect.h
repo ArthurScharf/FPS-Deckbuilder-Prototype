@@ -11,6 +11,7 @@
 class AGameCharacter;
 class UTexture2D;
 
+
 /**
  * NumTriggers == 0 --> Effect is in listening mode
  * NumTriggers  > 0  --> Effect is in triggered mode
@@ -175,12 +176,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0", EditCondition = "NumTriggers != 0", EditConditionHides))
 	float FirstDelaySeconds;
 
+	UPROPERTY(EditDefaultsOnly)
 	UTexture2D* Texture;
+
+	// Widget that communicates the state of the status effect
+	UUserWidget* Widget;
 
 
 public:
 	FORCEINLINE bool IsStackable() { return bIsStackable; }
 
-	//UFUNCTION(BlueprintCallable)
-	//void SetInstigatingGameCharacter(AGameCharacter* _InstigatingGameCharacter) { InstigatingGameCharacter = _InstigatingGameCharacter; }
+	FORCEINLINE UTexture2D* GetTexture() { return Texture; }
+
+	FORCEINLINE UUserWidget* GetWidget() { return Widget; }
+
+	FORCEINLINE void SetWidget(UUserWidget* _Widget) { Widget = _Widget; }
 };

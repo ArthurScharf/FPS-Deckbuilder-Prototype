@@ -24,7 +24,7 @@ class FPS_DECKBUILDER_API UCard : public UObject
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void Use();
 
 	/* DEPRECATED. TO BE DELETED?
@@ -32,7 +32,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnedActorCallback(AGameCharacter* GameCharacter, FVector Location);
 
+	/* 
+	* Card subscribes to events on the PlayerCharacter for the purpose of tracking progression. 
+	* WARNING: Cannot be private. NEVER Call this directly except in SetPlayerCharacter
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+	void Subscribe();
+
 private:
+
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.
 	   This is a workaround to allow the code that card uses to spawn actors to belong to 
 	   the card class, rather than the player, or some other actor
@@ -78,8 +86,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Card")
 	FCost Cost;
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter
-	float Progress; // Progress to card completion. TODO: Will later be replaced by progression behavior
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter & setter
+	float Progress;
 
 	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
 	UTexture2D* Texture; 
@@ -94,5 +102,10 @@ public:
 
 	FORCEINLINE UTexture2D* GetTexture() { return Texture; }
 
-	FORCEINLINE void SetPlayerCharacter(APlayerCharacter* _PlayerCharacter) { PlayerCharacter = _PlayerCharacter; }
+	/* Sets player character and gives the card a chance to subscribe to any information the it would need for passive progression*/
+	FORCEINLINE void SetPlayerCharacter(APlayerCharacter* _PlayerCharacter) 
+	{ 
+		PlayerCharacter = _PlayerCharacter; 
+		Subscribe();
+	}
 };

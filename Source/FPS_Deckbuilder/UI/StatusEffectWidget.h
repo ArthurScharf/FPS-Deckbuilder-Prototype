@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/Image.h"
 #include "StatusEffectWidget.generated.h"
 
 
 // class USizeBox;
-class UImage;
+//class UImage;
 
 
 /**

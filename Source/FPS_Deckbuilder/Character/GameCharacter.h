@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 
-
 #include "FPS_Deckbuilder/CommonHeaders/DamagePackage.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
 #include "Engine/EngineTypes.h"
@@ -12,6 +11,9 @@
 
 class AProjectile;
 class UStatusEffect;
+class UStatusEffectWidget;
+class UHorizontalBox;
+
 
 
 
@@ -20,6 +22,8 @@ class UStatusEffect;
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnReceiveDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnApplyDamageDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnDamageDealtDelegate, UPARAM(ref) FDamageStruct&, DamageStruct);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FPreInstantiateStatusEffect, TSubclassOf<UStatusEffect>, Effect);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FPostInstantiateStatusEffect, UStatusEffect*, Effect);
 DECLARE_DYNAMIC_DELEGATE(FOnReloadDelegate);
 DECLARE_DYNAMIC_DELEGATE(FOnAttackDelegate);
 
@@ -49,6 +53,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter = nullptr);
 
+	/* WARNING: Call StatusEffect::Cleanup if you want to remove a status affect. Calling this will fail to properly cleanup any state the status effect had set */
 	UFUNCTION(BlueprintCallable)
 	void RemoveStatusEffect(UStatusEffect* StatusEffect);
 	
@@ -105,6 +110,13 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
 	TArray<FOnDamageDealtDelegate> Observers_OnDamageDealt; // AGameCharacter::NotifyOfDamageDealt. During notify of damage instigator. Used for damage checkers (was lethal, final damage amount etc)
 
+
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FPreInstantiateStatusEffect> Observers_PreInstantiateStatusEffect;
+
+	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
+	TArray<FPostInstantiateStatusEffect> Observers_PostInstantiateStatusEffect;
+
 	UPROPERTY(VisibleAnywhere, Category = "GameCharacter|Observers")
 	TArray<FOnReloadDelegate> Observers_OnReload;
 
@@ -147,8 +159,15 @@ private:
 	
 	ULazyHealthBar* LazyHealthBar;
 
+	UHorizontalBox* StatusEffectHorizontalBox;
+
 	UPROPERTY(VisibleAnywhere)
 	TArray<UStatusEffect*> StatusEffects;
+
+	// This needs to be set in each blueprint. Is there a way I can reference a blueprint class from the native code?
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UStatusEffectWidget> StatusEffectWidgetClass;
+
 
 	/*
 	* The system I've designed often has game character's spawning actors, then binding it's events to the delegates for those spawned actors.
@@ -195,6 +214,16 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
+	void AddObserver_PreInstantiateStatusEffect(const FPreInstantiateStatusEffect& Delegate) { Observers_PreInstantiateStatusEffect.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_PreInstantiateStatusEffect(const FPreInstantiateStatusEffect& Delegate) { Observers_PreInstantiateStatusEffect.Remove(Delegate); }
+
+	UFUNCTION(BlueprintCallable)
+	void AddObserver_PostInstantiateStatusEffect(const FPostInstantiateStatusEffect& Delegate) { Observers_PostInstantiateStatusEffect.Add(Delegate); }
+	UFUNCTION(BlueprintCallable)
+	void RemoveObserver_PostInstantiateStatusEffect(const FPostInstantiateStatusEffect& Delegate) { Observers_PostInstantiateStatusEffect.Remove(Delegate); }
+
+	UFUNCTION(BlueprintCallable)
 	void AddObserver_OnReload(const FOnReloadDelegate& Delegate) { Observers_OnReload.Add(Delegate); }
 	UFUNCTION(BlueprintCallable)
 	void RemoveObserver_OnReload(const FOnReloadDelegate& Delegate) { Observers_OnReload.Remove(Delegate); }
@@ -210,6 +239,8 @@ protected:
 	FORCEINLINE float GetHealth() { return Health; }
 
 	FORCEINLINE void SetLazyHealthBar(ULazyHealthBar* _LazyHealthBar) { LazyHealthBar = _LazyHealthBar; }
+
+	FORCEINLINE void SetStatusEffectHorizontalBox(UHorizontalBox* _StatusEffectHorizontalBox) { StatusEffectHorizontalBox = _StatusEffectHorizontalBox;  }
 
 	UFUNCTION(BlueprintCallable)
 	void AddDependentActor(AActor* Actor) { DependentActors.Add(Actor); }

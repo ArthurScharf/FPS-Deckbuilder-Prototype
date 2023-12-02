@@ -5,6 +5,7 @@
 #include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "FPS_Deckbuilder/Card/Card.h"
+#include "FPS_Deckbuilder/Character/StatusEffect.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
 #include "FPS_Deckbuilder/UI/TraySlot.h"
 #include "Math/IntVector.h"
@@ -45,6 +46,12 @@ public:
 	void RemoveTraySlot();
 
 	void SetCardForSlotAtIndex(int Index, UCard* Card);
+
+	// Creates and adds a status effect to the StatusEffectHorizontalBox. StatusEffect manages lifetime of widget
+	UUserWidget* InstantiateStatusEffectWidget(UStatusEffect* StatusEffect);
+
+	// Removes the widget from the widget bar. 
+	void RemoveStatusEffectWidget(UUserWidget* Widget);
 
 private:
 	// TODO: Do I need this declared here or can I just implement it in the Blueprint?
@@ -89,8 +96,13 @@ private:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UHorizontalBox* TrayHorizontalBox;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "HUDWidget")
 	TSubclassOf<UTraySlot> TraySlotBlueprintClass;
+
+	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
+	UHorizontalBox* StatusEffectHorizontalBox;
+
+
 
 
 	/* Stores crosshairs slots so their position can be changed to reflect crosshair spread */
@@ -104,6 +116,8 @@ public:
 	FORCEINLINE UTextBlock* GetCurrentAmmoText() { return CurrentAmmoText; }
 
 	FORCEINLINE ULazyHealthBar* GetLazyHealthBar() { return LazyHealthBar; }
+
+	FORCEINLINE UHorizontalBox* GetStatusEffectHorizontalBox() { return StatusEffectHorizontalBox; }
 
 	FORCEINLINE void SetResourceText(FIntVector& Resources) 
 	{

@@ -4,7 +4,9 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Components/WidgetComponent.h"
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
+#include "FPS_Deckbuilder/UI/EnemyWidget.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
+
 
 #include "DrawDebugHelpers.h"
 
@@ -36,12 +38,13 @@ void AEnemyCharacter::BeginPlay()
 	if (!WidgetComponent) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !WidgetComponent")); return;  }
 	if (!BehaviorTree) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !BehaviorTree")); return; }
 	
-	SetLazyHealthBar(Cast<ULazyHealthBar>(WidgetComponent->GetWidget()));
+	UEnemyWidget* EnemyWidget = Cast<UEnemyWidget>(WidgetComponent->GetWidget());
+	SetLazyHealthBar(EnemyWidget->LazyHealthBar);
+	SetStatusEffectHorizontalBox(EnemyWidget->StatusEffectsHorizontalBox);
 	
 	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
 
-	
 	EnemyAIController = Cast<AEnemyAIController>(GetController());
 	if (EnemyAIController && BehaviorTree) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
 	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController OR !BehaviorTree")); }

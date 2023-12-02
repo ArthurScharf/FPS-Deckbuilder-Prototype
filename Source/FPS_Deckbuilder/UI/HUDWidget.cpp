@@ -52,3 +52,5 @@ void UHUDWidget::SetCardForSlotAtIndex(int Index, UCard* Card)
 	TraySlot->SetCard(Card);
 	TraySlot->SetTexture(Card->GetTexture());
 }
+
+
