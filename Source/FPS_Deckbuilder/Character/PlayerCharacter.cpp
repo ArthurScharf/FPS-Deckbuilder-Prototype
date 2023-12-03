@@ -271,7 +271,8 @@ void APlayerCharacter::ReloadButton_Pressed()
 {
 	if (EquippedWeapon) 
 	{
-		for (FOnReloadDelegate Delegate : Observers_OnReload)
+		TArray<FOnReloadDelegate> LocalObservers(Observers_OnReload);
+		for (FOnReloadDelegate Delegate : LocalObservers)
 		{
 			if (Delegate.IsBound()) { Delegate.Execute(); }
 		}

@@ -68,13 +68,15 @@ void UStatusEffect::Cleanup_Native()
 
 	// TODO: Remove icon from game character widget
 
-
-	// BUG: Timer might keep ticking if game character is around
+		// BUG: Timer might keep ticking if game character is around
 	if (GameCharacter)
 	{
 		GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
 		GameCharacter->RemoveStatusEffect(this);
 	}
+
+
+
 
 	/* An `Outer` must be passed in BP's when an instance of this class is created.
 	*  I'm completely confident that this won't prevent garbage collection, I'd like to explicitly flag for collection here
@@ -82,7 +84,7 @@ void UStatusEffect::Cleanup_Native()
 	// GameCharacter->GetWorld()->ForceGarbageCollection(true);
 	GameCharacter = nullptr;
 	InstigatingGameCharacter = nullptr;
-	GEngine->ForceGarbageCollection();
+	// GEngine->ForceGarbageCollection();
 }
 
 

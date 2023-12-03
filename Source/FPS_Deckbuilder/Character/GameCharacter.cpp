@@ -54,6 +54,7 @@ void AGameCharacter::Tick(float DeltaTime)
 void AGameCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::EndPlay"));
+
 }
 
 void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
@@ -63,7 +64,7 @@ void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 	// BUG: possible for Observers that should be no longer valid to still be called. This is also slow
 	TArray<FOnDamageDealtDelegate> LocalObserverArray(Observers_OnDamageDealt); // Delegates can self remove. This avoids bugs associated with removing during iteration.
 
-	for (FOnDamageDealtDelegate Delegate : Observers_OnDamageDealt)
+	for (FOnDamageDealtDelegate Delegate : LocalObserverArray)
 	{
 		if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
 		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::NotifyOfDamageDealt / %s() -- Delegate not bound"), *Delegate.GetFunctionName().ToString()); }
@@ -73,6 +74,13 @@ void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 void AGameCharacter::Die()
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s / AGameCharacter::Die"), *GetName());
+
+	// -- Cleanup Status Effects -- //
+	TArray<UStatusEffect*> LocalEffects(StatusEffects);
+	for (UStatusEffect* Effect : LocalEffects)
+	{
+		Effect->Cleanup();
+	}
 
 	AttemptDestroy();
 
@@ -104,7 +112,6 @@ bool AGameCharacter::Dash()
 
 
 	FTimerHandle DashHandle;
-	FTimerDelegate DashDelegate;
 	GetWorldTimerManager().SetTimer(
 		DashHandle,
 		[&, CharMovement]()
@@ -151,6 +158,7 @@ void AGameCharacter::AttemptDestroy()
 	if (ToDestroy)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
+
 		Destroy();
 	}
 	else
