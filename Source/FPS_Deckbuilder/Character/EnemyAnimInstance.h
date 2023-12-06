@@ -54,11 +54,11 @@ protected:
 	TArray<UAnimMontage*> HitReactMontages;
 
 	/* Speed the EnemyCharacter is moving at */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Speed;
 
 	/* Direction the enemy Charcter is moving in. relative to it's forward vector. [-180, 180] */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Direction;
 
 	UPROPERTY(BlueprintReadOnly)

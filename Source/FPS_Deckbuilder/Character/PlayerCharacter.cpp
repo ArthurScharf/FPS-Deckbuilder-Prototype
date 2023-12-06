@@ -402,6 +402,7 @@ void APlayerCharacter::UseCardInTray(int Index)
 	// -- Using Card, updating tray & updating tray slot -- //
 	// TODO: not appropriate for DrawCard() to sometimes return nullptr;
 	Tray[Index]->Use();
+	Tray[Index]->Unsubscribe();
 	DiscardPile.Add(Tray[Index]);
 	Tray[Index] = DrawCard();
 	HUDWidget->SetCardForSlotAtIndex(Index, Tray[Index]);

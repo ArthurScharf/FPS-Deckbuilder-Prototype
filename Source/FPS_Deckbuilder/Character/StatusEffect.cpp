@@ -27,7 +27,7 @@ void UStatusEffect::SetLifetimeTimer()
 	// NOTE: Calling a timer with a handle will stop any timer previously associated with that handle
 
 	// Listening mode
-	if (NumTriggers == 0 && bSelfCallsCleanup)
+	if (InitialNumTriggers == 0 && bSelfCallsCleanup)
 	{
 		// Setting lifetime timer
 		GameCharacter->GetWorldTimerManager().SetTimer(
@@ -68,11 +68,14 @@ void UStatusEffect::Cleanup_Native()
 
 	// TODO: Remove icon from game character widget
 
-		// BUG: Timer might keep ticking if game character is around
+
+	GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
+	GameCharacter->RemoveStatusEffect(this);
+
+	// BUG: Timer might keep ticking if game character is around
 	if (GameCharacter)
 	{
-		GameCharacter->GetWorldTimerManager().ClearTimer(EffectHandle); // I'm not sure if flagging for garbage collection will gaurentee the avoidance of a race condition. 
-		GameCharacter->RemoveStatusEffect(this);
+
 	}
 
 
@@ -99,12 +102,21 @@ void UStatusEffect::DecrementNumTriggers()
 
 void UStatusEffect::IncrementNumInstances()
 {
-	++NumInstances;
+	if (MaxNumInstances > NumInstances || MaxNumInstances == 0)
+	{
+		++NumInstances;
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("UStatusEffect::IncrementNumInstances -- %d"), NumInstances);
 	if (bResetLifetimeOnStack) 
 	{ 
-		NumTriggers = InitialNumTriggers;
-		SetLifetimeTimer(); 
+		/*
+		* We don't want the trigger timer to reset if we're in trigger mode
+		* We avoid this by (assuming we're in self-triggering mode) resetting the NumTriggers while leaving the timer untouched.
+		* We simply reset the timer if we're in listening mode
+		*/
+		if (InitialNumTriggers != 0) { NumTriggers = InitialNumTriggers; }
+		else { SetLifetimeTimer(); }
 	}
 }
 

@@ -147,36 +147,40 @@ protected:
 	/* if True:
 	*	Will trigger indefinitely if in trigger mode, or will never remove itself if it listening mode
 	*/
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Status Effect")
 	bool bSelfCallsCleanup = true;
 
 	/* Decides whether or not repeated attempts to add instances to a game character result in multiplied strength of effect or several unique stacks of an effect */
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Status Effect|Is Stackable")
 	bool bIsStackable;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	int NumInstances;
 
-	UPROPERTY(EditDefaultsOnly, meta=(EditCondition = "bIsStackable"))
+	/* 0 means no limit */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(EditCondition = "bIsStackable"), Category = "Status Effect|Is Stackable")
+	int MaxNumInstances;
+
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition = "bIsStackable"), Category = "Status Effect|Is Stackable")
 	bool bResetLifetimeOnStack;
 
 	FTimerHandle EffectHandle;
 
 	/* Either a lifetime, or the frequency between triggers */
-	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0"))
+	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0"), Category = "Status Effect")
 	float Seconds;
 
 	/* Numbers of triggers before the effect is complete and destroys itself.*/
-	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0"))
+	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0"), Category = "Status Effect")
 	int NumTriggers;
 
 	// Stored so NumTriggers can be reset if bResetLifetimeOnStack == true
 	int InitialNumTriggers;
 
-	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0", EditCondition = "NumTriggers != 0", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, meta = (UIMin = "0", EditCondition = "NumTriggers != 0", EditConditionHides), Category = "Status Effect")
 	float FirstDelaySeconds;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Status Effect")
 	UTexture2D* Texture;
 
 	// Widget that communicates the state of the status effect

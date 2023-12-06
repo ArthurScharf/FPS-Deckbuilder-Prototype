@@ -35,6 +35,7 @@ void AGameCharacter::BeginPlay()
 	bIsDashing = false;
 	DashSeconds = DashDistance / DashSpeed;
 
+
 	Super::BeginPlay();
 }
 
@@ -77,7 +78,7 @@ void AGameCharacter::Die()
 
 	// -- Cleanup Status Effects -- //
 	TArray<UStatusEffect*> LocalEffects(StatusEffects);
-	for (UStatusEffect* Effect : LocalEffects)
+	for (UStatusEffect* Effect : StatusEffects)
 	{
 		Effect->Cleanup();
 	}
@@ -118,7 +119,7 @@ bool AGameCharacter::Dash()
 		{
 			if (CharMovement) // Can fail to exist if character dies during dash
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending.  Stored_MaxWalkSpeed: %s "), Stored_MaxWalkSpeed);
+				UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Dash ending"));
 				bIsDashing = false;
 				CharMovement->MaxWalkSpeed = 600;
 				CharMovement->MaxAcceleration /= 20.f;
@@ -137,6 +138,8 @@ bool AGameCharacter::Dash()
 		EdgeHandle,
 		[&, CharMovement]()
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::DashButton_Pressed -- Edge Timer Ending"), Stored_MaxWalkSpeed);
+
 			CharMovement->bCanWalkOffLedges = true;
 		},
 		DashSeconds + 0.1f,
@@ -183,7 +186,8 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 	if (bTriggersStatusEffects)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- BEFORE: %f"), DamageStruct.Damage);
-		for (FOnReceiveDamageDelegate Delegate : Observers_OnReceiveDamage)
+		TArray<FOnReceiveDamageDelegate> LocalObservers(Observers_OnReceiveDamage);
+		for (FOnReceiveDamageDelegate Delegate : LocalObservers)
 		{
 			if (Delegate.IsBound()) { Delegate.Execute(DamageStruct); }
 			else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage / %s -- Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
@@ -202,16 +206,17 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 	if (DamageStruct.bWasLethal) Die();
 }
 
-void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)
+UStatusEffect* AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)
 {
 	if (!Class)
 	{
 		UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- !Class"), *GetName());
-		return;
+		return nullptr;
 	}
 
 	// -- Notifying Pre-Observers -- //
-	for (FPreInstantiateStatusEffect Delegate : Observers_PreInstantiateStatusEffect)
+	TArray<FPreInstantiateStatusEffect> LocalPreObservers(Observers_PreInstantiateStatusEffect);
+	for (FPreInstantiateStatusEffect Delegate : LocalPreObservers)
 	{
 		if (Delegate.IsBound()) { Delegate.Execute(Class); }
 		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- Pre-Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
@@ -257,11 +262,14 @@ void AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, A
 	}
 
 	// -- Notifying Post-Observers -- //
-	for (FPostInstantiateStatusEffect Delegate : Observers_PostInstantiateStatusEffect)
+	TArray<FPostInstantiateStatusEffect> LocalPostObservers(Observers_PostInstantiateStatusEffect);
+	for (FPostInstantiateStatusEffect Delegate : LocalPostObservers)
 	{
 		if (Delegate.IsBound()) { Delegate.Execute(Effect); }
 		else { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::InstantiateStatusEffect / %s -- Post-Delegate Not Bound"), *Delegate.GetFunctionName().ToString()); }
 	}
+
+	return Effect;
 }
 
 void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)

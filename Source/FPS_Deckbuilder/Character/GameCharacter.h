@@ -51,7 +51,7 @@ public:
 	 * Will either add a new effect, or increase the stack value of one if a stackable instance of Class is already on the character 
 	 */
 	UFUNCTION(BlueprintCallable)
-	void InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter = nullptr);
+	UStatusEffect* InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter = nullptr);
 
 	/* WARNING: Call StatusEffect::Cleanup if you want to remove a status affect. Calling this will fail to properly cleanup any state the status effect had set */
 	UFUNCTION(BlueprintCallable)
@@ -64,7 +64,8 @@ public:
 	* TFunction's cannot be passed as parameters to BlueprintCallable methods
 	* The same is true of TFunctionRef
 	* 
-	* NOTE: This might need to be templated
+	* NOTE: This might need to be templated.
+	* NOTE: Future attempts at a method like this should have the OnOverlap or OnHit delegate be passed to the method, since that's always what this method is used for
 	*/
 	UFUNCTION(BlueprintCallable)
 	AProjectile* SpawnProjectileWithoutCollision(TSubclassOf<AProjectile> ProjectileClass, FTransform Transform);
@@ -92,6 +93,9 @@ private:
 
 
 public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<UStatusEffect*> StatusEffects;
+
 	/* -- Custom Delegates --
 	* Possible for multiple effects to need to act on data structure in a sequence.
 	* Dynamic multicast delegates don't support non-const references.
@@ -130,18 +134,18 @@ protected:
 
 	// -- Movement -- //
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "GameCharacter|Dashing")
 	float DashDistance;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "GameCharacter|Dashing")
 	float DashSpeed;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "GameCharacter|Dashing")
 	float DashSeconds;
 
-	UPROPERTY(BlueprintReadWrite);
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "GameCharacter|Dashing");
 	FVector DashDirection;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "GameCharacter|Dashing")
 	bool bIsDashing;	// Time constraints dictate a hackey solution to dashing instead of a custom character movement class. See Second timer set in dash method for context
 
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
@@ -160,9 +164,6 @@ private:
 	ULazyHealthBar* LazyHealthBar;
 
 	UHorizontalBox* StatusEffectHorizontalBox;
-
-	UPROPERTY(VisibleAnywhere)
-	TArray<UStatusEffect*> StatusEffects;
 
 	// This needs to be set in each blueprint. Is there a way I can reference a blueprint class from the native code?
 	UPROPERTY(EditDefaultsOnly)

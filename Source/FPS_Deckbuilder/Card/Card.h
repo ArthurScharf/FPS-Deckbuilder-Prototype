@@ -39,6 +39,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void Subscribe();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void Unsubscribe();
+
+
 private:
 
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.

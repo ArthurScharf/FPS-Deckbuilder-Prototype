@@ -125,7 +125,12 @@ void AEnemyCharacter::Stun(float StunSeconds)
 {
 	if (!EnemyAIController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::Stun / %s -- !EnemyAIController"), *GetName());
+		UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::Stun / %s -- !EnemyAIController"), *GetName());
+		return;
+	}
+	if (!EnemyAnimInstance)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::Stun / %s -- !EnemyAnimInstance"), *GetName());
 		return;
 	}
 
