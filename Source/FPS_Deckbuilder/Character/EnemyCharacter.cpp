@@ -6,9 +6,11 @@
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
 #include "FPS_Deckbuilder/UI/EnemyWidget.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
-
+#include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 #include "DrawDebugHelpers.h"
+
 
 class UBehaviorTree;
 
@@ -16,6 +18,11 @@ class UBehaviorTree;
 AEnemyCharacter::AEnemyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	ShellMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shell Mesh"));
+	ShellMeshComponent->SetMasterPoseComponent(GetMesh()); // Uses the character meshes pose
+	ShellMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShellMeshComponent->SetupAttachment(RootComponent);
 
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Component"));
 	WidgetComponent->SetWorldScale3D(FVector(0.2));
@@ -48,6 +55,11 @@ void AEnemyCharacter::BeginPlay()
 	EnemyAIController = Cast<AEnemyAIController>(GetController());
 	if (EnemyAIController && BehaviorTree) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
 	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController OR !BehaviorTree")); }
+
+	// -- Creating & Storing Dynamic Material Instance for Shell Material -- //
+	ShellMatInstance = UMaterialInstanceDynamic::Create(ShellMat, this);
+	ShellMeshComponent->SetMaterial(0, ShellMatInstance);
+	ShellOpacity = 0.f;
 }
 
 
@@ -118,6 +130,24 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 
 	// -- Animation -- //
 	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
+
+	// -- Shell Material -- //
+	float HealthPercent = GetHealthPercent();
+	ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), 1.f - HealthPercent);
+	ShellOpacity = 1.f;
+	ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+	GetWorldTimerManager().SetTimer(
+		ShellOpacityHandle,
+		[&]()
+		{
+			ShellOpacity -= ShellOpacityDecayAmount;
+			ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+			if (ShellOpacity <= 0.f) { GetWorldTimerManager().ClearTimer(ShellOpacityHandle); }
+		},
+		ShellOpacityDecayRate,
+		true,
+		HealthPercent <= 0.33 ? 3.f : 1.f
+	);
 }
 
 
@@ -193,7 +223,9 @@ void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 void AEnemyCharacter::Die()
 {
 	// TODO: Ragdoll and/or spawned debris
+	// -- Clearing Timers -- //
 	EnemyAIController->ClearSearchTimer();
+	GetWorldTimerManager().ClearTimer(ShellOpacityHandle);
 
 	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
 	if (IsValid(BT))

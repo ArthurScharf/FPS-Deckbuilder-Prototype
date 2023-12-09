@@ -239,6 +239,10 @@ public:
 protected:
 	FORCEINLINE float GetHealth() { return Health; }
 
+	FORCEINLINE float GetMaxHealth() { return MaxHealth; }
+
+	FORCEINLINE float GetHealthPercent() { return Health / MaxHealth; }
+
 	FORCEINLINE void SetLazyHealthBar(ULazyHealthBar* _LazyHealthBar) { LazyHealthBar = _LazyHealthBar; }
 
 	FORCEINLINE void SetStatusEffectHorizontalBox(UHorizontalBox* _StatusEffectHorizontalBox) { StatusEffectHorizontalBox = _StatusEffectHorizontalBox;  }

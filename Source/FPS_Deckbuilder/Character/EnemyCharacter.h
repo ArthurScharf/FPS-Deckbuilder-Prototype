@@ -10,6 +10,8 @@ class AProjectile;
 class UAnimMontage;
 class UBehaviorTree;
 class UEnemyAnimInstance;
+class UMaterial;
+class UMaterialInstanceDynamic;
 class UWidgetComponent;
 
 
@@ -95,6 +97,28 @@ protected:
 	float AimOffset;
 
 private:
+	/* Lower LOD copy of the Character mesh. Applied material gives appearance of outline to Character mesh*/
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter")
+	USkeletalMeshComponent* ShellMeshComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
+	UMaterial* ShellMat;
+
+	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter|Shell")
+	UMaterialInstanceDynamic* ShellMatInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
+	float ShellOpacityDecayRate;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
+	float ShellOpacityDecayAmount;
+
+	/* Index for Alpha the parameter for ShellMatInstance. Stored for more efficient accessing since the mat is modified frequently */
+	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter|Shell")
+	float ShellOpacity;
+
+	FTimerHandle ShellOpacityHandle;
+
 	UPROPERTY(EditDefaultsOnly)
 	UWidgetComponent* WidgetComponent;
 
@@ -121,6 +145,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter")
 	FRotator StoredRotationRate; // Rotation rate is set to 0 when stunned. Stored to return to normal state once stun is complete
+
 
 public:
 	// Too much casting. This has been a reccurant issue throughout the code base
