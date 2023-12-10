@@ -95,8 +95,6 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	// UE_LOG(LogTemp, Warning, TEXT("AEnemyCharacter::ReceiveDamage"));
-
 	// -- Player detection -- //
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
@@ -175,7 +173,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 				},
 				ShellOpacityDecayRate,
 				true,
-				PosturePercent <= 0.33 ? 3.f : 1.f
+				FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(0.f, 3.f), PosturePercent)
 			);
 		}
 
@@ -202,8 +200,6 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 
 	// -- Animation -- //
 	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
-
-
 }
 
 
@@ -235,6 +231,7 @@ void AEnemyCharacter::Stun(float StunSeconds)
 		StunnedHandle,
 		[&]()
 		{
+			if (!IsValid(this) && !IsValid(EnemyAIController)) return;
 			bIsStunned = false;
 			EnemyAIController->BrainComponent->ResumeLogic("Stun Completed");
 			EnemyAnimInstance->SetIsStunned(false);
