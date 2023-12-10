@@ -108,10 +108,82 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);
 	}
 	
+
 	// -- Special DamageHandling -- //
 	HandleSpecialDamageConditions(DamageStruct);
 	HitBoneName = "None";
+	
+
+	// -- Shell Material Update -- //
+	if (Posture < MaxPosture) // Posture Unbroken
+	{
+		DamageStruct.bWasPostureDamage = true;
+		Posture += DamageStruct.Damage;
+
+		if (Posture >= MaxPosture)
+		{
+			ShellMeshComponent->SetVisibility(false);
+			Stun(PostureBreakSeconds);
+
+			// -- Setting Recovery Timer -- //
+			GetWorldTimerManager().SetTimer(
+				PostureBreakRecoveryHandle,
+				[&]() {
+					if (!IsValid(this)) return;
+					ShellMeshComponent->SetVisibility(true);
+					Posture = 0.f;
+					ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), 0.2);
+					ShellOpacity = 1.f;
+					ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+					
+					GetWorldTimerManager().SetTimer(
+						ShellOpacityHandle,
+						[&]() {
+							if (!IsValid(this)) return;
+							UE_LOG(LogTemp, Warning, TEXT("Fading Shell"));
+							ShellOpacity -= ShellOpacityDecayAmount;
+							ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+							if (ShellOpacity <= 0.f) 
+							{
+								ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), 0.f);
+								GetWorldTimerManager().ClearTimer(ShellOpacityHandle); 
+							}
+						},
+						ShellOpacityDecayRate,
+						true,
+						0.f
+					);
+				},
+				PostureBreakSeconds,
+				false
+			);
+
+			// TODO: posture break feedback
+		}
+		else // Posture Unbroken
+		{	
+			float PosturePercent = Posture / MaxPosture;
+			ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), PosturePercent);
+			ShellOpacity = 1.f;
+			ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+			GetWorldTimerManager().SetTimer(
+				ShellOpacityHandle,
+				[&]() {
+					ShellOpacity -= ShellOpacityDecayAmount;
+					ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+					if (ShellOpacity <= 0.f) { GetWorldTimerManager().ClearTimer(ShellOpacityHandle); }
+				},
+				ShellOpacityDecayRate,
+				true,
+				PosturePercent <= 0.33 ? 3.f : 1.f
+			);
+		}
+
+
+		
+	}
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
+
 
 	// -- Hitstun -- //
 	FTimerHandle UnpauseTickHandle;
@@ -131,23 +203,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	// -- Animation -- //
 	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
 
-	// -- Shell Material -- //
-	float HealthPercent = GetHealthPercent();
-	ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), 1.f - HealthPercent);
-	ShellOpacity = 1.f;
-	ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
-	GetWorldTimerManager().SetTimer(
-		ShellOpacityHandle,
-		[&]()
-		{
-			ShellOpacity -= ShellOpacityDecayAmount;
-			ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
-			if (ShellOpacity <= 0.f) { GetWorldTimerManager().ClearTimer(ShellOpacityHandle); }
-		},
-		ShellOpacityDecayRate,
-		true,
-		HealthPercent <= 0.33 ? 3.f : 1.f
-	);
+
 }
 
 

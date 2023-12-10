@@ -49,6 +49,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	FHitResult HitResult;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bWasPostureDamage = false;
 };
 
 

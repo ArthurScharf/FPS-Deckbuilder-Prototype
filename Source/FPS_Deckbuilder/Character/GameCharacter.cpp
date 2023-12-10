@@ -179,7 +179,7 @@ void AGameCharacter::AttemptDestroy()
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- Damage: %f"), DamageStruct.Damage);
+	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage / %s -- Damage: %f, %d"), *GetName(), DamageStruct.Damage, DamageStruct.bWasPostureDamage);
 
 	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
@@ -195,15 +195,18 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage -- AFTER : %f"), DamageStruct.Damage);
 	}
 	
-	DamageStruct.DamageReceiver = this;
-	Health -= DamageStruct.Damage;
-	if (Health <= 0.f) { DamageStruct.bWasLethal = true; }
-	else if (Health >= MaxHealth) { Health = MaxHealth; }
+	if (!DamageStruct.bWasPostureDamage)
+	{
+		DamageStruct.DamageReceiver = this;
+		Health -= DamageStruct.Damage;
+		if (Health <= 0.f) { DamageStruct.bWasLethal = true; }
+		else if (Health >= MaxHealth) { Health = MaxHealth; }
 
-	if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
-	LazyHealthBar->SetPercent(Health / MaxHealth);
+		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
+		LazyHealthBar->SetPercent(Health / MaxHealth);
 
-	if (DamageStruct.bWasLethal) Die();
+		if (DamageStruct.bWasLethal) Die();
+	}
 }
 
 UStatusEffect* AGameCharacter::InstantiateStatusEffect(TSubclassOf<UStatusEffect> Class, AGameCharacter* InstigatingGameCharacter)

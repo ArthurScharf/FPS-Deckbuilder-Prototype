@@ -38,6 +38,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void HandleSpecialDamageConditions(UPARAM(ref) FDamageStruct& DamageStruct);
 
+	/* Replaces previous stun timer each timer this is called */
 	void Stun(float StunSeconds) override;
 
 
@@ -145,6 +146,22 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter")
 	FRotator StoredRotationRate; // Rotation rate is set to 0 when stunned. Stored to return to normal state once stun is complete
+
+
+	// -- Posture System -- //
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Posture")
+	float MaxPosture;
+
+	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter|Posture")
+	float Posture;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Posture")
+	float PostureBreakSeconds;
+
+	//UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Posture")
+	//USoundCue* PostureBreakSound;
+
+	FTimerHandle PostureBreakRecoveryHandle;
 
 
 public:
