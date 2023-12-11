@@ -165,14 +165,33 @@ void AWeapon::Fire()
 		if (BulletTracerSystem)
 		{
 			FVector MuzzleLocation = SkeletalMeshComponent->GetSocketLocation(FName("MuzzleFlash"));
+
 			UNiagaraComponent* Tracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletTracerSystem, MuzzleLocation);
-			
+
+			//UNiagaraComponent* Tracer = UNiagaraFunctionLibrary::SpawnSystemAttached(
+			//	BulletTracerSystem,
+			//	SkeletalMeshComponent,
+			//	FName("MuzzleFlash"),
+			//	MuzzleLocation,
+			//	Rotation,
+			//	EAttachLocation::KeepWorldPosition,
+			//	true
+			//);
 			if (HitResult.bBlockingHit)
 			{
-				Tracer->SetVariableVec3(FName("BeamEnd"), (HitResult.Location - MuzzleLocation));
+				// Tracer->SetFloatParameter(FName("BulletLifespan"), );
+
+				Tracer->SetVariableVec3(FName("Direction"), (HitResult.Location - MuzzleLocation).GetSafeNormal() );
+
+				// Niagara System uses local coordinates
+				FVector BeamEnd = (HitResult.Location - MuzzleLocation);
+				Tracer->SetVariableVec3(FName("BeamEnd"), BeamEnd);
 			}
 			else
 			{
+				Tracer->SetVariableVec3(FName("Direction"), (End- MuzzleLocation).GetSafeNormal());
+
+
 				Tracer->SetVariableVec3(FName("BeamEnd"), (End - MuzzleLocation));
 			}	
 		}
