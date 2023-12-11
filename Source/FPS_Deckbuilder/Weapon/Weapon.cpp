@@ -177,23 +177,19 @@ void AWeapon::Fire()
 			//	EAttachLocation::KeepWorldPosition,
 			//	true
 			//);
+			FVector EndLocation;
 			if (HitResult.bBlockingHit)
 			{
-				// Tracer->SetFloatParameter(FName("BulletLifespan"), );
-
-				Tracer->SetVariableVec3(FName("Direction"), (HitResult.Location - MuzzleLocation).GetSafeNormal() );
-
-				// Niagara System uses local coordinates
-				FVector BeamEnd = (HitResult.Location - MuzzleLocation);
-				Tracer->SetVariableVec3(FName("BeamEnd"), BeamEnd);
+				EndLocation = (HitResult.Location - MuzzleLocation);
+				Tracer->SetVariableVec3(FName("Direction"), EndLocation.GetSafeNormal());
+				Tracer->SetVariableVec3(FName("EndLocation"), EndLocation);
 			}
 			else
 			{
-				Tracer->SetVariableVec3(FName("Direction"), (End- MuzzleLocation).GetSafeNormal());
-
-
-				Tracer->SetVariableVec3(FName("BeamEnd"), (End - MuzzleLocation));
-			}	
+				EndLocation = (End - MuzzleLocation);
+				Tracer->SetVariableVec3(FName("Direction"), EndLocation.GetSafeNormal());
+				Tracer->SetVariableVec3(FName("EndLocation"), EndLocation);
+			}
 		}
 	}//~ HitScan
 
