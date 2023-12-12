@@ -190,8 +190,6 @@ void AWeapon::Fire()
 	SkeletalMeshComponent->Play(false);
 	if (FireShakeClass) { EquippedPlayerCharacter->ShakeCamera(FireShakeClass); }
 	
-
-
 	// Accumulating Spread
 	AccumulatedSpread += SpreadGrowth;
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;

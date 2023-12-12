@@ -152,6 +152,10 @@ protected:
 	bool bIsStunned;	// Maintained so effects can verify if a character is stunned
 
 
+	UPROPERTY(BlueprintReadOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bIsDead;
+
+
 private:
 	// -- Health & StatusEffects -- //
 	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive

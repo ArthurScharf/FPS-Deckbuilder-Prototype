@@ -2,12 +2,15 @@
 #include "AIController.h"
 #include "Animation/AnimMontage.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "FPS_Deckbuilder/Character/EnemyAnimInstance.h"
 #include "FPS_Deckbuilder/UI/EnemyWidget.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
+
+
 
 #include "DrawDebugHelpers.h"
 
@@ -95,6 +98,8 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
+
+
 	// -- Player detection -- //
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
 	{	// Entering searching behavior
@@ -106,11 +111,17 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 		//EnemyAIController->SetFocus(DamageStruct.DamageCauser);
 	}
 	
-
 	// -- Special DamageHandling -- //
 	HandleSpecialDamageConditions(DamageStruct);
-	HitBoneName = "None";
 	
+
+	// Only want the cosmetic effects to take place when dead
+	if (bIsDead)
+	{
+		USkeletalMeshComponent* LocalMesh = GetMesh();
+		LocalMesh->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 5000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
+		return;
+	}
 
 	// -- Shell Material Update -- //
 	if (Posture < MaxPosture) // Posture Unbroken
@@ -183,11 +194,17 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
 
+	if (bIsDead)
+	{
+		GetMesh()->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 10000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
+	}
+	HitBoneName = "None";
+
 
 	// -- Hitstun -- //
-	FTimerHandle UnpauseTickHandle;
-	CustomTimeDilation = 0.2f;
 	// EnemyAIController->BrainComponent->PauseLogic("test"); // Alternate method that allows for more control over hit react animations
+	CustomTimeDilation = 0.2f;
+	FTimerHandle UnpauseTickHandle;
 	GetWorldTimerManager().SetTimer
 	(
 		UnpauseTickHandle,
@@ -201,6 +218,42 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 
 	// -- Animation -- //
 	if (EnemyAnimInstance && DamageStruct.Damage > 0.f) EnemyAnimInstance->PlayHitReactMontage();
+}
+
+
+void AEnemyCharacter::Die()
+{
+	// TODO: Ragdoll and/or spawned debris
+	// -- Clearing Timers -- //
+	EnemyAIController->ClearSearchTimer();
+	GetWorldTimerManager().ClearTimer(ShellOpacityHandle);
+	ShellOpacityHandle.Invalidate();
+	GetWorldTimerManager().ClearTimer(PostureBreakRecoveryHandle);
+	PostureBreakRecoveryHandle.Invalidate();
+
+	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
+	if (IsValid(BT))
+	{
+		BT->StopTree(EBTStopMode::Safe);
+	}
+
+	// -- Modifying Collision to support ragdolled state -- //
+	GetCharacterMovement()->DisableMovement();
+	USkeletalMeshComponent* LocalMesh = GetMesh();
+	LocalMesh->SetSimulatePhysics(true);
+	LocalMesh->SetCollisionProfileName(FName("PhysicsActor"));
+	LocalMesh->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* Actor : AttachedActors)
+	{
+		Actor->Destroy();
+	}
+
+	Super::Die();
 }
 
 
@@ -274,32 +327,7 @@ void AEnemyCharacter::Attack(UAnimMontage* AttackMontage)
 }
 
 
-void AEnemyCharacter::Die()
-{
-	// TODO: Ragdoll and/or spawned debris
-	// -- Clearing Timers -- //
-	EnemyAIController->ClearSearchTimer();
-	GetWorldTimerManager().ClearTimer(ShellOpacityHandle);
 
-	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
-	if (IsValid(BT))
-	{
-		BT->StopTree(EBTStopMode::Safe);
-	}
-	
-	// TODO: Propery Die animation and etc
-	this->SetActorHiddenInGame(true);
-	this->SetActorEnableCollision(false);
-
-	TArray<AActor*> AttachedActors;
-	GetAttachedActors(AttachedActors);
-	for (AActor* Actor : AttachedActors)
-	{
-		Actor->Destroy();
-	}
-
-	Super::Die();
-}
 
 
 FRotator AEnemyCharacter::CalculateAimAtRotation(const FVector& TargetLocation)

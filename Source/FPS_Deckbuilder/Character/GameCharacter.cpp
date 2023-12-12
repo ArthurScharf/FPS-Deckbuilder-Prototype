@@ -76,6 +76,8 @@ void AGameCharacter::Die()
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s / AGameCharacter::Die"), *GetName());
 
+	bIsDead = true;
+
 	// -- Cleanup Status Effects -- //
 	TArray<UStatusEffect*> LocalEffects(StatusEffects);
 	for (UStatusEffect* Effect : StatusEffects)
