@@ -183,6 +183,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
 
+
 	// -- Hitstun -- //
 	FTimerHandle UnpauseTickHandle;
 	CustomTimeDilation = 0.2f;

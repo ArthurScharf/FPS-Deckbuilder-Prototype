@@ -170,4 +170,7 @@ public:
 	
 	FORCEINLINE void SetHitBoneName(const FName _HitBoneName) { HitBoneName = _HitBoneName; }
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsPostureBroken() { return Posture >= MaxPosture; }
+
 };
