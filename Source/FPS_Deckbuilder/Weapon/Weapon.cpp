@@ -168,15 +168,6 @@ void AWeapon::Fire()
 
 			UNiagaraComponent* Tracer = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BulletTracerSystem, MuzzleLocation);
 
-			//UNiagaraComponent* Tracer = UNiagaraFunctionLibrary::SpawnSystemAttached(
-			//	BulletTracerSystem,
-			//	SkeletalMeshComponent,
-			//	FName("MuzzleFlash"),
-			//	MuzzleLocation,
-			//	Rotation,
-			//	EAttachLocation::KeepWorldPosition,
-			//	true
-			//);
 			FVector EndLocation;
 			if (HitResult.bBlockingHit)
 			{

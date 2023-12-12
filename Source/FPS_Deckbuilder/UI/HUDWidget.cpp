@@ -14,6 +14,8 @@ void UHUDWidget::NativeConstruct()
 	SlotBottom = Cast<UCanvasPanelSlot>(CrosshairBottom->Slot);
 	SlotLeft = Cast<UCanvasPanelSlot>(CrosshairLeft->Slot);
 	SlotRight= Cast<UCanvasPanelSlot>(CrosshairRight->Slot);
+
+	BaseCrosshairOffset = 10.f;
 }
 
 
@@ -23,10 +25,10 @@ void UHUDWidget::UpdateCrosshairsSpread(float Spread)
 	GEngine->GameViewport->GetViewportSize(ViewportCenter);
 	ViewportCenter /= 2.f;
 
-	SlotTop->SetPosition(   FVector2D(   0.f,                                 -(BaseCrosshairOffset + Spread * 25.f) ));
-	SlotBottom->SetPosition(FVector2D(   0.f,                                   BaseCrosshairOffset + Spread * 25.f));
-	SlotLeft->SetPosition(  FVector2D( -(BaseCrosshairOffset + Spread * 25.f) , 0.f                                  ));
-	SlotRight->SetPosition( FVector2D(   BaseCrosshairOffset + Spread * 25.f  , 0.f                                  ));
+	SlotTop->SetPosition(   FVector2D(   0.f,                                 -(BaseCrosshairOffset + Spread * 20.f) ));
+	SlotBottom->SetPosition(FVector2D(   0.f,                                   BaseCrosshairOffset + Spread * 20.f));
+	SlotLeft->SetPosition(  FVector2D( -(BaseCrosshairOffset + Spread * 20.f) , 0.f                                  ));
+	SlotRight->SetPosition( FVector2D(   BaseCrosshairOffset + Spread * 20.f  , 0.f                                  ));
 }
 
 
