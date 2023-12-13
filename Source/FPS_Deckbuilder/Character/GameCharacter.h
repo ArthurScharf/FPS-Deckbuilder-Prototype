@@ -152,6 +152,8 @@ protected:
 	bool bIsStunned;	// Maintained so effects can verify if a character is stunned
 
 
+	FTimerHandle DeathHandle;
+
 	UPROPERTY(BlueprintReadOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsDead;
 

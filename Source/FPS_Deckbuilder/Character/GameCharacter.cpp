@@ -72,31 +72,6 @@ void AGameCharacter::NotifyOfDamageDealt(FDamageStruct& DamageStruct)
 	}
 }
 
-void AGameCharacter::Die()
-{
-	UE_LOG(LogTemp, Warning, TEXT("%s / AGameCharacter::Die"), *GetName());
-
-	bIsDead = true;
-
-	// -- Cleanup Status Effects -- //
-	TArray<UStatusEffect*> LocalEffects(StatusEffects);
-	for (UStatusEffect* Effect : StatusEffects)
-	{
-		Effect->Cleanup();
-	}
-
-	AttemptDestroy();
-
-	FTimerHandle DeathHandle;
-	GetWorldTimerManager().SetTimer(
-		DeathHandle,
-		this,
-		&ThisClass::AttemptDestroy,
-		5.f,
-		true
-	);
-}
-
 bool AGameCharacter::Dash()
 {
 	// TODO: Character speed is being hardcoded in this method. Should fetch dynamically
@@ -150,32 +125,50 @@ bool AGameCharacter::Dash()
 	return true;
 }
 
+void AGameCharacter::Die()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s / AGameCharacter::Die"), *GetName());
+
+	bIsDead = true;
+
+	// -- Cleanup Status Effects -- //
+	TArray<UStatusEffect*> LocalEffects(StatusEffects);
+	for (UStatusEffect* Effect : StatusEffects)
+	{
+		Effect->Cleanup();
+	}
+
+	GetWorldTimerManager().SetTimer(
+		DeathHandle,
+		this,
+		&ThisClass::AttemptDestroy,
+		30.f,
+		true
+	);
+}
+
 void AGameCharacter::AttemptDestroy()
 {
+	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s"), *GetName());
+
+
 	bool ToDestroy = true;
 	for (int i = 0; i < DependentActors.Num(); i++)
 	{
-		if (DependentActors[i] != nullptr) // BUG && IsValid(DependentActors[i])
+		if (IsValid(DependentActors[i]))
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s -- Dependent: %s (Valid: %d)"), *GetName(), *(DependentActors[i]->GetName()));
 			ToDestroy = false;
 		};
 	}
+
 	if (ToDestroy)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
+		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
 
+		GetWorldTimerManager().ClearTimer(DeathHandle);
+		DeathHandle.Invalidate();
 		Destroy();
-	}
-	else
-	{
-		FTimerHandle DeathHandle;
-		GetWorldTimerManager().SetTimer(
-			DeathHandle,
-			this,
-			&ThisClass::AttemptDestroy,
-			5.f,
-			false
-		);
 	}
 }
 

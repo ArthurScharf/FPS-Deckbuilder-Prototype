@@ -115,7 +115,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	HandleSpecialDamageConditions(DamageStruct);
 	
 
-	// Only want the cosmetic effects to take place when dead
+	//- Shooting an Enemy After it's died -//
 	if (bIsDead)
 	{
 		USkeletalMeshComponent* LocalMesh = GetMesh();
@@ -186,17 +186,15 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 				true,
 				FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(0.f, 3.f), PosturePercent)
 			);
-		}
-
-
-		
+		}		
 	}
+
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 
-
+	//- Impulse for instance of damage that killed the character -//
 	if (bIsDead)
 	{
-		GetMesh()->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 10000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
+		GetMesh()->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 20000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
 	}
 	HitBoneName = "None";
 
@@ -231,6 +229,7 @@ void AEnemyCharacter::Die()
 	GetWorldTimerManager().ClearTimer(PostureBreakRecoveryHandle);
 	PostureBreakRecoveryHandle.Invalidate();
 
+	// -- Stopping Logic -- //
 	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
 	if (IsValid(BT))
 	{
@@ -279,6 +278,7 @@ void AEnemyCharacter::Stun(float StunSeconds)
 		EnemyAnimInstance->SetIsStunned(true);
 		StoredRotationRate = CharMovement->RotationRate;
 		CharMovement->RotationRate = FRotator(0.f);
+		CharMovement->StopMovementImmediately();
 	}
 
 	GetWorldTimerManager().SetTimer(

@@ -115,7 +115,7 @@ void AWeapon::Fire()
 		float Spread = GetSpread();
 		// TODO: Change spread to a circle instead of a square
 		Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
-		End = Start + (Rotation + EyeRotation).Vector() * 100000.f;
+		End = Start + (Rotation + EyeRotation).Vector() * 10000.f;
 		
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
