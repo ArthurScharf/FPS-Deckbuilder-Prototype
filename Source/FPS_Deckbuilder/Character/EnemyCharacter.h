@@ -10,9 +10,10 @@ class AProjectile;
 class UAnimMontage;
 class UBehaviorTree;
 class UEnemyAnimInstance;
-class UMaterial;
+class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class UWidgetComponent;
+class UNiagaraSystem;
 
 
 
@@ -103,7 +104,7 @@ private:
 	USkeletalMeshComponent* ShellMeshComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
-	UMaterial* ShellMat;
+	UMaterialInterface* ShellMat;
 
 	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter|Shell")
 	UMaterialInstanceDynamic* ShellMatInstance;
@@ -119,6 +120,10 @@ private:
 	float ShellOpacity;
 
 	FTimerHandle ShellOpacityHandle;
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
+	UNiagaraSystem* NiagaraPostureBreakSystem;
+
 
 	UPROPERTY(EditDefaultsOnly)
 	UWidgetComponent* WidgetComponent;

@@ -27,9 +27,16 @@ AGameCharacter::AGameCharacter()
 
 void AGameCharacter::BeginPlay()
 {	
-	if (MaxHealth <= 0) MaxHealth = 1; // Avoids divide by zero errors
+	if (MaxHealth <= 0) {	// Avoids divide by zero errors
+		MaxHealth = 1; 
+		Health = 0.f;
+	}
+	else
+	{
+		Health = MaxHealth;
+	}
 	
-	Health = MaxHealth;
+	
 	
 	// -- Dashing -- //
 	bIsDashing = false;

@@ -8,8 +8,10 @@
 #include "FPS_Deckbuilder/UI/EnemyWidget.h"
 #include "FPS_Deckbuilder/Weapon/Projectile.h"
 #include "Materials/Material.h"
+#include "Materials/MaterialInterface.h"
 #include "Materials/MaterialInstanceDynamic.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 #include "DrawDebugHelpers.h"
@@ -98,7 +100,9 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
 void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-
+	/* TODO
+	* This function is becoming spaghetti code. I need to rework it with the posture system in mind 
+	*/
 
 	// -- Player detection -- //
 	if (DamageStruct.DamageCauser && DamageStruct.DamageCauser->IsA<APlayerCharacter>())
@@ -114,7 +118,6 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	// -- Special DamageHandling -- //
 	HandleSpecialDamageConditions(DamageStruct);
 	
-
 	//- Shooting an Enemy After it's died -//
 	if (bIsDead)
 	{
@@ -123,14 +126,19 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 		return;
 	}
 
-	// -- Shell Material Update -- //
+
+	bool bEnemyShouldDie = false;
+	// -- Posture Damage & Shell Material Update -- //
 	if (Posture < MaxPosture) // Posture Unbroken
 	{
+		//- Posture Damage being dealt
 		DamageStruct.bWasPostureDamage = true;
 		Posture += DamageStruct.Damage;
 
-		if (Posture >= MaxPosture)
+		if (Posture >= MaxPosture) 
 		{
+			//- Posture is broken by this instance of damage
+			if (GetHealth() <= 0.f) bEnemyShouldDie = true; // Instant death for enemies with no health
 			ShellMeshComponent->SetVisibility(false);
 			Stun(PostureBreakSeconds);
 
@@ -167,29 +175,46 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 				false
 			);
 
-			// TODO: posture break feedback
+			if (NiagaraPostureBreakSystem)
+			{
+				UNiagaraComponent* PostureBreakComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
+					NiagaraPostureBreakSystem,
+					GetMesh(),
+					"",
+					FVector(0), // GetCapsuleComponent()->GetScaledCapsuleHalfHeight()
+					FRotator(0),
+					EAttachLocation::SnapToTarget,
+					true
+				);
+			}
 		}
-		else // Posture Unbroken
+		else
 		{	
 			float PosturePercent = Posture / MaxPosture;
 			ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), PosturePercent);
 			ShellOpacity = 1.f;
 			ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
-			GetWorldTimerManager().SetTimer(
-				ShellOpacityHandle,
-				[&]() {
-					ShellOpacity -= ShellOpacityDecayAmount;
-					ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
-					if (ShellOpacity <= 0.f) { GetWorldTimerManager().ClearTimer(ShellOpacityHandle); }
-				},
-				ShellOpacityDecayRate,
-				true,
-				FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(0.f, 3.f), PosturePercent)
-			);
+
+			if (PosturePercent < 0.8f)
+			{
+				GetWorldTimerManager().SetTimer(
+					ShellOpacityHandle,
+					[&]() {
+						ShellOpacity -= ShellOpacityDecayAmount;
+						ShellMatInstance->SetScalarParameterValue(FName("Opacity"), ShellOpacity);
+						if (ShellOpacity <= 0.f) { GetWorldTimerManager().ClearTimer(ShellOpacityHandle); }
+					},
+					ShellOpacityDecayRate,
+					true,
+					FMath::GetMappedRangeValueClamped(FVector2D(0.f, 1.f), FVector2D(0.f, 3.f), PosturePercent)
+				);
+			}
 		}		
 	}
 
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
+	
+	if (bEnemyShouldDie) Die();
 
 	//- Impulse for instance of damage that killed the character -//
 	if (bIsDead)
