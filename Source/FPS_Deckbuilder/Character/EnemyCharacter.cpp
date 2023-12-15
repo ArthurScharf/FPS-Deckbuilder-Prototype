@@ -61,10 +61,11 @@ void AEnemyCharacter::BeginPlay()
 	if (EnemyAIController && BehaviorTree) { EnemyAIController->RunBehaviorTree(BehaviorTree); }
 	else { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !EnemyAIController OR !BehaviorTree")); }
 
-	// -- Creating & Storing Dynamic Material Instance for Shell Material -- //
+	// -- Creating & Storing Dynamic Material Instance for Shell Material & PostureBreakMat-- //
 	ShellMatInstance = UMaterialInstanceDynamic::Create(ShellMat, this);
 	ShellMeshComponent->SetMaterial(0, ShellMatInstance);
 	ShellOpacity = 0.f;
+	PostureBreakMatInst = UMaterialInstanceDynamic::Create(PostureBreakMat, this); //  Stored for later
 }
 
 
@@ -116,20 +117,21 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	}
 	
 	// -- Special DamageHandling -- //
+	// NOTE: Since these methods handle impact effects, we need this to run before the next block that handles impulse on already dead character.
+	// This is a code stink. See first comment in this function
 	HandleSpecialDamageConditions(DamageStruct);
 	
 	//- Shooting an Enemy After it's died -//
 	if (bIsDead)
 	{
-		USkeletalMeshComponent* LocalMesh = GetMesh();
-		LocalMesh->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 5000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
+		GetMesh()->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 5000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
 		return;
 	}
 
 
 	bool bEnemyShouldDie = false;
 	// -- Posture Damage & Shell Material Update -- //
-	if (Posture < MaxPosture) // Posture Unbroken
+	if (Posture < MaxPosture) // Posture Currently Unbroken
 	{
 		//- Posture Damage being dealt
 		DamageStruct.bWasPostureDamage = true;
@@ -138,16 +140,24 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 		if (Posture >= MaxPosture) 
 		{
 			//- Posture is broken by this instance of damage
-			if (GetHealth() <= 0.f) bEnemyShouldDie = true; // Instant death for enemies with no health
-			ShellMeshComponent->SetVisibility(false);
-			Stun(PostureBreakSeconds);
+			if (GetHealth() <= 0.f)
+			{
+				bEnemyShouldDie = true; // Instant death for enemies with no health
+				ShellMeshComponent->SetVisibility(false);
+			}
+			else
+			{
+				ShellMeshComponent->SetMaterial(0, PostureBreakMatInst);
+				Stun(PostureBreakSeconds);
+			}
+			
 
 			// -- Setting Recovery Timer -- //
 			GetWorldTimerManager().SetTimer(
 				PostureBreakRecoveryHandle,
 				[&]() {
 					if (!IsValid(this)) return;
-					ShellMeshComponent->SetVisibility(true);
+					ShellMeshComponent->SetMaterial(0, ShellMatInstance);
 					Posture = 0.f;
 					ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), 0.2);
 					ShellOpacity = 1.f;
@@ -174,7 +184,6 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 				PostureBreakSeconds,
 				false
 			);
-
 			if (NiagaraPostureBreakSystem)
 			{
 				UNiagaraComponent* PostureBreakComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
@@ -189,7 +198,7 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 			}
 		}
 		else
-		{	
+		{//- Posture NOT broken by this instance of damage. Modifying shell mat and setting opacity timer
 			float PosturePercent = Posture / MaxPosture;
 			ShellMatInstance->SetScalarParameterValue(FName("MatAlpha"), PosturePercent);
 			ShellOpacity = 1.f;
@@ -215,13 +224,14 @@ void AEnemyCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersS
 	AGameCharacter::ReceiveDamage(DamageStruct, bTriggersStatusEffects);
 	
 	if (bEnemyShouldDie) Die();
-
-	//- Impulse for instance of damage that killed the character -//
+	//- Did damage kill it? -//
 	if (bIsDead)
 	{
+		ShellMeshComponent->SetVisibility(false);
 		GetMesh()->AddImpulseAtLocation(-DamageStruct.HitResult.ImpactNormal * 20000.f, DamageStruct.HitResult.ImpactPoint, HitBoneName);
 	}
 	HitBoneName = "None";
+
 
 
 	// -- Hitstun -- //

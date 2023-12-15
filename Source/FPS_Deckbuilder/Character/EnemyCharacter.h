@@ -110,6 +110,13 @@ private:
 	UMaterialInstanceDynamic* ShellMatInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
+	UMaterialInterface* PostureBreakMat;
+
+	UPROPERTY(VisibleAnywhere, Category = "EnemyCharacter|Shell")
+	UMaterialInstanceDynamic* PostureBreakMatInst;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
 	float ShellOpacityDecayRate;
 
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")

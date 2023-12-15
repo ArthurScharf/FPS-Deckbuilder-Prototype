@@ -158,7 +158,6 @@ void AGameCharacter::AttemptDestroy()
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s"), *GetName());
 
-
 	bool ToDestroy = true;
 	for (int i = 0; i < DependentActors.Num(); i++)
 	{
@@ -172,7 +171,6 @@ void AGameCharacter::AttemptDestroy()
 	if (ToDestroy)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
-
 		GetWorldTimerManager().ClearTimer(DeathHandle);
 		DeathHandle.Invalidate();
 		Destroy();
