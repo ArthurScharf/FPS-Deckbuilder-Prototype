@@ -42,7 +42,7 @@ public:
 	const TArray<IStackObject*> GetChildren() { return Children; } 
 
 	UFUNCTION(BlueprintCallable)
-	void SetReturnCardBehavior(const FReturnCardDelegate& Delegate) { ReturnCardDelegate = Delegate; }
+	void SetReturnCardBehavior(const FReturnCardDelegate& Delegate) { *ReturnCardDelegate = Delegate; }
 	
 	UFUNCTION(BlueprintCallable)
 	void ClearReturnCardBehavior() { ReturnCardDelegate = nullptr; }

@@ -13,11 +13,30 @@ UTrayStack::UTrayStack()
 }
 
 
-
-
-bool UTrayStack::SetCard(UStackSlot* Slot, int Index, UCard* Card)
+UCard* UTrayStack::Rotate()
 {
-	//if (!Card->ModifyStack(this)) return false; // Visitor Pattern
-	// Slot->SetChild(Card, Index);
+	// TODO: Allow card that's about to rotate out a chance to cleanup
+	// Did we cycle the entire stack ?
+	if (ActiveSlotIndex == BackingArray.Num() - 1) { ActiveSlotIndex = -1; }
+	++ActiveSlotIndex;
+	SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+	// TODO: Allow card that just rotated in a chance to setup
+	return SelectedCard;
+}
+
+
+void UTrayStack::UseSelectedCard()
+{
+	// TODO: Properly check for card requirements
+	SelectedCard->Use();
+	Rotate();
+}
+
+
+
+bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int Index, UCard* Card)
+{
+	if (!Card->ModifyStack(this)) return false; // Visitor Pattern
+	Slot->SetChild(Card, Index);
 	return true;
 }
