@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 
+#include "FPS_Deckbuilder/Card/StackObject.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "FPS_Deckbuilder/CommonHeaders/CostPackage.h"
@@ -11,15 +12,15 @@
 #include "Card.generated.h"
 
 
-
 class AProjectile;
+class UTrayStack;
 
 
 /**
  * 
  */
 UCLASS(Abstract, BlueprintType, Blueprintable)
-class FPS_DECKBUILDER_API UCard : public UObject
+class FPS_DECKBUILDER_API UCard : public UObject, public IStackObject
 {
 	GENERATED_BODY()
 
@@ -42,6 +43,28 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void Unsubscribe();
 
+
+	// -- Slot/Stack Methods -- //
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool ModifyStack(UTrayStack* Stack);
+
+	/* Undoes whatever modify stack did */
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void RevertStackModification();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void PreRotate();
+	UFUNCTION(BlueprintImplementableEvent)
+	void PostRotate();
+
+	/* Called before reset is applied to slot. Can implement unique effects here*/
+	UFUNCTION(BlueprintImplementableEvent)
+	void PreReset();
+	UFUNCTION(BlueprintImplementableEvent)
+	void PostReset();
+
+	// -- Stack Object Interface -- //
+	UCard* ReturnCard() override { return this; };
 
 private:
 
@@ -78,14 +101,21 @@ private:
 		TArray<AActor*>& OutActors
 	);
 
+
+
+
 private:
-	// PlayerCharacter this is held by
+	// -- Book keeping properties -- //
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as having a blueprint only getter
 	APlayerCharacter* PlayerCharacter;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 	FName Name;
 
+	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
+	UTexture2D* Texture;
+
+	// -- Gameplay Properties -- //
 	// Unlike PlayerCharacter::Resources, Cost is 5 long. This is so the card can expect to spend money, or health
 	UPROPERTY(EditAnywhere, Category = "Card")
 	FCost Cost;
@@ -93,12 +123,27 @@ private:
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter & setter
 	float Progress;
 
-	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
-	UTexture2D* Texture; 
 
-	/* Some cards can be set as right click cards. These don't become reshuffled on use, but instead go on cooldown*/
-	//UPROPERTY(EditDefaultsOnly)
-	//float RightClickCooldown;
+	// -- Slot/Stack Properties -- //
+	// Classes instantiated to populate the NextCards array. Empty array entries indicate an empty position in the array.
+	// Empty positions are to be used by the player to build custom stacks 
+	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
+	TArray<TSubclassOf<UCard>> NextClasses; 
+
+	UPROPERTY(VisibleAnywhere, Category = "Card|Stack Properties")
+	TArray<UCard*> NextCards;
+
+	// Seconds upon card being drawn for the stack to reset. 0 --> no timer reset
+	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
+	float ResetSeconds;
+
+	// Cooldown applied to the slot upon reset
+	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
+	float ResetCooldownSeconds;
+		
+	// float WarmupSeconds;
+
+
 
 
 public:

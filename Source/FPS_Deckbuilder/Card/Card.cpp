@@ -6,6 +6,14 @@
 
 
 
+bool UCard::ModifyStack_Implementation(UTrayStack* Stack)
+{
+	return true;
+}
+
+
+
+
 
 
 AActor* UCard::SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location)

@@ -1,0 +1,294 @@
+Card's have an energy cost
+There is a single energy count (no colors of mana)
+
+The player has a tray of slots
+
+each slot has a corresponding queue.
+
+
+
+
+
+Nested slots are legal. If player's want to fuck themselves, they can
+
+
+
+
+cards that have leading-slot-requirements (terminal, or modifies the leading slot) cannot coexist in the same slot with one another.
+This prevents issues with order.
+Card's CAN modify the next slot's power level, since this won't cause potential balance issues
+
+
+
+-- Slot modifiers --
+
+
+
+
+
+-- Slots -- 
+When a card is placed into a slot _ things can happen
+1. The card does nothing to the stack. 
+2. The card modifies the stack
+  2.1 The card pushes a new slot to the top of the stack
+  2.2 The card modifies it's slot
+
+
+no slot splitting! Slot splitting can get out of control from a design perspective
+
+
+-- Modifying slots -- 
+Cannot modify the state of the slot that it was added to, but can 
+
+
+
+-- Creating new slots --
+1. Create a RandomSlot, potentially partially populating the slot with other cards (often negative)
+2. Create a ConditionSlot, potentially partially populating
+	
+
+
+
+When a card is placed into a slot's stack, the card (as programmed by me) how the stack changes.
+ ex. A: Card pushes an EXHUASTED (or other negative unobtainable card into the queue) above itself, then pushes an empty slot above that bad card. 
+        empty slots are just slots as described above
+     B: Simply add's a number of empty slots above itself.
+     C: Add's a number of random lateral slots. One rotating, a random choice from these is chosen
+     D: nothing.
+     E: Card pushes another card LATERALLY into it's slot
+
+
+
+
+
+
+-- High level Explanation -- 
+By having the slots rotate in this way, you force the play to use different slot stacks to interact with one another to bypass the downside introduced by
+cards modifying their stacks when added during deckbuilding. 
+ex. EXHAUSTED won't rotate unless it's forced to do so. (Probably the USE method associated with the card). A second stack to the one that rotates to an EXHAUSTED must 
+    exist to rotate beyond the EXHAUSTED slot.
+
+
+
+-- Negative Card Effects -- 
+Negative Cards are always unobtainable.
+Each negative card effect in a slot increases the PlayerCharacter's FATIGUE stat. This acts as a multiplier for ALL negative card's. 
+This is discourage a player from allowing too many of it's slots to become negative.
+IDeas for negative cards
+1. Quest that won't rotate until something is completed. (Quest rotation without stack reset timer is also good option elswhere
+2. EXHAUST (Cards like these should be heavily standardized. ie a small finite set that all archtypes of deck attempt to use)
+
+
+
+
+-- Card System Design Requirements --
+1. modify and access inventory.
+	- Slot by slot window selection
+	- Must be able to select slot
+	- Slot must show it's stack in modifier window
+	- Stack must modify based on card
+2. Modify the stack in each slot. Card's must modify which slots are accessible in a tray slot
+	- Each stack must be scrollable during modification.
+	- Backing Data struct representing the stack. Linked list probably.
+	- Types of Nodes
+		- Random next node : requires multiple nodes ahead and chooses one randomly
+		- Multiple nodes ahead : Usually inserting a negative node first
+	- Any Node type can have a cost requirement
+	
+
+Each card, beyond it's gameplay effects can do the following
+1. modify the stack it's placed into : Visitor Pattern
+2. Rotate the stack : Slot.Rotate()
+3. Reset the stack after a timer or other condition is achieved
+(4). MOdify other stack. This is a gamemplay ability but is worth mentioniing here
+	ex. Find another slot's stack that is currently EXHAUSTED, remove the exhaustion, and rotate the stack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------- VER 2 -------------------------
+
+Each position in the tray has a stack.
+
+Each position in a stack is occupied by a slot.
+
+Each slot has a number of UStackObjectInterface objects.
+
+UStackObjectInterface is implemented by UCard & USlot.
+
+The combination of cards and slots nested within a greater slot is called a SLOT TREE
+
+Each stack always has an empty leading slot unless the most recently filled slot was terminal (Terminal is set by card's placed in the slot)
+
+Each slot has a power level. Card's that cost more than that slots power level cannot be placed in that slot
+
+The powerlevel for a stack with an empty leading slot is infinite. 
+
+Slots can have modifiers placed on them
+
+There are several primitive modifiers 
+ 1. Random : The slot chooses the card returned upon rotation randomly
+ 2. Condition : The slot chooses the card returned upon rotation based on some condition
+	Example conditions
+		a. If Health is above or below 50%
+		b. If sufficient poison damage has been dealt
+		c. If certain status effects are present on the character
+		d. If the state of the stack or slot meet certain criteria
+		e. The outcome of the card that created the modifier
+ 
+ // 3. AndCumulative : The slot uses ALL cards within itself. The slot's cost is the cost of all the cards within.
+ // 4. AndMaximum : The slot uses All the cards within itself. The slot's cost is the cost of the most expensive card within.
+ // Can't return more than a single card on Rotation. These should be card effects 
+ 
+When a card is added to a slot, it is possible for it to do one of 3 things
+ 1. Modify the slot it was placed it (ApplyModifiers to the slot it was placed in and/or modify it's power level)
+ 2. Modify the slot ahead of it (Change # of items, setting primitive modifier and adding it's own unique modifiers and/or modify it's power level)
+ 3. Create and possibly modify subslot; placing itself within
+
+// Card's that create nested slots CANNOT create open slots. [A [B _]] where B created the inside slot, is illegal.
+// This is safe since cards that modify an already primitive modified slot cannot be placed where they would need to modify some such slot
+
+Card's that MUST modify a slot that is already modified with a primitive CANNOT be coexist in the same slot tree
+
+
+
+Cards will always have a place their  being set to
+
+
+
+
+---------- Code ----------
+Interface IStackObjectInterface
+	UCard* ReturnCard(); 
+
+	StackObjectInterface* Outer;
+
+	IStackObjectInterface* GetOuter(); // recurses until no outer. Returns most recently found outer
+
+
+
+
+
+
+namespace slot {
+
+enum SlotType
+	default, // Single card in slot
+	Condition, // slot tree & conditional return of card on rotation
+
+Class USlot
+	TArray<UStackObjectInterface*> Children;
+
+	TArray<FConditionDelegate> Conditions; // Random, or other conditions
+
+	ESlotType Type;
+ 	
+	UCard* ReturnCard();	// Searches a Slot Tree for a card, following the rules set by primitive modifiers	
+
+	void InsertChild(UStackObjectInterface* Child, int Index); // Child->Outer = this;
+}
+
+
+	
+
+Class UCard
+	UCard* ReturnCard() { return this; }
+
+	// Card can modify 
+	//
+	//
+
+	bool ModifyStack(UStack* Stack);
+
+
+ 	BlueprintImplementableEvent
+ 	OnRotate(); // Not an event
+
+ 	BlueprintImplementableEvent
+ 	OnReset(); // Not an event 
+
+ 	float ResetSeconds; // Seconds upon card being drawn for the stack to reset. 0 --> no timer reset
+ 	float ResetCooldownSeconds; // Cooldown applied to the slot upon reset
+ 	float WarmupSeconds; // Seconds until card is unusable upon becoming the Current card in a slot. This might be constant between all cards
+
+
+
+
+UStack (MODEL)
+	TArray<IStackObjectInterface*> BackingArray;
+
+	SetCard(USlot* Slot, int Index, UCard* Card); // Called by the view to modify each stack
+
+
+	int GetIndex(IStackObject* Object);
+		
+
+
+
+PlayerCharacter
+	TArray<UStack*> Tray;
+
+	
+	
+
+
+
+
+
+
+-- VER 2.1 --
+The slot representation on the VIEW contains index info about said slot
+Interacts with MODEL which handles changes the data structure
+
+
+Each view position represents a nullptr to a IStackObjectInterface. 
+Each view must have the index associated with it's position, and the slot that position belongs to 
+
+Adding a Card
+ - Stack.SetCard(USlot* Slot, int ChildIndex, UCard* Card);
+
+ - before stack sets card, it calls Card.Modify(TArray<USlot*> BackingArray) // using Slot.GetOuter to find index to modify if not card's slot
+
+ - Card must know slots index
+
+ - Can Slot know it's index? --> Easy to set index?
+
+ - Yes. Use Stack.Find(Card.GetOuter()) to return index. Use index to get appropriate slot
+
+ - If Modify returns true, Slot->InsertChild(Card, Whichever index the view widget stored);
+
+
+
+
+
+
+
+-- VER 2.2 --
+The way each card modifies the stack is unique. 
+This means we can have modifiers, like status effects, attach themselves to endpoints as we see fit
+
+For modifying slots to have unique return functions, we need a way to define these return methods and set them from blueprints.
+A Slot Search behavior object solves the problem of integrating passing something like a function pointer from blueprints to C++.
+
+The next issue is being able to create custom conditions.
+
+Better yet, just pass condition objects. The child search algorithm can be the body of the object, which can be defined in blueprints

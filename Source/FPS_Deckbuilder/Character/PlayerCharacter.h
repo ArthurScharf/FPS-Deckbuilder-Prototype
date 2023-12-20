@@ -20,8 +20,7 @@ class UCapsuleComponent;
 class UCard;
 class UHUDWidget;
 class USpringArmComponent;
-
-
+class UTrayStack;
 
 
 /**
@@ -153,25 +152,34 @@ private:
 
 
 	// -- Card Members -- //
+	// DEPRECATED
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")
 	TArray<TSubclassOf<UCard>> StartingDeck;
 
+	// DEPRECATED
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
 	TArray<UCard*> Deck;
 
+	// DEPRECATED
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards")
 	int DeckSize;
 
+	// DEPRECATED
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
 	TArray<UCard*> DiscardPile;
 
+
+
+
+	// -- Tray -- // 
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
-	TArray<UCard*> Tray;
+	TArray<UTrayStack*> Tray;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards", meta=(UIMin=1, UIMax=9))
 	int TraySize;
 
-	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding 1
+	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding the '0' key
+
 
 	FIntVector Resources;
 
@@ -180,7 +188,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GetCameraViewPoint(FVector& OutLocation, FRotator& OutRotation) { OutLocation = CameraComponent->GetComponentLocation(); OutRotation = CameraComponent->GetComponentRotation(); }
 
-	// returns value [0, 1]
+	// returns values [0, 1]
 	FORCEINLINE float GetPercentOfMaxWalkingSpeed() 
 	{
 		UCharacterMovementComponent* CharMovement = GetCharacterMovement();

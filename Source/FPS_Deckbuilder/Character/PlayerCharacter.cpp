@@ -4,14 +4,13 @@
 // #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/Card/Card.h"
+#include "FPS_Deckbuilder/Card/TrayStack.h"
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
-
 #include "DrawDebugHelpers.h"
-
 
 
 
@@ -59,21 +58,13 @@ void APlayerCharacter::BeginPlay()
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
 	SetStatusEffectHorizontalBox(HUDWidget->GetStatusEffectHorizontalBox());
 
-	// -- Cards -- //
-	for (int i = 0; i < StartingDeck.Num(); i++) { Deck.Add(NewObject<UCard>(this, StartingDeck[i])); }
-	ShuffleDeck();
-	for (int i = 0; i < TraySize; i++) 
-	{  // Initializing the Tray and corresponding tray's slots
-		Tray.Add(nullptr);
-		HUDWidget->AddTraySlot();
-	} 
-	for (int i = 0; i < TraySize; i++) 
-	{ 
-		Tray[i] = DrawCard();  
-		HUDWidget->SetCardForSlotAtIndex(i, Tray[i]);
-	}
 	Resources = { 0, 0, 0 };
 	DashCharges = MaxDashCharges;
+
+	for (int i = 0; i < TraySize; i++)
+	{
+		Tray.Add(NewObject<UTrayStack>(this));
+	}
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -380,32 +371,37 @@ UCard* APlayerCharacter::DrawCard()
 
 void APlayerCharacter::UseCardInTray(int Index)
 {
+	return;
+
+
+
+
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Index: %i"), Index);
 	if (Tray[Index] == nullptr) { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]")); return; }
 	
-	FCost Cost = Tray[Index]->GetCost();
+	// FCost Cost = Tray[Index]->GetCost();
 
 	// Keeping this check here, instead of in the card allows the use of card effects that can use cards for free
-	if (Resources.X < Cost.Resource_X ||
-		Resources.Y < Cost.Resource_Y ||
-		Resources.Z < Cost.Resource_Z ||
-		GetHealth() <= Cost.Health ||
-		Money < Cost.Money)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Insufficient Resources to use card"));
-		return;
-	}
+	//if (Resources.X < Cost.Resource_X ||
+	//	Resources.Y < Cost.Resource_Y ||
+	//	Resources.Z < Cost.Resource_Z ||
+	//	GetHealth() <= Cost.Health ||
+	//	Money < Cost.Money)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Insufficient Resources to use card"));
+	//	return;
+	//}
 
 	// -- Spending Resources -- //
-	DoTransaction(Cost);
+	// DoTransaction(Cost);
 	
 	// -- Using Card, updating tray & updating tray slot -- //
 	// TODO: not appropriate for DrawCard() to sometimes return nullptr;
-	Tray[Index]->Use();
-	Tray[Index]->Unsubscribe();
-	DiscardPile.Add(Tray[Index]);
-	Tray[Index] = DrawCard();
-	HUDWidget->SetCardForSlotAtIndex(Index, Tray[Index]);
+	//Tray[Index]->Use();
+	//Tray[Index]->Unsubscribe();
+	//DiscardPile.Add(Tray[Index]);
+	//Tray[Index] = DrawCard();
+	//HUDWidget->SetCardForSlotAtIndex(Index, Tray[Index]);
 }
 
 
@@ -439,8 +435,6 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 	}
 	EquippedWeapon->Fire();
 }
-
-
 
 
 void APlayerCharacter::DoTransaction(FCost Cost)
