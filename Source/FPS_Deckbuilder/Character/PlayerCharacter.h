@@ -169,6 +169,12 @@ private:
 
 
 	// -- Cards -- // 
+	UPROPERTY(EditAnywhere, Category = "PlayerCharacter|Cards|Tray")
+	TArray<TSubclassOf<UCard>> InitialInventory; // TESTING 
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards|Tray")
+	TArray<UCard*> Inventory;
+
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards|Tray")
 	TArray<UTrayStack*> Tray;
 

@@ -59,8 +59,6 @@ void APlayerCharacter::BeginPlay()
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
 	SetStatusEffectHorizontalBox(HUDWidget->GetStatusEffectHorizontalBox());
 
-	//StackEditorWidget = CreateWidget<UStackEditorWidget>(Cast<APlayerController>(GetController()), StackEditorWidgetClass);
-
 
 	// -- Gameplay Properties -- //
 	Resources = { 0, 0, 0 };
@@ -69,6 +67,12 @@ void APlayerCharacter::BeginPlay()
 	for (int i = 0; i < TraySize; i++)
 	{
 		Tray.Add(NewObject<UTrayStack>(this));
+	}
+
+	// -- Testing -- //
+	for (TSubclassOf<UCard> CardClass : InitialInventory)
+	{
+		Inventory.Add(NewObject<UCard>(this, CardClass));
 	}
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
@@ -305,9 +309,9 @@ void APlayerCharacter::OpenStackEditorButton_Pressed()
 	Player->bShowMouseCursor = true;
 	HUDWidget->RemoveFromViewport();
 	StackEditorWidget = CreateWidget<UStackEditorWidget>(Cast<APlayerController>(GetController()), StackEditorWidgetClass);
+	StackEditorWidget->Init(Tray, Inventory);
 	StackEditorWidget->AddToViewport();
 	StackEditorWidget->SetKeyboardFocus();
-
 }
 
 

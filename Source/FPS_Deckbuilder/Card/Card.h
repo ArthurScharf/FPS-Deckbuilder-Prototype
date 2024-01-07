@@ -112,7 +112,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Card")
 	FName Name;
 
-	UPROPERTY(EditDefaultsOnly) // Same as blueprint specific getter
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter
 	UTexture2D* Texture;
 
 	// -- Gameplay Properties -- //

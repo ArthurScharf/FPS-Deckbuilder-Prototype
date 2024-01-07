@@ -28,7 +28,7 @@ public:
 
 	// -- Stack Use -- //
 	/*
-	* Set's Card.
+	* Sets Card.
 	* Moves to the next outer slot in the backing array and sets the active card this way.
 	* Let's the card being rotated out have a chance to do gameplay things.
 	* Let's the card being rotated in have a chance to do gameplay things.
