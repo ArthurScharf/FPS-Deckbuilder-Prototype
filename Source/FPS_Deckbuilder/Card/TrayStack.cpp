@@ -16,10 +16,12 @@ UTrayStack::UTrayStack()
 UCard* UTrayStack::Rotate()
 {
 	// TODO: Allow card that's about to rotate out a chance to cleanup
-	// Did we cycle the entire stack ?
+	
+	// Checking to see if we cycled the stack
 	if (ActiveSlotIndex == BackingArray.Num() - 1) { ActiveSlotIndex = -1; }
 	++ActiveSlotIndex;
 	SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+	
 	// TODO: Allow card that just rotated in a chance to setup
 	return SelectedCard;
 }

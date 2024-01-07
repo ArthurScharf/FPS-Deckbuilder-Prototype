@@ -8,6 +8,7 @@
 #include "FPS_Deckbuilder/CommonHeaders/TraceChannelDefinitions.h"
 #include "FPS_Deckbuilder/Interactable.h"
 #include "FPS_Deckbuilder/UI/HUDWidget.h"
+#include "FPS_Deckbuilder/UI/StackEditorWidget.h"
 #include "FPS_Deckbuilder/Weapon/Weapon.h"
 
 #include "DrawDebugHelpers.h"
@@ -58,6 +59,10 @@ void APlayerCharacter::BeginPlay()
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
 	SetStatusEffectHorizontalBox(HUDWidget->GetStatusEffectHorizontalBox());
 
+	//StackEditorWidget = CreateWidget<UStackEditorWidget>(Cast<APlayerController>(GetController()), StackEditorWidgetClass);
+
+
+	// -- Gameplay Properties -- //
 	Resources = { 0, 0, 0 };
 	DashCharges = MaxDashCharges;
 
@@ -133,7 +138,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ThisClass::InteractButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Reload"), IE_Pressed, this, &ThisClass::ReloadButton_Pressed);
 	PlayerInputComponent->BindAction(FName("Dash"), IE_Pressed, this, &ThisClass::DashButton_Pressed);
-	//PlayerInputComponent->BindAction(FName("Dash"), IE_Pressed, this, &ThisClass::DashButton_Released);
+	PlayerInputComponent->BindAction(FName("OpenStackEditor"), IE_Pressed, this, &ThisClass::OpenStackEditorButton_Pressed);
 
 
 	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
@@ -244,8 +249,6 @@ void APlayerCharacter::JumpButton_Pressed()
 	}
 }
 
-
-
 void APlayerCharacter::CrouchButton_Pressed()
 {
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::CrouchButton_Pressed"));
@@ -293,6 +296,30 @@ void APlayerCharacter::DashButton_Pressed()
 	--DashCharges;
 }
 
+void APlayerCharacter::OpenStackEditorButton_Pressed()
+{
+	APlayerController* Player = Cast<APlayerController>(GetController());
+	FInputModeUIOnly Mode;
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways);
+	Player->SetInputMode(Mode);
+	Player->bShowMouseCursor = true;
+	HUDWidget->RemoveFromViewport();
+	StackEditorWidget = CreateWidget<UStackEditorWidget>(Cast<APlayerController>(GetController()), StackEditorWidgetClass);
+	StackEditorWidget->AddToViewport();
+	StackEditorWidget->SetKeyboardFocus();
+
+}
+
+
+void APlayerCharacter::CloseStackEditor()
+{
+	APlayerController* Player = StackEditorWidget->GetOwningPlayer();
+	FInputModeGameOnly Mode;
+	Player->SetInputMode(Mode);
+	Player->bShowMouseCursor = false;
+	StackEditorWidget->RemoveFromViewport();
+	HUDWidget->AddToViewport();
+}
 
 
 

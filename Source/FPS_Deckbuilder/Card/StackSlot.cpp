@@ -28,7 +28,7 @@ UCard* UStackSlot::ReturnCard()
 	/* NOTE
 	*  While nullptrs are used to indicate an empty position in a slot, 
 	*  these positions are not legal stack configurations outside of the stack editor.
-	*  ReturnCard is only called during gameplay when these illegal stack configurations can't exist.
+	*  ReturnCard is only called during gameplay when these illegal stack configurations shouldn't exist.
 	*  Thus, no checking for nullptr is done.
 	*/
 	for (IStackObject* Child : Children)

@@ -35,6 +35,9 @@ public:
 private:
 	TArray<IStackObject*> Children;
 
+	/* The behavior that is called by Stack.Rotate().
+	*  Decides which card is returned, of the children.
+	*/
 	FReturnCardDelegate* ReturnCardDelegate;
 	
 public:

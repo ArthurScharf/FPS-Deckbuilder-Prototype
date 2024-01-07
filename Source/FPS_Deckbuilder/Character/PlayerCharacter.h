@@ -19,6 +19,7 @@ class IInteractable;
 class UCapsuleComponent;
 class UCard;
 class UHUDWidget;
+class UStackEditorWidget;
 class USpringArmComponent;
 class UTrayStack;
 
@@ -52,7 +53,9 @@ public:
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
 	virtual void Stun(float StunSeconds) override;
 
-	
+	/* A hackey workaround to get the menu working */
+	UFUNCTION(BlueprintCallable)
+	void CloseStackEditor();
 	
 private:
 	// -- Axis Bindngs & Action Bindings -- //
@@ -71,7 +74,7 @@ private:
 	void InteractButton_Pressed();
 	void ReloadButton_Pressed();
 	void DashButton_Pressed();
-	/*void DashButton_Released();*/
+	void OpenStackEditorButton_Pressed();
 
 
 	// -- Gameplay Methods -- // 
@@ -101,9 +104,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
 	USpringArmComponent* SpringArmComponent;
 
-	//UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Components")
-	//UCapsuleComponent* EnemyAttackDetection;
-
+	/* Collision for the single purpose of checking for damaging collisions from attacks */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess="true"), Category = "PlayerCharacter|Components")
 	UCapsuleComponent* AttackCollision;
 
@@ -127,13 +128,14 @@ private:
 	float MouseSensitivity;
 
 
-	// -- Gameplay -- //
+	// -- Weapon -- //
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
 
+	// -- Dashing -- //
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category="PlayerCharacter")
 	float DamageDelaySeconds;
 
@@ -146,9 +148,6 @@ private:
 	int MaxDashCharges;
 
 	int DashCharges;
-
-
-	
 
 
 	// -- Card Members -- //
@@ -169,17 +168,20 @@ private:
 	TArray<UCard*> DiscardPile;
 
 
-
-
-	// -- Tray -- // 
-	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards")
+	// -- Cards -- // 
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards|Tray")
 	TArray<UTrayStack*> Tray;
 
-	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards", meta=(UIMin=1, UIMax=9))
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards|Tray", meta=(UIMin=1, UIMax=9))
 	int TraySize;
 
 	int MaxTraySize = 9; // Hardcoded for the number of single numerical keys on the keyboard, discluding the '0' key
 
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards|SlotEditor")
+	TSubclassOf<UUserWidget> StackEditorWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards|SlotEditor")
+	UStackEditorWidget* StackEditorWidget;
 
 	FIntVector Resources;
 
