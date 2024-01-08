@@ -8,8 +8,7 @@
 
 UTrayStack::UTrayStack()
 {
-	// UStackSlot* Slot = NewObject<UStackSlot>(this);
-	BackingArray.Add(CreateDefaultSubobject<UStackSlot>("Default Slot"));
+	BackingArray.Add(CreateDefaultSubobject<UStackSlot>("Default Slot")); // Creating a leading slot
 }
 
 
@@ -36,9 +35,10 @@ void UTrayStack::UseSelectedCard()
 
 
 
-bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int Index, UCard* Card)
+bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card)
 {
 	if (!Card->ModifyStack(this)) return false; // Visitor Pattern
-	Slot->SetChild(Card, Index);
+	Slot->SetChild(Card, SlotChildIndex); // Set's the child of this slot, to the passed card
+	BackingArray.Add(NewObject<UStackSlot>(this)); // Creating a leading slot
 	return true;
 }

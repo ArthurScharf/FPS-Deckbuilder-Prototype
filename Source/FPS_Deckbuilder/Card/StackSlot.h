@@ -27,10 +27,19 @@ class FPS_DECKBUILDER_API UStackSlot : public UObject, public IStackObject
 public:
 	UStackSlot();
 
+	UFUNCTION(BlueprintCallable)
 	UCard* ReturnCard();
 
 	bool SetChild(IStackObject* Child, int Index);
 
+	// UFUNCTION(BlueprintCallable) // We'll need this to set the stack editor view 
+	const TArray<IStackObject*> GetChildren() { return Children; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetReturnCardBehavior(const FReturnCardDelegate& Delegate) { *ReturnCardDelegate = Delegate; }
+
+	UFUNCTION(BlueprintCallable)
+	void ClearReturnCardBehavior() { ReturnCardDelegate = nullptr; }
 
 private:
 	TArray<IStackObject*> Children;
@@ -40,13 +49,4 @@ private:
 	*/
 	FReturnCardDelegate* ReturnCardDelegate;
 	
-public:
-	// UFUNCTION(BlueprintCallable) // We'll need this to set the stack editor view 
-	const TArray<IStackObject*> GetChildren() { return Children; } 
-
-	UFUNCTION(BlueprintCallable)
-	void SetReturnCardBehavior(const FReturnCardDelegate& Delegate) { *ReturnCardDelegate = Delegate; }
-	
-	UFUNCTION(BlueprintCallable)
-	void ClearReturnCardBehavior() { ReturnCardDelegate = nullptr; }
 };

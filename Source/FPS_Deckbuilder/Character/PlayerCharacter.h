@@ -20,8 +20,10 @@ class UCapsuleComponent;
 class UCard;
 class UHUDWidget;
 class UStackEditorWidget;
+class UStackSlot;
 class USpringArmComponent;
 class UTrayStack;
+
 
 
 /**
@@ -53,10 +55,35 @@ public:
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
 	virtual void Stun(float StunSeconds) override;
 
+	// -- Stack Editor & Inventory Methods -- //
+	
+	/* Used by StackEditorWidget to read & modify the stacks */
+	UFUNCTION(BlueprintCallable)
+	UTrayStack* GetTrayStack(int Index);
+
 	/* A hackey workaround to get the menu working */
 	UFUNCTION(BlueprintCallable)
 	void CloseStackEditor();
+
+	/* This class updates the view for the tray slots. This method acts as a wrapper for the TrayStack::SetCardInSlot 
+	* StackIndex : Exposed to allow the View to choose the stack it's modifying based on it's own state
+	*/
+	UFUNCTION(BlueprintCallable)
+	bool PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* Card);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveCardInSlot(int StackIndex, UStackSlot* Slot);
+
+	// Modifies Inventory & Updates Inventory view if available
+	UFUNCTION(BlueprintCallable)
+	void AddCardToInventory(UCard* Card);
 	
+	// Modifies Inventory & Updates Inventory view if available
+	UFUNCTION(BlueprintCallable)
+	bool RemoveCardFromInventory(UCard* Card);
+	
+
+
 private:
 	// -- Axis Bindngs & Action Bindings -- //
 	void MoveForward(float AxisValue);
@@ -87,14 +114,12 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void DoTransaction(FCost Cost); // Spends or gains resources, health, and money
 
-
-
 	// -- Card Methods -- //
 	UCard* DrawCard();
 	void ShuffleDeck();
 	void UseCardInTray(int Index);
 
-	
+
 
 private:
 	// -- Components -- //
@@ -214,5 +239,4 @@ public:
 	//}
 
 	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
-
 };

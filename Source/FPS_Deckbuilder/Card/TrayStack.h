@@ -45,7 +45,8 @@ public:
 	*  Used by the view to set the value of the child in a slot to the passed card.
 	*  Also updates stack properties like maintaining the existence of an empty leading slot in most cases
 	*/
-	bool SetCardInSlot(UStackSlot* Slot, int Index, UCard* Card);
+	UFUNCTION(BlueprintCallable)
+	bool SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card);
 
 	
 
@@ -53,7 +54,12 @@ private:
 	/* The card being seen by the player */
 	UCard* SelectedCard;
 	
-	TArray<IStackObject*> BackingArray;
+	// The outer most Stack Object is ALWAYS a slot
+	UPROPERTY(VisibleAnywhere)
+	TArray <UStackSlot*> BackingArray;
 
-	int ActiveSlotIndex; // the index for the most outer slot at an index
+	int ActiveSlotIndex;
+
+public:
+	FORCEINLINE const TArray<UStackSlot*> GetBackingArray() { return BackingArray; }
 };

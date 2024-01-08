@@ -23,22 +23,14 @@ UCard* UStackSlot::ReturnCard()
 		ReturnCardDelegate->Execute(CardToReturn);
 		return CardToReturn;
 	}
-
-
-	/* NOTE
-	*  While nullptrs are used to indicate an empty position in a slot, 
-	*  these positions are not legal stack configurations outside of the stack editor.
-	*  ReturnCard is only called during gameplay when these illegal stack configurations shouldn't exist.
-	*  Thus, no checking for nullptr is done.
-	*/
-	for (IStackObject* Child : Children)
+	
+	// Default search
+	for (int i = 0; i < Children.Num(); i++)
 	{
-		// The child is a slot or a card
-		return Child->ReturnCard();
+		if (Children[i]) return Children[i]->ReturnCard();
 	}
 
-	// This should never happen 
-	UE_LOG(LogTemp, Error, TEXT("UStackSlot::ReturnCard / %s -- Returned nullptr"), *GetName());
+	// Empty Slot 
 	return nullptr;
 }
 

@@ -309,7 +309,8 @@ void APlayerCharacter::OpenStackEditorButton_Pressed()
 	Player->bShowMouseCursor = true;
 	HUDWidget->RemoveFromViewport();
 	StackEditorWidget = CreateWidget<UStackEditorWidget>(Cast<APlayerController>(GetController()), StackEditorWidgetClass);
-	StackEditorWidget->Init(Tray, Inventory);
+	StackEditorWidget->PlayerCharacter = this;
+	StackEditorWidget->Update(Tray, Inventory);
 	StackEditorWidget->AddToViewport();
 	StackEditorWidget->SetKeyboardFocus();
 }
@@ -481,5 +482,74 @@ void APlayerCharacter::DoTransaction(FCost Cost)
 		DamageStruct.Damage = Cost.Health;
 		DamageStruct.DamageType = EDT_MAX; // TODO: Consider implementing self damage type, or that cards should specify how damage is dealt
 		ReceiveDamage(DamageStruct);
+	}
+}
+
+
+UTrayStack* APlayerCharacter::GetTrayStack(int Index)
+{
+	return Tray[Index];
+}
+
+
+void APlayerCharacter::AddCardToInventory(UCard* Card)
+{
+	Inventory.Add(Card);
+	if (StackEditorWidget)
+	{
+		StackEditorWidget->Update(Tray, Inventory);
+	}
+}
+
+
+bool APlayerCharacter::RemoveCardFromInventory(UCard* Card)
+{
+	bool Output = (Inventory.Remove(Card) == 1);
+
+	if (StackEditorWidget)
+	{
+		StackEditorWidget->Update(Tray, Inventory);
+	}
+
+	return Output;
+}
+
+
+bool APlayerCharacter::PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* Card)
+{
+	if (StackIndex >= TraySize)
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::PlaceCardInSlot -- Index exceeds array size"));
+		return false;
+	}
+
+	UTrayStack* Stack = Tray[StackIndex];
+	bool bAdded = Stack->SetCardInSlot(Slot, 0, Card); // Will allow the card a chance to modify the structure for it's needs
+	
+	if (bAdded && StackEditorWidget)
+	{
+		StackEditorWidget->Update(Tray, Inventory);
+	}
+
+	return bAdded;
+}
+
+
+void APlayerCharacter::RemoveCardInSlot(int StackIndex, UStackSlot* Slot)
+{
+	if (StackIndex >= TraySize)
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::RemoveCardInSlot -- Index exceeds array size"));
+		return;
+	}
+
+	// TODO: Implement TrayStack Place/Remove Card in slot. Their signatures are different, and they each make the card do something different to the struct, either modifying it, or the inverse
+
+	UTrayStack* Stack = Tray[StackIndex];
+	bool bRemoved = Stack->SetCardInSlot(Slot, 0, nullptr); // Will allow the card a chance to modify the structure for it's needs
+
+	if (StackEditorWidget)
+	{
+		StackEditorWidget->Update(Tray, Inventory);
 	}
 }
