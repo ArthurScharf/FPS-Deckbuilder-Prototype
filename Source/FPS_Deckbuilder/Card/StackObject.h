@@ -27,6 +27,7 @@ class FPS_DECKBUILDER_API IStackObject
 public:
 	virtual UCard* ReturnCard() { return nullptr; }
 
+	/*T GetClass();*/
 
 private:
 	IStackObject* Outer;

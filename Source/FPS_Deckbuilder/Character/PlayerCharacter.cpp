@@ -535,21 +535,21 @@ bool APlayerCharacter::PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* 
 }
 
 
-void APlayerCharacter::RemoveCardInSlot(int StackIndex, UStackSlot* Slot)
+bool APlayerCharacter::RemoveCardFromStack(int StackIndex, UCard* Card)
 {
 	if (StackIndex >= TraySize)
 	{
 		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::RemoveCardInSlot -- Index exceeds array size"));
-		return;
+		return false;
 	}
 
-	// TODO: Implement TrayStack Place/Remove Card in slot. Their signatures are different, and they each make the card do something different to the struct, either modifying it, or the inverse
-
 	UTrayStack* Stack = Tray[StackIndex];
-	bool bRemoved = Stack->SetCardInSlot(Slot, 0, nullptr); // Will allow the card a chance to modify the structure for it's needs
+	bool bRemoved = Stack->RemoveCard(Card); // Will allow the card a chance to modify the structure for it's needs
 
-	if (StackEditorWidget)
+	if (bRemoved && StackEditorWidget)
 	{
 		StackEditorWidget->Update(Tray, Inventory);
 	}
+
+	return bRemoved;
 }

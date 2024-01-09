@@ -37,7 +37,10 @@ UCard* UStackSlot::ReturnCard()
 
 bool UStackSlot::SetChild(IStackObject* Child, int Index)
 {
-	if (Index >= Children.Num())
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Valid: %i"), IsValid(Children) ? 1 : 0 ));
+	//return false;
+
+	if (Index < 0 || Children.Num() <= Index)
 	{
 		UE_LOG(LogTemp, Error, TEXT("UStackSlot::SetChild / %s -- Index exceeds length of array"), *GetName());
 		return false;
@@ -47,3 +50,66 @@ bool UStackSlot::SetChild(IStackObject* Child, int Index)
 	return true;
 }
 
+
+void UStackSlot::ClearChild(int Index)
+{
+	if (Index < 0 || Children.Num() <= Index)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UStackSlot::ClearChild / %s -- Index exceeds length of array"), *GetName());
+		return;
+	}
+
+	Children[Index] = nullptr;	
+	return;
+}
+
+
+
+/* Is Card in my children, or my children's children, Recursively */
+bool UStackSlot::Contains(IStackObject* StackObject, int& ChildIndex)
+{
+	// -- Escape Condition -- //
+	for (int i = 0; i < Children.Num(); i++) // Iterating Children
+	{
+		if (Children[i] == StackObject) // Return Condition
+		{
+
+			ChildIndex = i;
+			return true;
+		}
+		
+		// -- Recursion -- //
+		UStackSlot* Slot = Cast<UStackSlot>(Children[i]);
+		if (Slot) // Continue condition
+		{
+
+			if (Slot->Contains(StackObject, ChildIndex)) return true;
+		}
+	}
+
+	return false;
+}
+
+
+bool UStackSlot::Contains(IStackObject* StackObject)
+{
+	int temp;
+	return Contains(StackObject, temp);
+}
+
+
+
+bool UStackSlot::IsEmpty()
+{
+	UStackSlot* Slot = nullptr;
+	for (int i = 0; i < Children.Num(); i++) // Iterating Children
+	{
+		if (!Children[i]) continue; // Empty position in a slot
+
+		if (Cast<UCard>(Children[i])) return false;
+
+		return Cast<UStackSlot>(Children[i])->IsEmpty();
+	}
+
+	return true;
+}

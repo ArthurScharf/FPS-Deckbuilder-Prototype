@@ -72,7 +72,7 @@ public:
 	bool PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* Card);
 
 	UFUNCTION(BlueprintCallable)
-	void RemoveCardInSlot(int StackIndex, UStackSlot* Slot);
+	bool RemoveCardFromStack(int StackIndex, UCard* Card);
 
 	// Modifies Inventory & Updates Inventory view if available
 	UFUNCTION(BlueprintCallable)

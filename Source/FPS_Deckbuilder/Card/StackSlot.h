@@ -32,14 +32,26 @@ public:
 
 	bool SetChild(IStackObject* Child, int Index);
 
+	void ClearChild(int Index);
+
 	// UFUNCTION(BlueprintCallable) // We'll need this to set the stack editor view 
 	const TArray<IStackObject*> GetChildren() { return Children; }
+
+	/* Is StackObject in my children, or my children's children, Recursively */
+	bool Contains(IStackObject* StackObject, int& ChildIndex);
+
+	bool Contains(IStackObject* StackObject);
+
+	/* true if no cards are in this slot or it's children. i.e, it's an empty slot */
+	bool IsEmpty();
 
 	UFUNCTION(BlueprintCallable)
 	void SetReturnCardBehavior(const FReturnCardDelegate& Delegate) { *ReturnCardDelegate = Delegate; }
 
 	UFUNCTION(BlueprintCallable)
 	void ClearReturnCardBehavior() { ReturnCardDelegate = nullptr; }
+
+
 
 private:
 	TArray<IStackObject*> Children;
@@ -48,5 +60,8 @@ private:
 	*  Decides which card is returned, of the children.
 	*/
 	FReturnCardDelegate* ReturnCardDelegate;
+
+
+
 	
 };

@@ -4,9 +4,12 @@
 #include "CoreMinimal.h"
 
 #include "FPS_Deckbuilder/Card/StackObject.h"
+#include "FPS_Deckbuilder/Card/StackSlot.h"
 #include "FPS_Deckbuilder/Character/GameCharacter.h"
 #include "FPS_Deckbuilder/Character/PlayerCharacter.h"
 #include "FPS_Deckbuilder/CommonHeaders/CostPackage.h"
+
+
 
 #include "UObject/NoExportTypes.h"
 #include "Card.generated.h"
@@ -45,8 +48,14 @@ public:
 
 
 	// -- Slot/Stack Methods -- //
+	
+	/* ALWAYS implement RevertModifyStack if this is also implemented */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool ModifyStack(UTrayStack* Stack);
+
+	/* ALWAYS implement ModifyStack if this is also implemented */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool RevertModifyStack(UTrayStack* Stack);
 
 	/* Undoes whatever modify stack did */
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
@@ -104,6 +113,12 @@ private:
 
 
 
+public:
+	/* The stack slot the card is contained within */
+	UPROPERTY(BlueprintReadOnly)
+	UStackSlot* ContainingStackSlot;
+
+
 private:
 	// -- Book keeping properties -- //
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as having a blueprint only getter
@@ -142,6 +157,9 @@ private:
 	float ResetCooldownSeconds;
 		
 	// float WarmupSeconds;
+
+
+
 
 
 

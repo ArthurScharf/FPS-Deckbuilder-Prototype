@@ -13,6 +13,13 @@ bool UCard::ModifyStack_Implementation(UTrayStack* Stack)
 
 
 
+bool UCard::RevertModifyStack_Implementation(UTrayStack* Stack)
+{
+	return true;
+}
+
+
+
 
 
 

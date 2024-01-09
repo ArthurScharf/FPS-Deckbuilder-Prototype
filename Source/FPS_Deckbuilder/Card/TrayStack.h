@@ -42,13 +42,21 @@ public:
 
 	// -- Stack Modification -- //
 	/* 
-	*  Used by the view to set the value of the child in a slot to the passed card.
-	*  Also updates stack properties like maintaining the existence of an empty leading slot in most cases
+	*  There can sometimes be cases where multiple open slots exist. This method is more complicated than remove for this reason
 	*/
 	UFUNCTION(BlueprintCallable)
 	bool SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card);
 
+	/* This method doesn't appropriately check for this but this method should only ever be called on the leading non-empty slot */
+	UFUNCTION(BlueprintCallable)
+	bool RemoveCard(UCard* Card);
+
 	
+	/* Finds the index of the outer most Slot, containing the passed card, in the stack*/
+	UFUNCTION(BlueprintCallable)
+	int Find(UCard* Card);
+
+
 
 private:
 	/* The card being seen by the player */
@@ -62,4 +70,8 @@ private:
 
 public:
 	FORCEINLINE const TArray<UStackSlot*> GetBackingArray() { return BackingArray; }
+
+	/* returns the length in elements of the backing array */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int Num() { return BackingArray.Num(); }
 };
