@@ -69,9 +69,12 @@ void APlayerCharacter::BeginPlay()
 
 
 	// -- Testing -- //
+	UCard* Card;
 	for (TSubclassOf<UCard> CardClass : InitialInventory)
 	{
-		Inventory.Add(NewObject<UCard>(this, CardClass));
+		Card = NewObject<UCard>(this, CardClass);
+		Card->SetPlayerCharacter(this);
+		Inventory.Add(Card);
 	}
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
@@ -418,8 +421,9 @@ UCard* APlayerCharacter::DrawCard()
 
 void APlayerCharacter::UseCardInTray(int Index)
 {
+	// return;
+	Tray[Index]->UseSelectedCard();
 	return;
-
 
 
 

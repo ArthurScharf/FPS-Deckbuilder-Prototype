@@ -11,7 +11,7 @@
 
 void UStackEditorWidget::Update(TArray<UTrayStack*> Stacks, TArray<UCard*> Inventory)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, "UStackEditorWidget::Update");
+	// GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, "UStackEditorWidget::Update");
 
 
 	InventoryTileView->ClearListItems();
@@ -32,7 +32,7 @@ void UStackEditorWidget::Update(TArray<UTrayStack*> Stacks, TArray<UCard*> Inven
 
 void UStackEditorWidget::UpdateStackView(int NewActiveStackIndex) 
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, "UStackEditorWidget::UpdateStackView");
+	// GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, "UStackEditorWidget::UpdateStackView");
 
 	if (!PlayerCharacter)
 	{

@@ -16,10 +16,17 @@ UCard* UTrayStack::Rotate()
 {
 	// TODO: Allow card that's about to rotate out a chance to cleanup
 	
-	// Checking to see if we cycled the stack
-	if (ActiveSlotIndex == BackingArray.Num() - 1) { ActiveSlotIndex = -1; }
+	// if (ActiveSlotIndex == BackingArray.Num() - 1) { ActiveSlotIndex = -1; }
 	++ActiveSlotIndex;
-	SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+	if (BackingArray[ActiveSlotIndex]->IsEmpty())
+	{
+		ResetTrayStack();
+	}
+	else
+	{
+		SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+		Widget->Update(SelectedCard);
+	}
 	
 	// TODO: Allow card that just rotated in a chance to setup
 	return SelectedCard;
@@ -29,8 +36,12 @@ UCard* UTrayStack::Rotate()
 void UTrayStack::UseSelectedCard()
 {
 	// TODO: Properly check for card requirements
-	SelectedCard->Use();
-	Rotate();
+	if (SelectedCard)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
+		SelectedCard->Use();
+		Rotate();
+	}
 }
 
 
@@ -107,4 +118,5 @@ void UTrayStack::ResetTrayStack()
 	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
 	SelectedCard = BackingArray[0]->ReturnCard();
 	Widget->Update(SelectedCard, true);
+	ActiveSlotIndex = 0;
 }
