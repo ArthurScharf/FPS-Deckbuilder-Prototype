@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "FPS_Deckbuilder/Card/StackObject.h"
+#include "FPS_Deckbuilder/UI/TrayStackWidget.h"
 
 #include "UObject/NoExportTypes.h"
 #include "TrayStack.generated.h"
@@ -12,6 +13,7 @@
 
 class UCard;
 class UStackSlot;
+
 
 
 
@@ -39,6 +41,15 @@ public:
 	/* Uses the Card currently shown to the player then rotates the stack */
 	void UseSelectedCard(); 
 
+	/* Set's the widget for this stack & initializes that widget using it's update function
+	* This method should only be called once per a player life
+	*/
+	void SetWidget(UTrayStackWidget* _Widget);
+
+
+	/* Set's SelectedCard (if possible). Updates the Stack's Widget */
+	void ResetTrayStack();
+
 
 	// -- Stack Modification -- //
 	/* 
@@ -51,12 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RemoveCard(UCard* Card);
 
-	
 	/* Finds the index of the outer most Slot, containing the passed card, in the stack*/
 	UFUNCTION(BlueprintCallable)
 	int Find(UCard* Card);
-
-
 
 private:
 	/* The card being seen by the player */
@@ -67,6 +75,8 @@ private:
 	TArray <UStackSlot*> BackingArray;
 
 	int ActiveSlotIndex;
+
+	UTrayStackWidget* Widget;
 
 public:
 	FORCEINLINE const TArray<UStackSlot*> GetBackingArray() { return BackingArray; }

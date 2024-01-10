@@ -34,9 +34,24 @@ void UTrayStack::UseSelectedCard()
 }
 
 
+void UTrayStack::SetWidget(UTrayStackWidget* _Widget)
+{
+	Widget = _Widget;
+
+	Widget->Update(SelectedCard); //  Initialized the widget with the first card in the stack
+}
+
+
 
 bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card)
 {
+	if (!Card)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UTrayStack::SetCardInSlot -- !Card"));
+		return false;
+	}
+
+
 	if (!Card->ModifyStack(this)) return false; // Visitor Pattern
 	Slot->SetChild(Card, SlotChildIndex); // Set's the child of this slot, to the passed card
 	Card->ContainingStackSlot = Slot;
@@ -48,6 +63,12 @@ bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card
 
 bool UTrayStack::RemoveCard(UCard* Card)
 {
+	if (!Card)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UTrayStack::RemoveCard -- !Card"));
+		return false;
+	}
+
 	if (!Card->RevertModifyStack(this)) return false;
 
 	// -- Finding & Removing the card from the Stack -- //
@@ -76,4 +97,14 @@ int UTrayStack::Find(UCard* Card)
 		if (BackingArray[i]->Contains(Card)) return i;
 	}
 	return -1;
+}
+
+
+
+
+void UTrayStack::ResetTrayStack()
+{
+	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
+	SelectedCard = BackingArray[0]->ReturnCard();
+	Widget->Update(SelectedCard, true);
 }

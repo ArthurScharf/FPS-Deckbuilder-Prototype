@@ -82,9 +82,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RemoveCardFromInventory(UCard* Card);
 	
-	UFUNCTION(BlueprintCallable)
-	void PlayerUpdate();
-
 
 private:
 	// -- Axis Bindngs & Action Bindings -- //

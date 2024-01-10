@@ -4,6 +4,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/NamedSlot.h"
 
+#include "FPS_Deckbuilder/Card/TrayStack.h"
 
 
 
@@ -32,27 +33,17 @@ void UHUDWidget::UpdateCrosshairsSpread(float Spread)
 }
 
 
-void UHUDWidget::AddTraySlot()
+void UHUDWidget::CreateAndLinkTrayStackWidget(UTrayStack* TrayStack)
 {
-	UTraySlot* TraySlot = CreateWidget<UTraySlot>(this, TraySlotBlueprintClass);
-	TraySlot->Padding = FMargin(5.f);
-	TrayHorizontalBox->AddChildToHorizontalBox(TraySlot);
+	UE_LOG(LogTemp, Warning, TEXT("UHUDWidget::CreateAndLinkTrayStackWidget"));
+
+	if (!TrayStackWidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UHUDWidget::CreateAndLinkTrayStackWidget -- !TrayStackWidgetClass"));
+		return;
+	}
+	UTrayStackWidget* Widget = CreateWidget<UTrayStackWidget>(this, TrayStackWidgetClass);
+	TrayStack->SetWidget(Widget);
+	// Widget->Padding = FMargin(5.f);
+	TrayHorizontalBox->AddChildToHorizontalBox(Widget);
 }
-
-
-void UHUDWidget::RemoveTraySlot()
-{
-	TrayHorizontalBox->RemoveChildAt(TrayHorizontalBox->GetChildrenCount() - 1);
-}
-
-void UHUDWidget::SetCardForSlotAtIndex(int Index, UCard* Card)
-{
-	if (Index >= TrayHorizontalBox->GetChildrenCount()) { UE_LOG(LogTemp, Error, TEXT("UHUDWidget::SetCardForSlotAtIndex -- Index too big")); return; }
-	if (!Card) { UE_LOG(LogTemp, Error, TEXT("UHUDWidget::SetCardForSlotAtIndex -- !Card")); return; }
-
-	UTraySlot* TraySlot = Cast<UTraySlot>(TrayHorizontalBox->GetChildAt(Index));
-	TraySlot->SetCard(Card);
-	TraySlot->SetTexture(Card->GetTexture());
-}
-
-

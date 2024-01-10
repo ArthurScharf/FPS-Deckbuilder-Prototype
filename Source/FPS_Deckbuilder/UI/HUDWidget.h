@@ -7,17 +7,15 @@
 #include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/Character/StatusEffect.h"
 #include "FPS_Deckbuilder/UI/LazyHealthBar.h"
-#include "FPS_Deckbuilder/UI/TraySlot.h"
 #include "Math/IntVector.h"
 #include "Blueprint/UserWidget.h"
 #include "HUDWidget.generated.h"
 
-
-
-
 class UCanvasPanel;
 class UCanvasPanelSlot;
 class UNamedSlot;
+class UTrayStackWidget;
+class UTrayStack;
 
 /**
  * The HUD widget class for the player character.
@@ -33,25 +31,34 @@ class FPS_DECKBUILDER_API UHUDWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	
+	/* Called by the owning player character each tick */
 	void UpdateCrosshairsSpread(float Spread);
 
-	/* Adds a tray slot to the end of the tray 
+	// void UpdateTrayWidget();
+
+
+
+
+
+	/* Adds a tray stack widget to the end of the tray 
 	 * WARNING: This method doesn't know anything about the underlying data structure the TraySlot or TrayHorizontalBox is representing. 
 	 */
-	void AddTraySlot();
+	void CreateAndLinkTrayStackWidget(UTrayStack* TrayStack);
 
-	/* Removes a tray slot from the end of the tray
-	 * WARNING: This method doesn't know anything about the underlying data structure the TraySlot or TrayHorizontalBox is representing. 
-	 */
-	void RemoveTraySlot();
 
-	void SetCardForSlotAtIndex(int Index, UCard* Card);
+
+
+
 
 	// Creates and adds a status effect to the StatusEffectHorizontalBox. StatusEffect manages lifetime of widget
 	UUserWidget* InstantiateStatusEffectWidget(UStatusEffect* StatusEffect);
 
 	// Removes the widget from the widget bar. 
 	void RemoveStatusEffectWidget(UUserWidget* Widget);
+
+
+
+
 
 private:
 	// TODO: Do I need this declared here or can I just implement it in the Blueprint?
@@ -97,13 +104,10 @@ private:
 	UHorizontalBox* TrayHorizontalBox;
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUDWidget")
-	TSubclassOf<UTraySlot> TraySlotBlueprintClass;
+	TSubclassOf<UTrayStackWidget> TrayStackWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	UHorizontalBox* StatusEffectHorizontalBox;
-
-
-
 
 	/* Stores crosshairs slots so their position can be changed to reflect crosshair spread */
 	UCanvasPanelSlot* SlotTop;

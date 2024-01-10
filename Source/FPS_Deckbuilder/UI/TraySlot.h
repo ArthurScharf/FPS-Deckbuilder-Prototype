@@ -17,7 +17,7 @@ class USizeBox;
 
 
 /**
- * 
+ * DELETE THIS
  */
 UCLASS()
 class FPS_DECKBUILDER_API UTraySlot : public UUserWidget

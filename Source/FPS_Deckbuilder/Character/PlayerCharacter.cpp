@@ -1,7 +1,6 @@
 #include "PlayerCharacter.h"
 
 #include "Components/CapsuleComponent.h"
-// #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/Card/TrayStack.h"
@@ -23,9 +22,6 @@ APlayerCharacter::APlayerCharacter()
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 	SpringArmComponent->SetupAttachment(CameraComponent);
 	
-	//EnemyAttackDetection = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Enemy Attack Detection"));
-	//EnemyAttackDetection->SetupAttachment(RootComponent);
-
 	AttackCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Enemy Attack Detection"));
 	AttackCollision->SetupAttachment(RootComponent);
 }
@@ -39,24 +35,6 @@ APlayerCharacter::APlayerCharacter()
 //	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 //	SpringArmComponent->SetupAttachment(CameraComponent);
 //}
-
-void APlayerCharacter::PlayerUpdate()
-{
-	//int i = 0;
-	//for (UTrayStack* Stack : Tray)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
-	//	UCard* Card;
-	//	for (UStackSlot* Slot : Stack->GetBackingArray())
-	//	{
-	//		Card = Slot->ReturnCard();
-
-	//		if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
-	//	}
-	//	i++;
-	//}
-	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
-}
 
 
 
@@ -77,15 +55,18 @@ void APlayerCharacter::BeginPlay()
 	SetLazyHealthBar(HUDWidget->GetLazyHealthBar()); // Setting GameCharacter->LazyHealthBar
 	SetStatusEffectHorizontalBox(HUDWidget->GetStatusEffectHorizontalBox());
 
-
 	// -- Gameplay Properties -- //
 	Resources = { 0, 0, 0 };
 	DashCharges = MaxDashCharges;
 
+	UTrayStack* TrayStack;
 	for (int i = 0; i < TraySize; i++)
 	{
-		Tray.Add(NewObject<UTrayStack>(this));
+		TrayStack = NewObject<UTrayStack>(this);
+		Tray.Add(TrayStack);
+		HUDWidget->CreateAndLinkTrayStackWidget(TrayStack);
 	}
+
 
 	// -- Testing -- //
 	for (TSubclassOf<UCard> CardClass : InitialInventory)
@@ -253,19 +234,19 @@ void APlayerCharacter::RightMouseButton_Pressed()
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnReload: %i"), Observers_OnReload.Num()));
 
 
-	int i = 0;
-	for (UTrayStack* Stack : Tray)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
-		UCard* Card;
-		for (UStackSlot* Slot : Stack->GetBackingArray())
-		{
-			Card = Slot->ReturnCard();
+	//int i = 0;
+	//for (UTrayStack* Stack : Tray)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
+	//	UCard* Card;
+	//	for (UStackSlot* Slot : Stack->GetBackingArray())
+	//	{
+	//		Card = Slot->ReturnCard();
 
-			if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
-		}
-		i++;
-	}
+	//		if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
+	//	}
+	//	i++;
+	//}
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -357,6 +338,7 @@ void APlayerCharacter::CloseStackEditor()
 	Player->bShowMouseCursor = false;
 	StackEditorWidget->RemoveFromViewport();
 	HUDWidget->AddToViewport();
+	for (UTrayStack* TrayStack : Tray) TrayStack->ResetTrayStack(); 
 }
 
 
@@ -545,10 +527,7 @@ bool APlayerCharacter::RemoveCardFromInventory(UCard* Card)
 {
 	bool Output = (Inventory.Remove(Card) == 1);
 
-	if (StackEditorWidget)
-	{
-		StackEditorWidget->Update(Tray, Inventory);
-	}
+	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
 	return Output;
 }
