@@ -40,6 +40,24 @@ APlayerCharacter::APlayerCharacter()
 //	SpringArmComponent->SetupAttachment(CameraComponent);
 //}
 
+void APlayerCharacter::PlayerUpdate()
+{
+	//int i = 0;
+	//for (UTrayStack* Stack : Tray)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
+	//	UCard* Card;
+	//	for (UStackSlot* Slot : Stack->GetBackingArray())
+	//	{
+	//		Card = Slot->ReturnCard();
+
+	//		if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
+	//	}
+	//	i++;
+	//}
+	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
+}
+
 
 
 void APlayerCharacter::BeginPlay()
@@ -230,9 +248,24 @@ void APlayerCharacter::LeftMouseButton_Released()
 void APlayerCharacter::RightMouseButton_Pressed()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("DashCharges: %i, MaxDashCharges: %i"), DashCharges, MaxDashCharges));
-	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnDamageDealt: %i"), Observers_OnDamageDealt.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnDamageDealt: %i"), Observers_OnDamageDealt.Num()));
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnApplyDamage: %i"), Observers_OnApplyDamage.Num()));
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnReload: %i"), Observers_OnReload.Num()));
+
+
+	int i = 0;
+	for (UTrayStack* Stack : Tray)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
+		UCard* Card;
+		for (UStackSlot* Slot : Stack->GetBackingArray())
+		{
+			Card = Slot->ReturnCard();
+
+			if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
+		}
+		i++;
+	}
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -488,6 +521,12 @@ void APlayerCharacter::DoTransaction(FCost Cost)
 
 UTrayStack* APlayerCharacter::GetTrayStack(int Index)
 {
+	if (Index < 0 || Tray.Num() <= Index)
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::GetTrayStack -- Index exceeds array bounds"));
+		return nullptr;
+	}
+
 	return Tray[Index];
 }
 
@@ -526,10 +565,7 @@ bool APlayerCharacter::PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* 
 	UTrayStack* Stack = Tray[StackIndex];
 	bool bAdded = Stack->SetCardInSlot(Slot, 0, Card); // Will allow the card a chance to modify the structure for it's needs
 	
-	if (bAdded && StackEditorWidget)
-	{
-		StackEditorWidget->Update(Tray, Inventory);
-	}
+	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
 	return bAdded;
 }
@@ -546,10 +582,7 @@ bool APlayerCharacter::RemoveCardFromStack(int StackIndex, UCard* Card)
 	UTrayStack* Stack = Tray[StackIndex];
 	bool bRemoved = Stack->RemoveCard(Card); // Will allow the card a chance to modify the structure for it's needs
 
-	if (bRemoved && StackEditorWidget)
-	{
-		StackEditorWidget->Update(Tray, Inventory);
-	}
+	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
 	return bRemoved;
 }

@@ -13,7 +13,7 @@ class UCard;
 class UTrayStack;
 
 /**
- * 
+ * TODO: INIT this widget with PlayerCharacter->TraySize so we can init the correct number of buttons 
  */
 UCLASS()
 class FPS_DECKBUILDER_API UStackEditorWidget : public UUserWidget
@@ -29,8 +29,13 @@ public:
 	* the overloaded version to be called. 
 	* Thus, we call this manually
 	*/
-	// UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintCallable)
 	void Update(TArray<UTrayStack*> Stacks, TArray<UCard*> Inventory);
+
+protected:
+	/* Used internally to update the stack view when observing different stacks */
+	UFUNCTION(BlueprintCallable)
+	void UpdateStackView(int NewActiveStackIndex);
 
 public:
 	/* The stack view model used to modify stacks. Repopulated when modifying different stacks */
@@ -44,6 +49,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	APlayerCharacter* PlayerCharacter;
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int ActiveStackIndex; // Index of stack currently being edited 
 };
