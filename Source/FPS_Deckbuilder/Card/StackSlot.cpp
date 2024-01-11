@@ -64,6 +64,28 @@ void UStackSlot::ClearChild(int Index)
 }
 
 
+TArray<UCard*> UStackSlot::GetContainedCards()
+{
+	if (Children.Num() == 0) return {}; // Escape Condition
+
+	TArray<UCard*> OutArray;
+	UCard* Card;
+	for (IStackObject* Child : Children) // Recursion
+	{
+		Card = Cast<UCard>(Child);
+		if (Card)
+		{
+			OutArray.Add(Card);
+			continue;
+		}
+
+		OutArray.Append( Cast<UStackSlot>(Child)->GetContainedCards() );
+	}
+
+	return OutArray;
+}
+
+
 
 /* Is Card in my children, or my children's children, Recursively */
 bool UStackSlot::Contains(IStackObject* StackObject, int& ChildIndex)

@@ -19,6 +19,20 @@ class AProjectile;
 class UTrayStack;
 
 
+
+/*
+* Normal  : Cards found in world. Usable and Stack modifiable
+* Created : Cards created and placed on a stack by normal cards when they're placed on the stack themselves. CANNOT be directly placed or removed from a stack
+* Block : Created cards that aren't usable 
+*/
+UENUM(BlueprintType)
+enum class ECardType : uint8 {
+	CT_Normal		UMETA(DisplayName = "Normal"),
+	CT_Created		UMETA(DisplayName = "Created"),
+	CT_Block		UMETA(DisplayName = "Block")
+};
+
+
 /**
  * 
  */
@@ -57,9 +71,6 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool RevertModifyStack(UTrayStack* Stack);
 
-	/* Undoes whatever modify stack did */
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void RevertStackModification();
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void PreRotate();
@@ -140,14 +151,6 @@ private:
 
 
 	// -- Slot/Stack Properties -- //
-	// Classes instantiated to populate the NextCards array. Empty array entries indicate an empty position in the array.
-	// Empty positions are to be used by the player to build custom stacks 
-	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
-	TArray<TSubclassOf<UCard>> NextClasses; 
-
-	UPROPERTY(VisibleAnywhere, Category = "Card|Stack Properties")
-	TArray<UCard*> NextCards;
-
 	// Seconds upon card being drawn for the stack to reset. 0 --> no timer reset
 	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
 	float ResetSeconds;
@@ -158,10 +161,9 @@ private:
 		
 	// float WarmupSeconds;
 
-
-
-
-
+	/* See Enum Definition for details */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Card|Stack Properties")
+	ECardType Type;
 
 
 public:
@@ -175,4 +177,6 @@ public:
 		PlayerCharacter = _PlayerCharacter; 
 		Subscribe();
 	}
+
+	FORCEINLINE ECardType GetCardType() { return Type; }
 };

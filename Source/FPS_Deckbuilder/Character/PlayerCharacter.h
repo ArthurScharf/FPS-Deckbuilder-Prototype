@@ -65,6 +65,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CloseStackEditor();
 
+	/* TODO: Have card's that are being placed into slots do so through a PlayerCharacter method. This avoids the need for this method 
+	* PROBLEM: Since Card::ModifyStack takes a stack as a parameter, while the automatic updating of the StackEditor widget only occurs
+	* when using PlayerCharacter Inventory and stack methods (PlaceCardInSlot for example), card's modifying slots don't update the UI.
+	* This method is an ugly workaround that can be removed by having cards use the player's method for updating UI.
+	* Further improvement can come from having each stack manage communication with it's own widget, avoiding the need for player
+	* driven methods entirely.
+	* 
+	* NOTE that indirection like this between objects with bidirectional communication is bad. Just have the ViewModel and View point to one another
+	* directly 
+	*/
+	UFUNCTION(BlueprintCallable)
+	void UpdateStackEditor();
+
 	/* This class updates the view for the tray slots. This method acts as a wrapper for the TrayStack::SetCardInSlot 
 	* StackIndex : Exposed to allow the View to choose the stack it's modifying based on it's own state
 	*/
@@ -226,16 +239,6 @@ public:
 		UCharacterMovementComponent* CharMovement = GetCharacterMovement();
 		return (CharMovement->Velocity.Size() / CharMovement->MaxWalkSpeed);
 	}
-
-	///* Used by cards and status effects for various things */
-	//UFUNCTION(BlueprintCallable)
-	//FVector GetWeaponMuzzleLocation()
-	//{
-	//	if (EquippedWeapon)
-	//	{
-	//		EquippedWeapon->
-	//	}
-	//}
 
 	FORCEINLINE void SetWeaponEnabled(bool _bWeaponEnabled) { bWeaponEnabled = _bWeaponEnabled; }
 };

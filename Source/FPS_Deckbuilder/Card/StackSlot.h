@@ -37,6 +37,9 @@ public:
 	// UFUNCTION(BlueprintCallable) // We'll need this to set the stack editor view 
 	const TArray<IStackObject*> GetChildren() { return Children; }
 
+	/* Recursive search which returns all cards in contained as children, or within children, of this slot */
+	TArray<UCard*> GetContainedCards();
+
 	/* Is StackObject in my children, or my children's children, Recursively */
 	bool Contains(IStackObject* StackObject, int& ChildIndex);
 
@@ -62,6 +65,6 @@ private:
 	FReturnCardDelegate* ReturnCardDelegate;
 
 
-
-	
+public:
+	FORCEINLINE bool IsReturnCardDelegateAssigned() { return (ReturnCardDelegate) ? true : false; }
 };

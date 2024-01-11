@@ -53,6 +53,14 @@ void UTrayStack::SetWidget(UTrayStackWidget* _Widget)
 }
 
 
+void UTrayStack::ResetTrayStack()
+{
+	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
+	SelectedCard = BackingArray[0]->ReturnCard();
+	Widget->Update(SelectedCard, true);
+	ActiveSlotIndex = 0;
+}
+
 
 bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card)
 {
@@ -62,11 +70,15 @@ bool UTrayStack::SetCardInSlot(UStackSlot* Slot, int SlotChildIndex, UCard* Card
 		return false;
 	}
 
+	BackingArray.Add(NewObject<UStackSlot>(this)); // Creating a new leading slot so modify has a chance to modify a slot ahead, since the previous leading slot is now filled with Card
+	if (!Card->ModifyStack(this)) // Visitor Pattern
+	{
+		BackingArray.Pop(true); // Failed to modify so old slot must remain leading empty slot
+		return false;
+	}
 
-	if (!Card->ModifyStack(this)) return false; // Visitor Pattern
 	Slot->SetChild(Card, SlotChildIndex); // Set's the child of this slot, to the passed card
 	Card->ContainingStackSlot = Slot;
-	BackingArray.Add(NewObject<UStackSlot>(this)); // Creating a leading slot
 	return true;
 }
 
@@ -92,12 +104,42 @@ bool UTrayStack::RemoveCard(UCard* Card)
 		// -- Card is found. Removing and Modifying stack -- //
 		Card->ContainingStackSlot->ClearChild(ChildIndex);
 		Card->ContainingStackSlot = nullptr;
-		BackingArray.RemoveAt(BackingArray.Num() - 1); // Removes the leading empty slot
+		Sanitize();
 		return true;
 	}
 
 	return false;
 }
+
+
+
+void UTrayStack::Sanitize()
+{
+	/* Leading-unmodified-empty-slot cannot
+	* 1. Single Child that is set to nullptr
+	* 2. No ReturnCardDelegate
+	*/
+	TArray<int> ToRemoveIndices;
+
+	UStackSlot* StackSlot;
+	for (int i = BackingArray.Num() - 1; i >= 0; i--)
+	{
+		StackSlot = BackingArray[i];
+		
+		if ( StackSlot->GetChildren().Num() == 1 && StackSlot->GetChildren()[0] == nullptr && !StackSlot->IsReturnCardDelegateAssigned() )
+		{
+			ToRemoveIndices.Add(i);
+		}
+	}
+
+	if (ToRemoveIndices.Num() >= 2) // More than one unmodified-empty-slot exists ahead of the legal stack 
+	{
+		for (int i = 0; i < ToRemoveIndices.Num()-1; i++) BackingArray.Pop();
+	}
+
+	Widget->Update(SelectedCard);
+}
+
 
 
 
@@ -111,12 +153,52 @@ int UTrayStack::Find(UCard* Card)
 }
 
 
-
-
-void UTrayStack::ResetTrayStack()
+/* Possible that there are other normals cards in the same slot as the one we passed. 
+*  This doesn't mean the result is false.
+*/
+bool UTrayStack::IsLeadingNormalCard(UCard* Card)
 {
-	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
-	SelectedCard = BackingArray[0]->ReturnCard();
-	Widget->Update(SelectedCard, true);
-	ActiveSlotIndex = 0;
+	UE_LOG(LogTemp, Warning, TEXT("UTrayStack::IsLeadingNormalCard"));
+
+	if (Card->GetCardType() != ECardType::CT_Normal) return false;
+
+	TArray<UCard*> ContainedCards;
+	UStackSlot* StackSlot;
+	for (int i = BackingArray.Num()-1; i >= 0; i++)
+	{
+		StackSlot = BackingArray[i];
+		ContainedCards = StackSlot->GetContainedCards();
+
+
+		for (UCard* C : ContainedCards)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("		%s"), *C->GetName());
+		}
+		return false;
+
+
+
+
+		// -- Searching Contained Cards for this outer stack slot -- // 
+		bool bNormalFound = false;
+		for (UCard* ContainedCard : ContainedCards)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("		%s"), *ContainedCard->GetName());
+			if (ContainedCard->GetCardType() == ECardType::CT_Normal)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("			Normal"));
+				bNormalFound = true; // Since a normal card is found, Card MUST be in ContainedCards for TRUE
+				if (ContainedCard == Card)
+				{
+					return true;
+					UE_LOG(LogTemp, Warning, TEXT("				Found"));
+				}
+
+			}
+		}
+		if (bNormalFound) return false; // First normals found didn't contain Card, thus Card isn't leading normal 
+	}
+	return false; // BackingArray.Num() == 0
 }
+
+

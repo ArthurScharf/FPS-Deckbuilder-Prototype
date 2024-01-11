@@ -237,19 +237,20 @@ void APlayerCharacter::RightMouseButton_Pressed()
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnReload: %i"), Observers_OnReload.Num()));
 
 
-	//int i = 0;
-	//for (UTrayStack* Stack : Tray)
-	//{
-	//	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
-	//	UCard* Card;
-	//	for (UStackSlot* Slot : Stack->GetBackingArray())
-	//	{
-	//		Card = Slot->ReturnCard();
+	int i = 0;
+	for (UTrayStack* Stack : Tray)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
+		UCard* Card;
+		for (UStackSlot* Slot : Stack->GetBackingArray())
+		{
+			Card = Slot->ReturnCard();
+			if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
+		}
+		i++;
+	}
 
-	//		if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
-	//	}
-	//	i++;
-	//}
+
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -344,6 +345,10 @@ void APlayerCharacter::CloseStackEditor()
 	for (UTrayStack* TrayStack : Tray) TrayStack->ResetTrayStack(); 
 }
 
+void APlayerCharacter::UpdateStackEditor()
+{
+	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
+}
 
 
 void APlayerCharacter::Die()
