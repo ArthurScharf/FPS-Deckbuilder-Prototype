@@ -164,20 +164,10 @@ bool UTrayStack::IsLeadingNormalCard(UCard* Card)
 
 	TArray<UCard*> ContainedCards;
 	UStackSlot* StackSlot;
-	for (int i = BackingArray.Num()-1; i >= 0; i++)
+	for (int i = BackingArray.Num()-1; i >= 0; i--)
 	{
 		StackSlot = BackingArray[i];
 		ContainedCards = StackSlot->GetContainedCards();
-
-
-		for (UCard* C : ContainedCards)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("		%s"), *C->GetName());
-		}
-		return false;
-
-
-
 
 		// -- Searching Contained Cards for this outer stack slot -- // 
 		bool bNormalFound = false;

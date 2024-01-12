@@ -72,6 +72,9 @@ TArray<UCard*> UStackSlot::GetContainedCards()
 	UCard* Card;
 	for (IStackObject* Child : Children) // Recursion
 	{
+		
+		if (!Child) continue; // Skips nullptr entries reserved for unfilled slot positions
+			
 		Card = Cast<UCard>(Child);
 		if (Card)
 		{
@@ -79,7 +82,7 @@ TArray<UCard*> UStackSlot::GetContainedCards()
 			continue;
 		}
 
-		OutArray.Append( Cast<UStackSlot>(Child)->GetContainedCards() );
+		OutArray.Append(Cast<UStackSlot>(Child)->GetContainedCards() );
 	}
 
 	return OutArray;
