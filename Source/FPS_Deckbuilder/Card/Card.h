@@ -42,6 +42,13 @@ class FPS_DECKBUILDER_API UCard : public UObject, public IStackObject
 	GENERATED_BODY()
 
 public:
+	
+	/* Called when attempting to use a card. The card checks for valid state of the player character, itself, or other stack slots
+	* The Native method checks for features common to all cards such as the cost in resources required to play this card
+	*/
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool CanUse();
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void Use();
 
@@ -51,7 +58,7 @@ public:
 	void SpawnedActorCallback(AGameCharacter* GameCharacter, FVector Location);
 
 	/* 
-	* Card subscribes to events on the PlayerCharacter for the purpose of tracking progression. 
+	* Card subscribes to events on PlayerCharacter for the purpose of tracking progression. 
 	* WARNING: Cannot be private. NEVER Call this directly except in SetPlayerCharacter
 	*/
 	UFUNCTION(BlueprintImplementableEvent)
@@ -72,6 +79,7 @@ public:
 	bool RevertModifyStack(UTrayStack* Stack);
 
 
+	/* Pre-rotate functionality can be folded into Use*/
 	UFUNCTION(BlueprintImplementableEvent)
 	void PreRotate();
 	UFUNCTION(BlueprintImplementableEvent)
@@ -87,7 +95,6 @@ public:
 	UCard* ReturnCard() override { return this; };
 
 private:
-
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.
 	   This is a workaround to allow the code that card uses to spawn actors to belong to 
 	   the card class, rather than the player, or some other actor
@@ -132,6 +139,7 @@ public:
 
 private:
 	// -- Book keeping properties -- //
+
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as having a blueprint only getter
 	APlayerCharacter* PlayerCharacter;
 
@@ -141,7 +149,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true")) // Same as blueprint specific getter
 	UTexture2D* Texture;
 
+	/* See Enum Definition for details */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Card|Stack Properties")
+	ECardType Type;
+
 	// -- Gameplay Properties -- //
+	
 	// Unlike PlayerCharacter::Resources, Cost is 5 long. This is so the card can expect to spend money, or health
 	UPROPERTY(EditAnywhere, Category = "Card")
 	FCost Cost;
@@ -150,20 +163,21 @@ private:
 	float Progress;
 
 
-	// -- Slot/Stack Properties -- //
-	// Seconds upon card being drawn for the stack to reset. 0 --> no timer reset
-	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
-	float ResetSeconds;
 
-	// Cooldown applied to the slot upon reset
+	// -- Slot/Stack Properties -- //
+
+	/* Seconds until the slot can use it's selected card upon this card becoming said slot's selected card */
+	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
+	float CooldownSeconds;
+
+	/* Seconds upon card being drawn for the stack to reset. 0 --> no timer reset */
+	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
+	float ToResetSeconds;
+
+	/* Cooldown applied to the slot upon reset */
 	UPROPERTY(EditDefaultsOnly, Category = "Card|Stack Properties")
 	float ResetCooldownSeconds;
 		
-	// float WarmupSeconds;
-
-	/* See Enum Definition for details */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Card|Stack Properties")
-	ECardType Type;
 
 
 public:
@@ -179,4 +193,10 @@ public:
 	}
 
 	FORCEINLINE ECardType GetCardType() { return Type; }
+
+	FORCEINLINE float GetCooldownSeconds() { return CooldownSeconds; }
+
+	FORCEINLINE float GetToResetSeconds() { return ToResetSeconds; }
+
+	FORCEINLINE float GetResetCooldownSeconds() { return ResetCooldownSeconds; }
 };

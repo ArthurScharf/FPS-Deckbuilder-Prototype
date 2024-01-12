@@ -9,14 +9,14 @@
 UTrayStack::UTrayStack()
 {
 	BackingArray.Add(CreateDefaultSubobject<UStackSlot>("Default Slot")); // Creating a leading slot
+	bOnCooldown = false;
 }
 
 
 UCard* UTrayStack::Rotate()
 {
 	// TODO: Allow card that's about to rotate out a chance to cleanup
-	
-	// if (ActiveSlotIndex == BackingArray.Num() - 1) { ActiveSlotIndex = -1; }
+
 	++ActiveSlotIndex;
 	if (BackingArray[ActiveSlotIndex]->IsEmpty())
 	{
@@ -24,7 +24,34 @@ UCard* UTrayStack::Rotate()
 	}
 	else
 	{
+		UWorld* World = GetWorld();
+
+		// -- Setting Cooldown based on card that's about to be rotated out -- //
+		if (SelectedCard->GetCooldownSeconds() != 0.f)
+		{
+			World->GetTimerManager().SetTimer(
+				CooldownHandle,
+				[&]() { bOnCooldown = false; },
+				SelectedCard->GetCooldownSeconds(),
+				false
+			);
+			bOnCooldown = true;
+		}
+		
+		// -- Setting ResetTimer based on card that was just rotated in -- //
 		SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+		if (SelectedCard->GetToResetSeconds())
+		{
+			World->GetTimerManager().SetTimer(
+				CooldownHandle,
+				[&]() {
+					ResetTrayStack(); // will reset cooldown timer with new seconds
+				},
+				SelectedCard->GetToResetSeconds(),
+				false
+			);
+		}
+
 		Widget->Update(SelectedCard);
 	}
 	
@@ -35,8 +62,10 @@ UCard* UTrayStack::Rotate()
 
 void UTrayStack::UseSelectedCard()
 {
+	if (bOnCooldown) return;
+
 	// TODO: Properly check for card requirements
-	if (SelectedCard)
+	if (SelectedCard && SelectedCard->GetCardType() != ECardType::CT_Block && SelectedCard->CanUse())
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
 		SelectedCard->Use();
@@ -55,10 +84,18 @@ void UTrayStack::SetWidget(UTrayStackWidget* _Widget)
 
 void UTrayStack::ResetTrayStack()
 {
+	ActiveSlotIndex = 0;
 	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
 	SelectedCard = BackingArray[0]->ReturnCard();
 	Widget->Update(SelectedCard, true);
-	ActiveSlotIndex = 0;
+	if (!SelectedCard || SelectedCard->GetResetCooldownSeconds() == 0.f) return; // no sense resetting an empty slot
+	bOnCooldown = true;
+	GetWorld()->GetTimerManager().SetTimer(
+		CooldownHandle, 
+		[&]() { bOnCooldown = false; },
+		SelectedCard->GetResetCooldownSeconds(), 
+		false
+	);	
 }
 
 
@@ -113,36 +150,6 @@ bool UTrayStack::RemoveCard(UCard* Card)
 
 
 
-void UTrayStack::Sanitize()
-{
-	/* Leading-unmodified-empty-slot cannot
-	* 1. Single Child that is set to nullptr
-	* 2. No ReturnCardDelegate
-	*/
-	TArray<int> ToRemoveIndices;
-
-	UStackSlot* StackSlot;
-	for (int i = BackingArray.Num() - 1; i >= 0; i--)
-	{
-		StackSlot = BackingArray[i];
-		
-		if ( StackSlot->GetChildren().Num() == 1 && StackSlot->GetChildren()[0] == nullptr && !StackSlot->IsReturnCardDelegateAssigned() )
-		{
-			ToRemoveIndices.Add(i);
-		}
-	}
-
-	if (ToRemoveIndices.Num() >= 2) // More than one unmodified-empty-slot exists ahead of the legal stack 
-	{
-		for (int i = 0; i < ToRemoveIndices.Num()-1; i++) BackingArray.Pop();
-	}
-
-	Widget->Update(SelectedCard);
-}
-
-
-
-
 int UTrayStack::Find(UCard* Card)
 {
 	for (int i = 0; i < BackingArray.Num(); i++)
@@ -189,6 +196,45 @@ bool UTrayStack::IsLeadingNormalCard(UCard* Card)
 		if (bNormalFound) return false; // First normals found didn't contain Card, thus Card isn't leading normal 
 	}
 	return false; // BackingArray.Num() == 0
+}
+
+
+UWorld* UTrayStack::GetWorld() const
+{
+	if (!Cast<APlayerCharacter>(GetOuter()))
+	{
+		UE_LOG(LogTemp, Error, TEXT("UTrayStack::GetWorld -- Outer not set to correct class"));
+	}
+
+	return GetOuter()->GetWorld();
+}
+
+
+void UTrayStack::Sanitize()
+{
+	/* Leading-unmodified-empty-slot cannot
+	* 1. Single Child that is set to nullptr
+	* 2. No ReturnCardDelegate
+	*/
+	TArray<int> ToRemoveIndices;
+
+	UStackSlot* StackSlot;
+	for (int i = BackingArray.Num() - 1; i >= 0; i--)
+	{
+		StackSlot = BackingArray[i];
+
+		if (StackSlot->GetChildren().Num() == 1 && StackSlot->GetChildren()[0] == nullptr && !StackSlot->IsReturnCardDelegateAssigned())
+		{
+			ToRemoveIndices.Add(i);
+		}
+	}
+
+	if (ToRemoveIndices.Num() >= 2) // More than one unmodified-empty-slot exists ahead of the legal stack 
+	{
+		for (int i = 0; i < ToRemoveIndices.Num() - 1; i++) BackingArray.Pop();
+	}
+
+	Widget->Update(SelectedCard);
 }
 
 

@@ -237,18 +237,18 @@ void APlayerCharacter::RightMouseButton_Pressed()
 	//GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("Observers_OnReload: %i"), Observers_OnReload.Num()));
 
 
-	int i = 0;
-	for (UTrayStack* Stack : Tray)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
-		UCard* Card;
-		for (UStackSlot* Slot : Stack->GetBackingArray())
-		{
-			Card = Slot->ReturnCard();
-			if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
-		}
-		i++;
-	}
+	//int i = 0;
+	//for (UTrayStack* Stack : Tray)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("Stack: %i"), i));
+	//	UCard* Card;
+	//	for (UStackSlot* Slot : Stack->GetBackingArray())
+	//	{
+	//		Card = Slot->ReturnCard();
+	//		if (Card) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Orange, FString::Printf(TEXT("  %s"), *Card->GetName()));
+	//	}
+	//	i++;
+	//}
 
 
 }
@@ -430,8 +430,6 @@ void APlayerCharacter::UseCardInTray(int Index)
 	Tray[Index]->UseSelectedCard();
 	return;
 
-
-
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Index: %i"), Index);
 	if (Tray[Index] == nullptr) { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]")); return; }
 	
@@ -573,4 +571,21 @@ bool APlayerCharacter::RemoveCardFromStack(int StackIndex, UCard* Card)
 	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
 	return bRemoved;
+}
+
+
+
+UTrayStack* APlayerCharacter::GetStackWithSelectedCardOfClass(TSubclassOf<UCard> CardClass)
+{
+	const UCard* SelectedCard;
+	for (UTrayStack* TrayStack : Tray)
+	{
+		SelectedCard = TrayStack->GetSelectedCard();
+		if (!SelectedCard) continue;
+
+		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%s == , %s"), *SelectedCard->GetClass()->GetName(), *CardClass->GetName()));
+
+		if (SelectedCard->GetClass() == CardClass) return TrayStack;
+	}
+	return nullptr;
 }

@@ -78,15 +78,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateStackEditor();
 
-	/* This class updates the view for the tray slots. This method acts as a wrapper for the TrayStack::SetCardInSlot 
-	* StackIndex : Exposed to allow the View to choose the stack it's modifying based on it's own state
-	*/
-	UFUNCTION(BlueprintCallable)
-	bool PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* Card);
-
-	UFUNCTION(BlueprintCallable)
-	bool RemoveCardFromStack(int StackIndex, UCard* Card);
-
 	// Modifies Inventory & Updates Inventory view if available
 	UFUNCTION(BlueprintCallable)
 	void AddCardToInventory(UCard* Card);
@@ -95,6 +86,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool RemoveCardFromInventory(UCard* Card);
 	
+	/* This class updates the view for the tray slots. This method acts as a wrapper for the TrayStack::SetCardInSlot
+	* StackIndex : Exposed to allow the View to choose the stack it's modifying based on it's own state
+	*/
+	UFUNCTION(BlueprintCallable)
+	bool PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* Card);
+
+	UFUNCTION(BlueprintCallable)
+	bool RemoveCardFromStack(int StackIndex, UCard* Card);
+
+	UFUNCTION(BlueprintCallable)
+	UTrayStack* GetStackWithSelectedCardOfClass(TSubclassOf<UCard> CardClass);
+
+
 
 private:
 	// -- Axis Bindngs & Action Bindings -- //

@@ -6,6 +6,19 @@
 
 
 
+
+
+
+
+bool UCard::CanUse_Implementation()
+{
+	// TODO: Retrieve resources from the player and check if player has enough to use card 
+
+	return true;
+}
+
+
+
 bool UCard::ModifyStack_Implementation(UTrayStack* Stack)
 {
 	return true;
