@@ -138,12 +138,14 @@ void AGameCharacter::Die()
 
 	bIsDead = true;
 
+
+	// TODO: Double GC bug is causing issues 
 	// -- Cleanup Status Effects -- //
-	TArray<UStatusEffect*> LocalEffects(StatusEffects);
-	for (UStatusEffect* Effect : StatusEffects)
-	{
-		Effect->Cleanup();
-	}
+	//TArray<UStatusEffect*> LocalEffects(StatusEffects);
+	//for (UStatusEffect* Effect : LocalEffects)
+	//{
+	//	if (IsValid(Effect)) Effect->Cleanup();
+	//}
 
 	GetWorldTimerManager().SetTimer(
 		DeathHandle,
@@ -159,14 +161,14 @@ void AGameCharacter::AttemptDestroy()
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s"), *GetName());
 
 	bool ToDestroy = true;
-	for (int i = 0; i < DependentActors.Num(); i++)
-	{
-		if (IsValid(DependentActors[i]))
-		{
-			// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s -- Dependent: %s (Valid: %d)"), *GetName(), *(DependentActors[i]->GetName()));
-			ToDestroy = false;
-		};
-	}
+	//for (int i = 0; i < DependentActors.Num(); i++)
+	//{
+	//	if (IsValid(DependentActors[i]))
+	//	{
+	//		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s -- Dependent: %s (Valid: %d)"), *GetName(), *(DependentActors[i]->GetName()));
+	//		ToDestroy = false;
+	//	};
+	//}
 
 	if (ToDestroy)
 	{

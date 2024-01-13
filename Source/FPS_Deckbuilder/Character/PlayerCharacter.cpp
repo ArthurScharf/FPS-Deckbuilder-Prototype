@@ -14,6 +14,9 @@
 
 
 
+#include "FPS_Deckbuilder/Card/StackSlot.h"
+
+
 APlayerCharacter::APlayerCharacter()
 {
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera Component"));
@@ -40,7 +43,6 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
-
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -76,6 +78,21 @@ void APlayerCharacter::BeginPlay()
 		Card->SetPlayerCharacter(this);
 		Inventory.Add(Card);
 	}
+
+
+	// -- Trying to find bug that keeps crashing when using cards in tray -- //
+	//UStackSlot* LeadingSlot = Tray[0]->GetLeadingEmptySlot();
+	//Tray[0]->SetCardInSlot(LeadingSlot, 0, Inventory[0])
+	//FTimerHandle TestTimer;
+	//GetWorldTimerManager().SetTimer(
+	//	TestTimer,
+	//	[&]()
+	//	{
+	//		Tray[0]->UseSelectedCard();
+	//	},
+	//	0.05f,
+	//	true
+	//);
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -426,6 +443,11 @@ UCard* APlayerCharacter::DrawCard()
 
 void APlayerCharacter::UseCardInTray(int Index)
 {
+	if (!Tray[Index]) 
+	{
+		UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]"));
+		return;
+	}
 	// return;
 	Tray[Index]->UseSelectedCard();
 	return;

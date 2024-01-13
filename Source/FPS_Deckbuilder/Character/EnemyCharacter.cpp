@@ -287,6 +287,7 @@ void AEnemyCharacter::Die()
 		Actor->Destroy();
 	}
 
+	//Destroy();
 	Super::Die();
 }
 

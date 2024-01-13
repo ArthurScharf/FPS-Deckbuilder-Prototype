@@ -42,15 +42,16 @@ class FPS_DECKBUILDER_API UCard : public UObject, public IStackObject
 	GENERATED_BODY()
 
 public:
-	
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	bool Use();
 	/* Called when attempting to use a card. The card checks for valid state of the player character, itself, or other stack slots
 	* The Native method checks for features common to all cards such as the cost in resources required to play this card
+	* 
+	* NOTE: There is a bug. For now, functionality that belongs in here will go into Use
 	*/
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool CanUse();
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void Use();
 
 	/* DEPRECATED. TO BE DELETED?
 	To be bound to spawned actors when those actors instigate the card's effect. */

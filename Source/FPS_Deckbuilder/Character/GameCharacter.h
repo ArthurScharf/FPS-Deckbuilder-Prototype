@@ -151,7 +151,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	bool bIsStunned;	// Maintained so effects can verify if a character is stunned
 
-
 	FTimerHandle DeathHandle;
 
 	UPROPERTY(BlueprintReadOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -161,7 +160,7 @@ protected:
 private:
 	// -- Health & StatusEffects -- //
 	// Private because health is managed by calls to superclass methods like ReceiveDamage(). NOTE: This feels needlessly restrictive
-	UPROPERTY(VisibleAnywhere, Transient)
+	UPROPERTY(VisibleAnywhere/*, Transient*/)
 	float Health;
 
 	UPROPERTY(EditDefaultsOnly)

@@ -8,6 +8,7 @@
 
 UTrayStack::UTrayStack()
 {
+	SelectedCard = nullptr;
 	BackingArray.Add(CreateDefaultSubobject<UStackSlot>("Default Slot")); // Creating a leading slot
 	bOnCooldown = false;
 }
@@ -64,12 +65,30 @@ void UTrayStack::UseSelectedCard()
 {
 	if (bOnCooldown) return;
 
+
+	
+	UCard* Card = BackingArray[ActiveSlotIndex]->ReturnCard();
+
 	// TODO: Properly check for card requirements
-	if (SelectedCard && SelectedCard->GetCardType() != ECardType::CT_Block && SelectedCard->CanUse())
+	if (IsValid(Card)// IsValid(SelectedCard) /*&&
+		//Card->GetCardType() != ECardType::CT_Block &&
+		//Card->CanUse()*/
+		)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
-		SelectedCard->Use();
-		Rotate();
+		ECardType CardType = Card->GetCardType();
+		if (CardType == ECardType::CT_Block) {
+			UE_LOG(LogTemp, Warning, TEXT("UTrayStack::UseSelectedCard")); 
+			return; 
+		}
+		/*if (!SelectedCard->CanUse()) return;*/
+
+		UE_LOG(LogTemp, Error, TEXT("%s"), *Card->GetName());
+
+		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
+		if (Card->Use())
+		{
+			Rotate();
+		}
 	}
 }
 

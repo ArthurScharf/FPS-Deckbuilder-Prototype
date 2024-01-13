@@ -1,3 +1,18 @@
+--- MAJOR BUG ---
+It seems like the stack/card->USe issues only exist AFTER their is an attempt to double garbage collect enemy widgets. I'm not sure how they're related but I should fix the widget double
+freeing issue first 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
