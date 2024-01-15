@@ -1,14 +1,14 @@
 
 
 #include "TrayStack.h"
-#include "FPS_Deckbuilder/Card/Card.h"
+
 #include "FPS_Deckbuilder/Card/StackSlot.h"
 
 
 
 UTrayStack::UTrayStack()
 {
-	SelectedCard = nullptr;
+	// SelectedCard = MakeShared<UCard>();
 	BackingArray.Add(CreateDefaultSubobject<UStackSlot>("Default Slot")); // Creating a leading slot
 	bOnCooldown = false;
 }
@@ -41,6 +41,7 @@ UCard* UTrayStack::Rotate()
 		
 		// -- Setting ResetTimer based on card that was just rotated in -- //
 		SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+		//SelectedCard = TSharedPtr<UCard>(BackingArray[ActiveSlotIndex]->ReturnCard());
 		if (SelectedCard->GetToResetSeconds())
 		{
 			World->GetTimerManager().SetTimer(
@@ -64,6 +65,17 @@ UCard* UTrayStack::Rotate()
 void UTrayStack::UseSelectedCard()
 {
 	UE_LOG(LogTemp, Warning, TEXT("UTrayStack::UseSelectedCard / %s"), *GetName());
+	
+	//UCard* Card = nullptr;
+	//FString String;
+	//for (int i = 0; i < BackingArray.Num(); i++)
+	//{
+	//	Card = BackingArray[i]->ReturnCard();
+	//	
+	//	String = (IsValid(Card) ? *Card->GetName() : FString("nullptr"));
+	//	UE_LOG(LogTemp, Warning, TEXT("		%s"), *String);
+	//}
+
 	if (bOnCooldown)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("		On Cooldown"));
@@ -74,22 +86,14 @@ void UTrayStack::UseSelectedCard()
 	// UCard* Card = BackingArray[ActiveSlotIndex]->ReturnCard();
 
 	// TODO: Properly check for card requirements
-	if (IsValid(SelectedCard) /*&&
-		//Card->GetCardType() != ECardType::CT_Block &&
-		//Card->CanUse()*/
-		)
+	if (IsValid(SelectedCard))
 	{
-		ECardType CardType = SelectedCard->GetCardType();
-		if (CardType == ECardType::CT_Block) return; 
-		/*if (!SelectedCard->CanUse()) return;*/
+		// ECardType CardType = SelectedCard->GetCardType();
+		// if (CardType == ECardType::CT_Block) return; 
 
 		UE_LOG(LogTemp, Warning, TEXT("		%s"), *SelectedCard->GetName());
 
-		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
-		if (SelectedCard->Use())
-		{
-			// Rotate();
-		}
+		SelectedCard->Use();
 	}
 }
 

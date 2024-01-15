@@ -4,14 +4,17 @@
 
 #include "CoreMinimal.h"
 
+#include "FPS_Deckbuilder/Card/Card.h"
 #include "FPS_Deckbuilder/Card/StackObject.h"
 #include "FPS_Deckbuilder/UI/TrayStackWidget.h"
+
+
 
 #include "UObject/NoExportTypes.h"
 #include "TrayStack.generated.h"
 
 
-class UCard;
+// class UCard;
 class UStackSlot;
 
 
@@ -101,6 +104,8 @@ private:
 	int ActiveSlotIndex;
 
 	/* The card being seen by the player and used when player called UseSelectedCard */
+	//TSharedPtr<UCard> SelectedCard = MakeShared<UCard>();
+	UPROPERTY()
 	UCard* SelectedCard;
 		
 	/* Stack goes on cooldown when a card is rotated in. seconds are == to the freshly new SelectedCards SlotCooldownSeconds */

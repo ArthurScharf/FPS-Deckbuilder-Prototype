@@ -43,6 +43,9 @@ class FPS_DECKBUILDER_API UCard : public UObject, public IStackObject
 
 public:
 
+	virtual void BeginDestroy() override;
+
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	bool Use();
 	/* Called when attempting to use a card. The card checks for valid state of the player character, itself, or other stack slots

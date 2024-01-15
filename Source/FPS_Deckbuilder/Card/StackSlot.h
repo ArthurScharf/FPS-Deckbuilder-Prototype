@@ -57,6 +57,8 @@ public:
 
 
 private:
+	// UPROPERTY(VisibleAnywhere) // Needs to be UPROP to avoid these being garbage collected 
+	// TScriptInterface
 	TArray<IStackObject*> Children;
 
 	/* The behavior that is called by Stack.Rotate().

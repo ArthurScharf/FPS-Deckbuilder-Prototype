@@ -455,6 +455,7 @@ void APlayerCharacter::UseCardInTray(int Index)
 	Tray[Index]->UseSelectedCard();
 	return;
 
+
 	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::UseCardInTray -- Index: %i"), Index);
 	if (Tray[Index] == nullptr) { UE_LOG(LogTemp, Error, TEXT("APlayerCharacter::UseCardInTray -- !Tray[Index]")); return; }
 	

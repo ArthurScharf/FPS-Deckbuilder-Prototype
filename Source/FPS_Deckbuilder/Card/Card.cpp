@@ -9,6 +9,15 @@
 
 
 
+void UCard::BeginDestroy()
+{
+	UE_LOG(LogTemp, Warning, TEXT("UCard::BeginDestroy / %s -- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"), *GetName());
+
+	Super::BeginDestroy();
+}
+
+
+
 
 bool UCard::CanUse_Implementation()
 {
