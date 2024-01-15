@@ -34,6 +34,12 @@ bool UCard::RevertModifyStack_Implementation(UTrayStack* Stack)
 
 
 
+UCard* UCard::ReturnCard() 
+{ 
+	return this; 
+};
+
+
 
 
 AActor* UCard::SpawnActor(TSubclassOf<AActor> Class, const FRotator Rotation, const FVector Location)

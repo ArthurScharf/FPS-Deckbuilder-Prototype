@@ -63,31 +63,32 @@ UCard* UTrayStack::Rotate()
 
 void UTrayStack::UseSelectedCard()
 {
-	if (bOnCooldown) return;
+	UE_LOG(LogTemp, Warning, TEXT("UTrayStack::UseSelectedCard / %s"), *GetName());
+	if (bOnCooldown)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("		On Cooldown"));
+		return;
+	}
 
-
-	
-	UCard* Card = BackingArray[ActiveSlotIndex]->ReturnCard();
+	// Remember that backing array has only StackSlots 
+	// UCard* Card = BackingArray[ActiveSlotIndex]->ReturnCard();
 
 	// TODO: Properly check for card requirements
-	if (IsValid(Card)// IsValid(SelectedCard) /*&&
+	if (IsValid(SelectedCard) /*&&
 		//Card->GetCardType() != ECardType::CT_Block &&
 		//Card->CanUse()*/
 		)
 	{
-		ECardType CardType = Card->GetCardType();
-		if (CardType == ECardType::CT_Block) {
-			UE_LOG(LogTemp, Warning, TEXT("UTrayStack::UseSelectedCard")); 
-			return; 
-		}
+		ECardType CardType = SelectedCard->GetCardType();
+		if (CardType == ECardType::CT_Block) return; 
 		/*if (!SelectedCard->CanUse()) return;*/
 
-		UE_LOG(LogTemp, Error, TEXT("%s"), *Card->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("		%s"), *SelectedCard->GetName());
 
 		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, TEXT("UTrayStack::UseSelectedCard -- Using"));
-		if (Card->Use())
+		if (SelectedCard->Use())
 		{
-			Rotate();
+			// Rotate();
 		}
 	}
 }

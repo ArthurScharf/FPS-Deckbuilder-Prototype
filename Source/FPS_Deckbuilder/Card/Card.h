@@ -93,7 +93,8 @@ public:
 	void PostReset();
 
 	// -- Stack Object Interface -- //
-	UCard* ReturnCard() override { return this; };
+	UFUNCTION()
+	UCard* ReturnCard() override;
 
 private:
 	/* Blueprints cant access GetWorld() on PlayerCharacter, while C++ can.

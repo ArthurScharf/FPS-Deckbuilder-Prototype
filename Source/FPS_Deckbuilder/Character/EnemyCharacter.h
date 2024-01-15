@@ -92,7 +92,6 @@ public:
 	bool bDrawAim;
 #endif
 
-
 protected:
 	/* The distance above the location of the actor that aiming is done from. Usually between the EyeHeight and the half height of the capsule */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
@@ -132,7 +131,7 @@ private:
 	UNiagaraSystem* NiagaraPostureBreakSystem;
 
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UWidgetComponent* WidgetComponent;
 
 	UPROPERTY(EditDefaultsOnly)

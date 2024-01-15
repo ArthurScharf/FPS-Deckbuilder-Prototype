@@ -82,17 +82,18 @@ void APlayerCharacter::BeginPlay()
 
 	// -- Trying to find bug that keeps crashing when using cards in tray -- //
 	//UStackSlot* LeadingSlot = Tray[0]->GetLeadingEmptySlot();
-	//Tray[0]->SetCardInSlot(LeadingSlot, 0, Inventory[0])
-	//FTimerHandle TestTimer;
+	//Tray[0]->SetCardInSlot(LeadingSlot, 0, Inventory[0]);
 	//GetWorldTimerManager().SetTimer(
 	//	TestTimer,
 	//	[&]()
 	//	{
-	//		Tray[0]->UseSelectedCard();
+	//		UseCardInTray(0);
 	//	},
-	//	0.05f,
+	//	0.2f,
 	//	true
 	//);
+	CardCallCounter = 0;
+
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
@@ -267,12 +268,14 @@ void APlayerCharacter::RightMouseButton_Pressed()
 	//	i++;
 	//}
 
-
+	GetWorldTimerManager().ClearTimer(TestTimer);
 }
 
 void APlayerCharacter::RightMouseButton_Released()
 {
-
+	CardCallCounter++;
+	UE_LOG(LogTemp, Warning, TEXT("%i"), CardCallCounter);
+	UseCardInTray(2);
 }
 
 void APlayerCharacter::InteractButton_Pressed()

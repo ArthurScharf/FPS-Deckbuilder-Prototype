@@ -50,9 +50,9 @@ void AEnemyCharacter::BeginPlay()
 	if (!WidgetComponent) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !WidgetComponent")); return;  }
 	if (!BehaviorTree) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !BehaviorTree")); return; }
 	
-	UEnemyWidget* EnemyWidget = Cast<UEnemyWidget>(WidgetComponent->GetWidget());
-	SetLazyHealthBar(EnemyWidget->LazyHealthBar);
-	SetStatusEffectHorizontalBox(EnemyWidget->StatusEffectsHorizontalBox);
+	// UEnemyWidget* EnemyWidget = Cast<UEnemyWidget>(WidgetComponent->GetWidget());
+	// SetLazyHealthBar(EnemyWidget->LazyHealthBar);
+	// SetStatusEffectHorizontalBox(EnemyWidget->StatusEffectsHorizontalBox);
 	
 	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
@@ -263,6 +263,7 @@ void AEnemyCharacter::Die()
 	ShellOpacityHandle.Invalidate();
 	GetWorldTimerManager().ClearTimer(PostureBreakRecoveryHandle);
 	PostureBreakRecoveryHandle.Invalidate();
+	// WidgetComponent->GetWidget()->RemoveFromViewport(); // Attempting to avoid a double free bug
 
 	// -- Stopping Logic -- //
 	UBehaviorTreeComponent* BT = Cast<UBehaviorTreeComponent>(EnemyAIController->GetBrainComponent());
@@ -288,6 +289,7 @@ void AEnemyCharacter::Die()
 	}
 
 	//Destroy();
+
 	Super::Die();
 }
 

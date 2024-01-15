@@ -135,6 +135,14 @@ private:
 	void ShuffleDeck();
 	void UseCardInTray(int Index);
 
+public:
+	int CardCallCounter;
+
+	FTimerHandle TestTimer;
+
+	bool bShouldAutoFire;
+
+
 
 
 private:

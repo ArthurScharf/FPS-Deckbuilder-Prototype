@@ -16,6 +16,10 @@ UStackSlot::UStackSlot()
 
 UCard* UStackSlot::ReturnCard()
 {
+	
+
+
+	UE_LOG(LogTemp, Warning, TEXT("UStackSlot::ReturnCard / %s"), *GetName());
 	// Use unique search if card slot has been modified
 	if (ReturnCardDelegate)
 	{
@@ -27,6 +31,9 @@ UCard* UStackSlot::ReturnCard()
 	// Default search
 	for (int i = 0; i < Children.Num(); i++)
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("	%i / %s"), i, (Children[i] ? *Children[i]->GetName() : "nullptr"));
+		//if (!IsValid(Cast<UCard>(Children[i]))) { UE_LOG(LogTemp, Error, TEXT("		Invalid Card")); continue; }
+		//else if (!IsValid(Cast<UStackSlot>(Children[i]))) { UE_LOG(LogTemp, Error, TEXT("		Invalid StackSlot")); continue; }
 		if (Children[i]) return Children[i]->ReturnCard();
 	}
 

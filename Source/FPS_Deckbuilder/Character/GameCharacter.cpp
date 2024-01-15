@@ -107,7 +107,7 @@ bool AGameCharacter::Dash()
 				bIsDashing = false;
 				CharMovement->MaxWalkSpeed = 600;
 				CharMovement->MaxAcceleration /= 20.f;
-				//CharMovement->StopMovementImmediately();
+				//CharMovement->StopMovementImmediately(); 
 				CharMovement->StopActiveMovement();
 				CharMovement->Velocity = CharMovement->Velocity.GetSafeNormal() * CharMovement->MaxWalkSpeed;
 			}
@@ -138,7 +138,7 @@ void AGameCharacter::Die()
 
 	bIsDead = true;
 
-
+	// RESTORE, FIX
 	// TODO: Double GC bug is causing issues 
 	// -- Cleanup Status Effects -- //
 	//TArray<UStatusEffect*> LocalEffects(StatusEffects);
@@ -160,6 +160,7 @@ void AGameCharacter::AttemptDestroy()
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::AttemptDestroy / %s"), *GetName());
 
+	// RESTORE, FIX
 	bool ToDestroy = true;
 	//for (int i = 0; i < DependentActors.Num(); i++)
 	//{
@@ -172,6 +173,7 @@ void AGameCharacter::AttemptDestroy()
 
 	if (ToDestroy)
 	{
+
 		// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ToBeDestroyed / %s -- Destroying"), *GetName());
 		GetWorldTimerManager().ClearTimer(DeathHandle);
 		DeathHandle.Invalidate();
@@ -181,9 +183,10 @@ void AGameCharacter::AttemptDestroy()
 
 void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersStatusEffects)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage / %s -- Damage: %f, %d"), *GetName(), DamageStruct.Damage, DamageStruct.bWasPostureDamage);
+	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage / %s -- Damage: %f, %d"), *GetName(), DamageStruct.Damage, DamageStruct.bWasPostureDamage);
 
-	if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
+	// RESTORE
+	// if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
 	if (bTriggersStatusEffects)
 	{
@@ -205,7 +208,7 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 		else if (Health >= MaxHealth) { Health = MaxHealth; }
 
 		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
-		LazyHealthBar->SetPercent(Health / MaxHealth);
+		// LazyHealthBar->SetPercent(Health / MaxHealth); // RESTORE
 
 		if (DamageStruct.bWasLethal) Die();
 	}
@@ -282,7 +285,8 @@ void AGameCharacter::RemoveStatusEffect(UStatusEffect* StatusEffect)
 	UUserWidget* Widget = StatusEffect->GetWidget();
 	if (Widget)
 	{
-		StatusEffectHorizontalBox->RemoveChild(Widget);
+		// RESTORE
+		// StatusEffectHorizontalBox->RemoveChild(Widget);
 	}
 	StatusEffects.Remove(StatusEffect);
 }
