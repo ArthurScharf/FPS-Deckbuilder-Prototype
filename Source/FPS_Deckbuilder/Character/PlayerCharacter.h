@@ -225,6 +225,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "PlayerCharacter|Cards|Tray")
 	TArray<UTrayStack*> Tray;
 
+	/* Likely because this game wasn't programmed using smart pointers, 
+	*  Card's are being GC'd while in the tray when they shouldn't be.
+	*  This array is a hack solution to prevent this. 
+	*  By having cards in the tray stored here, in a uproperty data structure we avoid this issue
+	*/
+	UPROPERTY(VisibleAnywhere)
+	TArray<UCard*> TrayCards;
+
+
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerCharacter|Cards|Tray", meta=(UIMin=1, UIMax=9))
 	int TraySize;
 

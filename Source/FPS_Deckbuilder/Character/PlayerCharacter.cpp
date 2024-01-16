@@ -571,9 +571,9 @@ bool APlayerCharacter::PlaceCardInSlot(int StackIndex, UStackSlot* Slot, UCard* 
 		return false;
 	}
 
-	UTrayStack* Stack = Tray[StackIndex];
-	bool bAdded = Stack->SetCardInSlot(Slot, 0, Card); // Will allow the card a chance to modify the structure for it's needs
-	
+	TrayCards.Add(Card); // See TrayCard definition for explanation
+	bool bAdded = Tray[StackIndex]->SetCardInSlot(Slot, 0, Card); // Will allow the card a chance to modify the structure for it's needs
+
 	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
 	return bAdded;
@@ -588,8 +588,8 @@ bool APlayerCharacter::RemoveCardFromStack(int StackIndex, UCard* Card)
 		return false;
 	}
 
-	UTrayStack* Stack = Tray[StackIndex];
-	bool bRemoved = Stack->RemoveCard(Card); // Will allow the card a chance to modify the structure for it's needs
+	TrayCards.Remove(Card);
+	bool bRemoved = Tray[StackIndex]->RemoveCard(Card) ; // Will allow the card a chance to modify the structure for it's needs
 
 	if (StackEditorWidget) StackEditorWidget->Update(Tray, Inventory);
 
