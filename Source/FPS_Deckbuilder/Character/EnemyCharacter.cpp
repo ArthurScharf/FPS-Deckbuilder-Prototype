@@ -50,9 +50,12 @@ void AEnemyCharacter::BeginPlay()
 	if (!WidgetComponent) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !WidgetComponent")); return;  }
 	if (!BehaviorTree) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- !BehaviorTree")); return; }
 	
-	// UEnemyWidget* EnemyWidget = Cast<UEnemyWidget>(WidgetComponent->GetWidget());
-	// SetLazyHealthBar(EnemyWidget->LazyHealthBar);
-	// SetStatusEffectHorizontalBox(EnemyWidget->StatusEffectsHorizontalBox);
+	if (WidgetComponent->GetWidgetClass())
+	{
+		UEnemyWidget* EnemyWidget = Cast<UEnemyWidget>(WidgetComponent->GetWidget());
+		SetLazyHealthBar(EnemyWidget->LazyHealthBar);
+		SetStatusEffectHorizontalBox(EnemyWidget->StatusEffectsHorizontalBox);
+	}
 	
 	EnemyAnimInstance = Cast<UEnemyAnimInstance>(GetMesh()->GetAnimInstance());
 	if (!EnemyAnimInstance) { UE_LOG(LogTemp, Error, TEXT("AEnemyCharacter::BeginPlay -- failed to cast to EnemyAnimInstance")); }
@@ -96,6 +99,12 @@ void AEnemyCharacter::Tick(float DeltaTime)
 		}
 	}
 #endif 
+}
+
+
+void AEnemyCharacter::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	WidgetComponent->DestroyComponent(); // Avoids the "Destroyed while GCing" issue
 }
 
 
@@ -288,10 +297,10 @@ void AEnemyCharacter::Die()
 		Actor->Destroy();
 	}
 
-	//Destroy();
-
 	Super::Die();
 }
+
+
 
 
 void AEnemyCharacter::Stun(float StunSeconds)

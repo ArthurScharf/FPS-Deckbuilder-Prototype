@@ -92,7 +92,6 @@ void APlayerCharacter::BeginPlay()
 	//	0.2f,
 	//	true
 	//);
-	CardCallCounter = 0;
 
 
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
@@ -273,8 +272,6 @@ void APlayerCharacter::RightMouseButton_Pressed()
 
 void APlayerCharacter::RightMouseButton_Released()
 {
-	CardCallCounter++;
-	UE_LOG(LogTemp, Warning, TEXT("%i"), CardCallCounter);
 	UseCardInTray(2);
 }
 

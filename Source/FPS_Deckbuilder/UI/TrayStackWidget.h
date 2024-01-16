@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 
+#include "Components/Border.h"
 #include "Components/Image.h"
 #include "Engine/Texture2D.h"
 
@@ -37,13 +38,24 @@ public:
 	void Update(UCard* Card, bool bRotated = true);
 
 
+	/* I'm lazy so I'm using blueprints to define this method.
+	* This method SHOULD just be part of the body of Update.
+	*/
+	UFUNCTION(BlueprintImplementableEvent)
+	void BeginResetAndCooldown(float ToResetSeconds, float CooldownSeconds);
+
+
+
 private:
 	UPROPERTY(BlueprintReadOnly, meta=(BindWidget, AllowPrivateAccess="true"))
 	UImage* Image;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	UBorder* Border;	
+	
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	UTexture2D* DefaultImageTexture;
-	
+
 
 public:
 	FORCEINLINE void SetImage(UImage* _Image) { Image = _Image; }

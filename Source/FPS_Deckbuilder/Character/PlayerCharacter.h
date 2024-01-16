@@ -136,8 +136,6 @@ private:
 	void UseCardInTray(int Index);
 
 public:
-	int CardCallCounter;
-
 	FTimerHandle TestTimer;
 
 	bool bShouldAutoFire;

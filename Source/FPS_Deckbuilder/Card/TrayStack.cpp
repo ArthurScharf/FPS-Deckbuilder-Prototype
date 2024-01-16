@@ -14,52 +14,7 @@ UTrayStack::UTrayStack()
 }
 
 
-UCard* UTrayStack::Rotate()
-{
-	// TODO: Allow card that's about to rotate out a chance to cleanup
 
-	++ActiveSlotIndex;
-	if (BackingArray[ActiveSlotIndex]->IsEmpty())
-	{
-		ResetTrayStack();
-	}
-	else
-	{
-		UWorld* World = GetWorld();
-
-		// -- Setting Cooldown based on card that's about to be rotated out -- //
-		if (SelectedCard->GetCooldownSeconds() != 0.f)
-		{
-			World->GetTimerManager().SetTimer(
-				CooldownHandle,
-				[&]() { bOnCooldown = false; },
-				SelectedCard->GetCooldownSeconds(),
-				false
-			);
-			bOnCooldown = true;
-		}
-		
-		// -- Setting ResetTimer based on card that was just rotated in -- //
-		SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
-		//SelectedCard = TSharedPtr<UCard>(BackingArray[ActiveSlotIndex]->ReturnCard());
-		if (SelectedCard->GetToResetSeconds())
-		{
-			World->GetTimerManager().SetTimer(
-				CooldownHandle,
-				[&]() {
-					ResetTrayStack(); // will reset cooldown timer with new seconds
-				},
-				SelectedCard->GetToResetSeconds(),
-				false
-			);
-		}
-
-		Widget->Update(SelectedCard);
-	}
-	
-	// TODO: Allow card that just rotated in a chance to setup
-	return SelectedCard;
-}
 
 
 void UTrayStack::UseSelectedCard()
@@ -82,20 +37,72 @@ void UTrayStack::UseSelectedCard()
 		return;
 	}
 
-	// Remember that backing array has only StackSlots 
-	// UCard* Card = BackingArray[ActiveSlotIndex]->ReturnCard();
-
-	// TODO: Properly check for card requirements
-	if (IsValid(SelectedCard))
+	if (IsValid(SelectedCard) && SelectedCard->GetCardType() != ECardType::CT_Block)
 	{
-		// ECardType CardType = SelectedCard->GetCardType();
-		// if (CardType == ECardType::CT_Block) return; 
 
 		UE_LOG(LogTemp, Warning, TEXT("		%s"), *SelectedCard->GetName());
 
-		SelectedCard->Use();
+		if (SelectedCard->Use()) Rotate();
 	}
 }
+
+
+
+UCard* UTrayStack::Rotate()
+{
+	// TODO: Allow card that's about to rotate out a chance to cleanup
+
+	float CooldownSeconds = SelectedCard->GetCooldownSeconds();  // From card being rotated out
+	float ToResetSeconds = 0.f;								    // From Card just rotated in
+	bOnCooldown = false;
+
+	++ActiveSlotIndex;
+	if (BackingArray[ActiveSlotIndex]->IsEmpty())
+	{
+		ResetTrayStack();
+	}
+	else
+	{
+		UWorld* World = GetWorld();
+
+		// -- Setting Cooldown based on card that's about to be rotated out -- //
+		if (CooldownSeconds != 0.f)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("UTrayStack::Rotate -- Cooldown: %f"), CooldownSeconds);
+
+			World->GetTimerManager().SetTimer(
+				CooldownHandle,
+				[&]() { bOnCooldown = false; UE_LOG(LogTemp, Warning, TEXT("UTrayStack::Rotate -- bOnCooldown == FALSE")); },
+				CooldownSeconds,
+				false
+			);
+			bOnCooldown = true;
+			UE_LOG(LogTemp, Warning, TEXT("UTrayStack::Rotate -- bOnCooldown == TRUE"));
+		}
+
+		// -- Setting ResetTimer based on card that was just rotated in -- //
+		SelectedCard = BackingArray[ActiveSlotIndex]->ReturnCard();
+		ToResetSeconds = SelectedCard->GetToResetSeconds();
+		if (ToResetSeconds != 0.f)
+		{
+			World->GetTimerManager().SetTimer(
+				ToResetHandle,
+				[&]() {
+					ResetTrayStack(); // will reset cooldown timer with new seconds
+				},
+				ToResetSeconds,
+				false
+			);
+		}
+
+		Widget->Update(SelectedCard);
+		Widget->BeginResetAndCooldown(ToResetSeconds, CooldownSeconds);
+	}
+
+	// TODO: Allow card that just rotated in a chance to setup
+	return SelectedCard;
+}
+
 
 
 void UTrayStack::SetWidget(UTrayStackWidget* _Widget)
@@ -108,18 +115,29 @@ void UTrayStack::SetWidget(UTrayStackWidget* _Widget)
 
 void UTrayStack::ResetTrayStack()
 {
+	UE_LOG(LogTemp, Warning, TEXT("UTrayStack::Rotate -- RESET"));
 	ActiveSlotIndex = 0;
+
 	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
 	SelectedCard = BackingArray[0]->ReturnCard();
+	
+	float ResetCooldownSeconds = (SelectedCard ? SelectedCard->GetResetCooldownSeconds() : -1.f);
+	if (ResetCooldownSeconds > 0.f) // no sense resetting an empty slot
+	{
+		bOnCooldown = true;
+		GetWorld()->GetTimerManager().SetTimer(
+			CooldownHandle,
+			[&]() { bOnCooldown = false; },
+			ResetCooldownSeconds,
+			false
+		);
+	}
+	else
+	{
+		bOnCooldown = false;
+	}
 	Widget->Update(SelectedCard, true);
-	if (!SelectedCard || SelectedCard->GetResetCooldownSeconds() == 0.f) return; // no sense resetting an empty slot
-	bOnCooldown = true;
-	GetWorld()->GetTimerManager().SetTimer(
-		CooldownHandle, 
-		[&]() { bOnCooldown = false; },
-		SelectedCard->GetResetCooldownSeconds(), 
-		false
-	);	
+	Widget->BeginResetAndCooldown(0.f, ResetCooldownSeconds);
 }
 
 

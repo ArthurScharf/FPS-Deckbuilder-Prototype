@@ -78,6 +78,8 @@ protected:
 
 	UFUNCTION()
 	virtual void Tick(float DeltaTime) override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	virtual void Die();
@@ -130,8 +132,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "EnemyCharacter|Shell")
 	UNiagaraSystem* NiagaraPostureBreakSystem;
 
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UWidgetComponent* WidgetComponent;
 
 	UPROPERTY(EditDefaultsOnly)

@@ -16,7 +16,7 @@ UStackSlot::UStackSlot()
 
 UCard* UStackSlot::ReturnCard()
 {
-	UE_LOG(LogTemp, Warning, TEXT("UStackSlot::ReturnCard / %s"), *GetName());
+	// UE_LOG(LogTemp, Warning, TEXT("UStackSlot::ReturnCard / %s"), *GetName());
 	// Use unique search if card slot has been modified
 	if (ReturnCardDelegate)
 	{

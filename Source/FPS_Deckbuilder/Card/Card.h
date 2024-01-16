@@ -43,6 +43,12 @@ class FPS_DECKBUILDER_API UCard : public UObject, public IStackObject
 
 public:
 
+	/*
+	* NOTE
+	* For some unknown reason, cards are being GC'd without my permission. 
+	* Additionally, for some reason, having this method here might be helping to avoid 
+	* nullptr exceptions occuring as a consequence of the card's being destroyed.
+	*/
 	virtual void BeginDestroy() override;
 
 
