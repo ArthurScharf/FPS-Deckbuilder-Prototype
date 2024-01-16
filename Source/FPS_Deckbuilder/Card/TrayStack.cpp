@@ -117,11 +117,11 @@ void UTrayStack::ResetTrayStack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("UTrayStack::Rotate -- RESET"));
 	ActiveSlotIndex = 0;
+	
+	float ResetCooldownSeconds = (SelectedCard ? SelectedCard->GetResetCooldownSeconds() : 0.f);
 
 	// Remember that a stack should always be maintaining a leading empty slot. No need to check Slot at 0 exists
 	SelectedCard = BackingArray[0]->ReturnCard();
-	
-	float ResetCooldownSeconds = (SelectedCard ? SelectedCard->GetResetCooldownSeconds() : -1.f);
 	if (ResetCooldownSeconds > 0.f) // no sense resetting an empty slot
 	{
 		bOnCooldown = true;
