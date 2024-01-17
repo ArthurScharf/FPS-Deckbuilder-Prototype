@@ -70,16 +70,17 @@ void AWeapon::Tick(float DeltaTime)
 }
 
 
-void AWeapon::Fire()
+bool AWeapon::Fire()
 {
-	bIsFiring = true;
-
 	if (CurrentAmmo == 0)
 	{
 		// play sound and auto reload
-		return;
+		return false;
 	}
+	bIsFiring = true;
 	CurrentAmmo--;
+	
+	// -- Updating HUD -- //
 	if (AmmoTextBlock) AmmoTextBlock->SetText( FText::FromString(FString::FromInt(CurrentAmmo)) );
 
 	FHitResult HitResult;
@@ -190,18 +191,23 @@ void AWeapon::Fire()
 	SkeletalMeshComponent->Play(false);
 	if (FireShakeClass) { EquippedPlayerCharacter->ShakeCamera(FireShakeClass); }
 	
-	// Accumulating Spread
+	// Accumulating Spread & Adding Recoil to the PlayerCharacter
 	AccumulatedSpread += SpreadGrowth;
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
 	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
+	
+	EquippedPlayerCharacter->AddRecoil(Recoil_Pitch, Recoil_Yaw);
+
+	return true;
 }
 
 
 
-void AWeapon::StopFire()
+bool AWeapon::StopFire()
 {
 	bIsFiring = false;
 	GetWorldTimerManager().ClearTimer(WeaponHandle);
+	return false;
 }
 
 

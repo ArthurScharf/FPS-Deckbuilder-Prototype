@@ -26,7 +26,7 @@ class UTrayStack;
 
 
 
-/**
+/** 
  * Character controlled by the player
  * 
  * NOTE: Given time constraints, Dashing is going to be solved by managing state within the player character class itself.
@@ -52,6 +52,7 @@ public:
 	//virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
 	void EquipWeapon(AWeapon* Weapon);
+	void AddRecoil(float Pitch, float Yaw);
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
 	virtual void Stun(float StunSeconds) override;
 
@@ -181,6 +182,26 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
+
+
+	// -- Weapon Recoil -- //
+	/*
+	* While firing, the weapon calls add recoil, adding yaw and pitch input to the controller.
+	* Additionally while firing, the player's yaw and pitch input that are against the recoil (negative)
+	* are added to these values as well.
+	* While not firing, tick consumes the stored numbers to add yaw and pitch input in the negative direction
+	* to reset the camera.
+	* 
+	* These values can never be negative. If the player
+	*/
+	bool bIsFiring;
+
+	float AccumulatedRecoil_Pitch;
+	float AccumulatedRecoil_Yaw;
+
+	/* Speed at which the recoil difference stored in the two AccumulatedRecoil members is incremented toward 0.*/
+	float RecoilResetSpeed;
+
 
 	// -- Dashing -- //
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category="PlayerCharacter")

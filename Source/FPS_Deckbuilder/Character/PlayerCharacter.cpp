@@ -138,8 +138,22 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// -- Weapon Spread -- //
+	// -- Weapon Spread & Recoil -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
+	float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
+	// Will still reset without an equipped weapon 
+	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- %f"), AccumulatedRecoil_Pitch);
+	if (AccumulatedRecoil_Pitch > 0.f && !bIsFiring)
+	{
+		AccumulatedRecoil_Pitch -= DeltaPitch;
+		AddControllerPitchInput(DeltaPitch);
+
+		if (AccumulatedRecoil_Pitch < 0)
+		{
+			DeltaPitch = DeltaPitch - AccumulatedRecoil_Pitch;
+			AccumulatedRecoil_Pitch = 0;
+		}	
+	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -228,7 +242,10 @@ void APlayerCharacter::MoveRight(float AxisValue)
 
 void APlayerCharacter::LookUp(float AxisValue)
 {
-	AddControllerPitchInput(AxisValue * MouseSensitivity);
+	// Looking up comes from negative values
+	float DeltaPitch = AxisValue * MouseSensitivity;
+	if (bIsFiring && AxisValue > 0) AccumulatedRecoil_Pitch -= DeltaPitch;
+	AddControllerPitchInput(DeltaPitch);
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
@@ -243,7 +260,7 @@ void APlayerCharacter::LeftMouseButton_Pressed()
 
 void APlayerCharacter::LeftMouseButton_Released()
 {
-	if (EquippedWeapon) EquippedWeapon->StopFire();
+	if (EquippedWeapon) bIsFiring = EquippedWeapon->StopFire();
 }
 
 void APlayerCharacter::RightMouseButton_Pressed()
@@ -390,6 +407,7 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 		EquippedWeapon->SetActorEnableCollision(true);
 		EquippedWeapon->SetEquippedPlayerCharacter(nullptr);
 		EquippedWeapon->SetAmmoTextBlock(nullptr);
+		RecoilResetSpeed = EquippedWeapon->GetRecoilResetSpeed();
 	}
 
 	Weapon->SetActorEnableCollision(false);
@@ -401,6 +419,19 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	EquippedWeapon = Weapon;
 }
 
+void APlayerCharacter::AddRecoil(float Pitch, float Yaw)
+{
+
+	// UE_LOG(LogTemp, Warning, TEXT("%f"), Pitch);
+	// NOTE: We don't care about yaw correction
+	AccumulatedRecoil_Pitch += (Pitch > 0 ? Pitch : 0.f); // Positive is rotating to face down for some reason. 
+	// AccumulatedRecoil_Yaw += (Pitch < 0 ? Pitch : 0.f);
+
+	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::AddRecoil -- %f"), AccumulatedRecoil_Pitch);
+
+	AddControllerPitchInput(-Pitch);
+	AddControllerYawInput(Yaw);
+}
 
 void APlayerCharacter::Stun(float StunSeconds)
 {
@@ -501,7 +532,7 @@ void APlayerCharacter::ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeC
 
 void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 {
-	if (!(EquippedWeapon && bWeaponEnabled)) return;
+	if (!EquippedWeapon || !bWeaponEnabled) return;
 	
 	if (bTriggersStatusEffects)
 	{
@@ -510,7 +541,8 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 			if (Delegate.IsBound()) { Delegate.Execute(); }
 		}
 	}
-	EquippedWeapon->Fire();
+	AccumulatedRecoil_Pitch = 0;
+	bIsFiring = EquippedWeapon->Fire();
 }
 
 

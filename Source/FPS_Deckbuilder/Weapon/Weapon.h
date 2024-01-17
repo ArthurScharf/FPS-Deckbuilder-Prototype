@@ -39,9 +39,9 @@ public:
 	// Decays AccumulatedSpread, sets it's movement innacuracy from it's character, and deactivates it's own tick when it's not needed
 	virtual void Tick(float DeltaTime) override;
 
-	void Fire();
+	bool Fire();
 
-	void StopFire();
+	bool StopFire();
 
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
@@ -138,6 +138,16 @@ private:
 
 	UTextBlock* AmmoTextBlock; // Stored on weapon equip so weapon can update it's values
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float Recoil_Pitch;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float Recoil_Yaw;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float RecoilResetSpeed;
+
+
 
 public:
 	FORCEINLINE float GetSpread() { return BaseSpread + AccumulatedSpread + MovementSpread + (JumpSpread * EquippedPlayerCharacter->GetCharacterMovement()->IsFalling()); }
@@ -160,4 +170,8 @@ public:
 		CurrentAmmo = MagazineCapacity; 
 		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
 	}
+
+	FORCEINLINE bool IsFiring() { return bIsFiring; }
+
+	FORCEINLINE float GetRecoilResetSpeed() { return RecoilResetSpeed; }
 };
