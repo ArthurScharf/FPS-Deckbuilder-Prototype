@@ -185,7 +185,6 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 {
 	// UE_LOG(LogTemp, Warning, TEXT("AGameCharacter::ReceiveDamage / %s -- Damage: %f, %d"), *GetName(), DamageStruct.Damage, DamageStruct.bWasPostureDamage);
 
-	// RESTORE
 	// if (!LazyHealthBar) { UE_LOG(LogTemp, Error, TEXT("AGameCharacter::ReceiveDamage -- !LazyHealthBar")); return; }
 
 	if (bTriggersStatusEffects)
@@ -208,7 +207,8 @@ void AGameCharacter::ReceiveDamage(FDamageStruct& DamageStruct, bool bTriggersSt
 		else if (Health >= MaxHealth) { Health = MaxHealth; }
 
 		if (DamageStruct.DamageCauser) DamageStruct.DamageCauser->NotifyOfDamageDealt(DamageStruct);
-		// LazyHealthBar->SetPercent(Health / MaxHealth); // RESTORE
+		
+		if (LazyHealthBar) LazyHealthBar->SetPercent(Health / MaxHealth); 
 
 		if (DamageStruct.bWasLethal) Die();
 	}
