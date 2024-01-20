@@ -75,7 +75,7 @@ bool AWeapon::Fire()
 	if (CurrentAmmo == 0)
 	{
 		// play sound and auto reload
-		return false;
+		return StopFire(); // returns false
 	}
 	bIsFiring = true;
 	CurrentAmmo--;

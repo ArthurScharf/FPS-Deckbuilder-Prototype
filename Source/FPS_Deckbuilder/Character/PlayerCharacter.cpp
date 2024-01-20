@@ -101,6 +101,31 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+
+	// -- Character Look -- //
+	
+
+
+
+	// -- Weapon Spread & Recoil -- //
+	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
+	float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
+	// Will still reset without an equipped weapon 
+	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- %f"), AccumulatedRecoil_Pitch);
+	if (AccumulatedRecoil_Pitch > 0.f && !bIsFiring)
+	{
+		AccumulatedRecoil_Pitch -= DeltaPitch;
+		AddControllerPitchInput(DeltaPitch);
+
+		if (AccumulatedRecoil_Pitch < 0)
+		{
+			DeltaPitch = DeltaPitch - AccumulatedRecoil_Pitch;
+			AccumulatedRecoil_Pitch = 0;
+		}
+	}
+
+
 	// -- Target Interactable -- // 
 	FHitResult HitResult;
 	FVector Start = GetActorLocation() + FVector(0.f, 0.f, BaseEyeHeight);
@@ -126,6 +151,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 		TargetInteractable = nullptr;
 	}
 
+
+
 	// -- Dash Recharge -- //
 	if (DashCharges < MaxDashCharges)
 	{
@@ -138,22 +165,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	// -- Weapon Spread & Recoil -- //
-	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
-	float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
-	// Will still reset without an equipped weapon 
-	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- %f"), AccumulatedRecoil_Pitch);
-	if (AccumulatedRecoil_Pitch > 0.f && !bIsFiring)
-	{
-		AccumulatedRecoil_Pitch -= DeltaPitch;
-		AddControllerPitchInput(DeltaPitch);
 
-		if (AccumulatedRecoil_Pitch < 0)
-		{
-			DeltaPitch = DeltaPitch - AccumulatedRecoil_Pitch;
-			AccumulatedRecoil_Pitch = 0;
-		}	
-	}
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -245,7 +257,8 @@ void APlayerCharacter::LookUp(float AxisValue)
 	// Looking up comes from negative values
 	float DeltaPitch = AxisValue * MouseSensitivity;
 	if (bIsFiring && AxisValue > 0) AccumulatedRecoil_Pitch -= DeltaPitch;
-	AddControllerPitchInput(DeltaPitch);
+	CameraComponent->AddRelativeRotation(FRotator(-DeltaPitch, 0, 0)); 
+	// AddControllerPitchInput(DeltaPitch);
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
