@@ -174,4 +174,9 @@ public:
 	FORCEINLINE bool IsFiring() { return bIsFiring; }
 
 	FORCEINLINE float GetRecoilResetSpeed() { return RecoilResetSpeed; }
+
+	FORCEINLINE float GetRecoilPitch() { return RecoilResetSpeed; }
+
+	FORCEINLINE float GetRecoilYaw() { return RecoilResetSpeed; }
+
 };

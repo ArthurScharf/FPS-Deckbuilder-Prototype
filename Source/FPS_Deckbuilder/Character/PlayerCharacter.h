@@ -124,7 +124,6 @@ private:
 	void DashButton_Pressed();
 	void OpenStackEditorButton_Pressed();
 
-
 	// -- Gameplay Methods -- // 
 	virtual void Die();
 	void HandleReceiveDamage(FDamageStruct DamageStruct, bool bTriggersStatusEffects);
@@ -141,11 +140,9 @@ private:
 	void UseCardInTray(int Index);
 
 public:
-	FTimerHandle TestTimer;
+	// FTimerHandle TestTimer;
 
-	bool bShouldAutoFire;
-
-
+	// bool bShouldAutoFire;
 
 
 private:
@@ -179,16 +176,18 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MouseSensitivity;
 
+	// -- Player Look, Recoil & Weapon -- //
+	/* I'm using FInterp style recoil. This approach prevents the use of Add_Input for looking around. We use this rotation
+	*  To represent the rotation of the character 
+	*/
+	FRotator PlayerRotation;
 
-	// -- Weapon -- //
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
 
-
-	// -- Weapon Recoil -- //
 	/*
 	* While firing, the weapon calls add recoil, adding yaw and pitch input to the controller.
 	* Additionally while firing, the player's yaw and pitch input that are against the recoil (negative)
@@ -200,11 +199,28 @@ private:
 	*/
 	bool bIsFiring;
 
+	/* true --> Weapon is recoiling each tick using FInterp */
+	bool bIsInterpolatingRecoil; 
+
+	/* The amount of recoil currently interpolated for this frame */
+	// Interpolated Recoil MUST be set from the weapon
+	float InterpolatedRecoil; 
+
+	/* The goal amount InterpolatedRecoil is meant to reach */
+	float TargetInterpolatedRecoil;
+
+	/* Set by EquippedWeapon */
+	float RecoilInterpolationSpeed;
+
+
+
 	float AccumulatedRecoil_Pitch;
 	float AccumulatedRecoil_Yaw;
 
 	/* Speed at which the recoil difference stored in the two AccumulatedRecoil members is incremented toward 0.*/
 	float RecoilResetSpeed;
+
+
 
 
 	// -- Dashing -- //
