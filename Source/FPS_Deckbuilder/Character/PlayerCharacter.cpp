@@ -627,16 +627,15 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 		}
 	}
 
-	
+	if (!bIsInterpolatingRecoil)
+	{
+		PlayerRotation.Pitch += AccumulatedPulldown;
+		AccumulatedPulldown = 0;
+	}
+
 	bIsFiring = EquippedWeapon->Fire();
 	if (bIsFiring) // Did the weapon successfully start firing?
 	{
-		if (!bIsInterpolatingRecoil)
-		{
-			PlayerRotation.Pitch += AccumulatedPulldown;
-			AccumulatedPulldown = 0;
-		}
-
 		AccumulatedRecoil_Pitch += InterpolatedRecoil;
 		InterpolatedRecoil = 0;
 		bIsInterpolatingRecoil = true;
