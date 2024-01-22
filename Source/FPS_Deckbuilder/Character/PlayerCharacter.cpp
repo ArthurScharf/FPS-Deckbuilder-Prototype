@@ -128,33 +128,43 @@ void APlayerCharacter::Tick(float DeltaTime)
 		{
 			// We're finished interpolating. Accumulating recoil for reset 
 			bIsInterpolatingRecoil = false;
-
 			AccumulatedRecoil_Pitch += TargetInterpolatedRecoil;
 			InterpolatedRecoil = 0;
 
-			// Adding To the camera rotation
-			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
+			if (AccumulatedPulldown < AccumulatedRecoil_Pitch)
+			{
+				CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
+				AccumulatedRecoil_Pitch -= AccumulatedPulldown;
+			}
+			else
+			{
+				PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
+
+				// Duplicate call avoids single frame of incorrect pitch. Poor optimization, but oh well
+				CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0));
+				AccumulatedRecoil_Pitch = AccumulatedPulldown = 0;
+			}
 		}
 		else // NOT finished interpolating
 		{
 			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + InterpolatedRecoil, 0, 0));
 		}
 	}
-	else if (AccumulatedRecoil_Pitch != 0)
+	else if (AccumulatedRecoil_Pitch > 0 && !bIsFiring)
 	{
 		AccumulatedRecoil_Pitch -= 0.3;
 		if (AccumulatedRecoil_Pitch < 0)
 		{
-			PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
-			AccumulatedRecoil_Pitch = 0;
+			PlayerRotation.Pitch += AccumulatedPulldown;
 
-			// Diplicate call to avoid a bug. This is a code smell 
-			CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0)); // Up and down is camera rotation
-			GetCapsuleComponent()->SetWorldRotation(FRotator(0, PlayerRotation.Yaw, 0)); // Player turn is the entire actor 
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedPulldown, 0, 0)); 
+
+			AccumulatedRecoil_Pitch = 0;
+			AccumulatedPulldown = 0;
 		}
 		else
 		{
-			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + AccumulatedPulldown, 0, 0));
 		}
 	}
 
@@ -306,11 +316,13 @@ void APlayerCharacter::MoveRight(float AxisValue)
 
 void APlayerCharacter::LookUp(float AxisValue)
 {
+	UE_LOG(LogTemp, Warning, TEXT("%f"), AxisValue);
 
-	// Looking up comes from negative values
+
+	// AxisValue < 0 --> Looking up
 	float DeltaPitch = AxisValue * MouseSensitivity;
-	if (/*bIsFiring && */ AxisValue > 0) AccumulatedRecoil_Pitch -= DeltaPitch;
-	else PlayerRotation.Pitch -= DeltaPitch;
+	if (bIsFiring && AxisValue > 0) AccumulatedPulldown += DeltaPitch;
+	PlayerRotation.Pitch -= DeltaPitch;
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
@@ -322,7 +334,7 @@ void APlayerCharacter::LookRight(float AxisValue)
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	// FireWeapons body should probably be folded into this method 
+	// Fire Weapon exists seperately from this method to allow other things to force fire the weapon for this character. Probably just let this method be the method called in those cases and make the body of FireWeapon the body of this weapon
 	FireWeapon(); // Attempts to set bIsFiring;
 }
 
@@ -617,8 +629,14 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 
 	
 	bIsFiring = EquippedWeapon->Fire();
-	if (bIsFiring)
+	if (bIsFiring) // Did the weapon successfully start firing?
 	{
+		if (!bIsInterpolatingRecoil)
+		{
+			PlayerRotation.Pitch += AccumulatedPulldown;
+			AccumulatedPulldown = 0;
+		}
+
 		AccumulatedRecoil_Pitch += InterpolatedRecoil;
 		InterpolatedRecoil = 0;
 		bIsInterpolatingRecoil = true;

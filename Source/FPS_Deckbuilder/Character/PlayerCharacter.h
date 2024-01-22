@@ -220,6 +220,9 @@ private:
 	/* Speed at which the recoil difference stored in the two AccumulatedRecoil members is incremented toward 0.*/
 	float RecoilResetSpeed;
 
+	/* */
+	float AccumulatedPulldown;
+
 
 
 
