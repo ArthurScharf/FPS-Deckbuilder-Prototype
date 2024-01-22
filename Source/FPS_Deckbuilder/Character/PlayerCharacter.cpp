@@ -43,6 +43,12 @@ APlayerCharacter::APlayerCharacter()
 
 void APlayerCharacter::BeginPlay()
 {
+	// Don't want to mess with the constructor. This is should be there though
+	CameraComponent->bUsePawnControlRotation = false;
+	RecoilInterpolationSpeed = 25.f; // Set by the weapon upon pickup
+	TargetInterpolatedRecoil = 0.8f; // Set by the weapon upon pickup 
+	bUseControllerRotationYaw = false;
+
 	// -- UI -- // 
 	if (HUDWidgetClass)
 	{
@@ -70,6 +76,11 @@ void APlayerCharacter::BeginPlay()
 	}
 
 
+
+
+
+
+
 	// -- Testing -- //
 	UCard* Card;
 	for (TSubclassOf<UCard> CardClass : InitialInventory)
@@ -94,6 +105,8 @@ void APlayerCharacter::BeginPlay()
 	//);
 
 
+
+
 	Super::BeginPlay(); // Calls SetupPlayerInputComponent(...)
 }
 
@@ -102,28 +115,68 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 
-
 	// -- Character Look -- //
+	CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0)); // Up and down is camera rotation
+	GetCapsuleComponent()->SetWorldRotation(FRotator(0, PlayerRotation.Yaw, 0)); // Player turn is the entire actor. -90 to set facing to be the same as the actors forward vector  
+	if (bIsInterpolatingRecoil)
+	{
+		// Interpolating Recoil 
+		InterpolatedRecoil = FMath::FInterpTo(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
 	
+		// Have we finished interpolating recoil?
+		if (InterpolatedRecoil >= (TargetInterpolatedRecoil * 0.98)) // Hardcoded to avoid asymptotic-like approach that never reaches desired value
+		{
+			// We're finished interpolating. Accumulating recoil for reset 
+			bIsInterpolatingRecoil = false;
+
+			AccumulatedRecoil_Pitch += TargetInterpolatedRecoil;
+			InterpolatedRecoil = 0;
+
+			// Adding To the camera rotation
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
+		}
+		else // NOT finished interpolating
+		{
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + InterpolatedRecoil, 0, 0));
+		}
+	}
+	else if (AccumulatedRecoil_Pitch != 0)
+	{
+		AccumulatedRecoil_Pitch -= 0.3;
+		if (AccumulatedRecoil_Pitch < 0)
+		{
+			PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
+			AccumulatedRecoil_Pitch = 0;
+
+			// Diplicate call to avoid a bug. This is a code smell 
+			CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0)); // Up and down is camera rotation
+			GetCapsuleComponent()->SetWorldRotation(FRotator(0, PlayerRotation.Yaw, 0)); // Player turn is the entire actor 
+		}
+		else
+		{
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
+		}
+	}
 
 
 
 	// -- Weapon Spread & Recoil -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
-	float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
-	// Will still reset without an equipped weapon 
-	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- %f"), AccumulatedRecoil_Pitch);
-	if (AccumulatedRecoil_Pitch > 0.f && !bIsFiring)
-	{
-		AccumulatedRecoil_Pitch -= DeltaPitch;
-		AddControllerPitchInput(DeltaPitch);
+	/* -- OLD implementation of recoil -- */
+	//float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
+	//// Will still reset without an equipped weapon 
+	//// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Tick -- %f"), AccumulatedRecoil_Pitch);
+	//if (AccumulatedRecoil_Pitch > 0.f && !bIsFiring)
+	//{
+	//	AccumulatedRecoil_Pitch -= DeltaPitch;
+	//	AddControllerPitchInput(DeltaPitch);
 
-		if (AccumulatedRecoil_Pitch < 0)
-		{
-			DeltaPitch = DeltaPitch - AccumulatedRecoil_Pitch;
-			AccumulatedRecoil_Pitch = 0;
-		}
-	}
+	//	if (AccumulatedRecoil_Pitch < 0)
+	//	{
+	//		DeltaPitch = DeltaPitch - AccumulatedRecoil_Pitch;
+	//		AccumulatedRecoil_Pitch = 0;
+	//	}
+	//}
 
 
 	// -- Target Interactable -- // 
@@ -189,7 +242,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(FName("Dash"), IE_Pressed, this, &ThisClass::DashButton_Pressed);
 	PlayerInputComponent->BindAction(FName("OpenStackEditor"), IE_Pressed, this, &ThisClass::OpenStackEditorButton_Pressed);
 
-
 	// Binding tray select actions. Handsize is calculated at runtime so this needs to be done dynamically
 	FName ActionName;
 	for (int i = 0; i < TraySize; i++)
@@ -254,21 +306,24 @@ void APlayerCharacter::MoveRight(float AxisValue)
 
 void APlayerCharacter::LookUp(float AxisValue)
 {
+
 	// Looking up comes from negative values
 	float DeltaPitch = AxisValue * MouseSensitivity;
-	if (bIsFiring && AxisValue > 0) AccumulatedRecoil_Pitch -= DeltaPitch;
-	CameraComponent->AddRelativeRotation(FRotator(-DeltaPitch, 0, 0)); 
-	// AddControllerPitchInput(DeltaPitch);
+	if (/*bIsFiring && */ AxisValue > 0) AccumulatedRecoil_Pitch -= DeltaPitch;
+	else PlayerRotation.Pitch -= DeltaPitch;
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
 {
-	AddControllerYawInput(AxisValue * MouseSensitivity);
+	PlayerRotation.Yaw += AxisValue * MouseSensitivity;
+	
+	// GetCapsuleComponent()->AddRelativeRotation(FRotator(0, AxisValue * MouseSensitivity, 0));
 }
 
 void APlayerCharacter::LeftMouseButton_Pressed()
 {
-	FireWeapon();
+	// FireWeapons body should probably be folded into this method 
+	FireWeapon(); // Attempts to set bIsFiring;
 }
 
 void APlayerCharacter::LeftMouseButton_Released()
@@ -297,7 +352,7 @@ void APlayerCharacter::RightMouseButton_Pressed()
 	//	i++;
 	//}
 
-	GetWorldTimerManager().ClearTimer(TestTimer);
+	// GetWorldTimerManager().ClearTimer(TestTimer);
 }
 
 void APlayerCharacter::RightMouseButton_Released()
@@ -432,19 +487,24 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	EquippedWeapon = Weapon;
 }
 
+
 void APlayerCharacter::AddRecoil(float Pitch, float Yaw)
 {
 
 	// UE_LOG(LogTemp, Warning, TEXT("%f"), Pitch);
 	// NOTE: We don't care about yaw correction
-	AccumulatedRecoil_Pitch += (Pitch > 0 ? Pitch : 0.f); // Positive is rotating to face down for some reason. 
+	// AccumulatedRecoil_Pitch += (Pitch > 0 ? Pitch : 0.f); // Positive is rotating to face down for some reason. 
 	// AccumulatedRecoil_Yaw += (Pitch < 0 ? Pitch : 0.f);
 
-	UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::AddRecoil -- %f"), AccumulatedRecoil_Pitch);
+	AccumulatedRecoil_Pitch += InterpolatedRecoil; // Interpolated Recoil MUST be set from the weapon
+	InterpolatedRecoil = 0;
+	bIsInterpolatingRecoil = true;
+	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::AddRecoil -- %f"), AccumulatedRecoil_Pitch);
 
-	AddControllerPitchInput(-Pitch);
-	AddControllerYawInput(Yaw);
+	// AddControllerPitchInput(-Pitch);
+	// AddControllerYawInput(Yaw);
 }
+
 
 void APlayerCharacter::Stun(float StunSeconds)
 {
@@ -554,8 +614,15 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 			if (Delegate.IsBound()) { Delegate.Execute(); }
 		}
 	}
-	AccumulatedRecoil_Pitch = 0;
+
+	
 	bIsFiring = EquippedWeapon->Fire();
+	if (bIsFiring)
+	{
+		AccumulatedRecoil_Pitch += InterpolatedRecoil;
+		InterpolatedRecoil = 0;
+		bIsInterpolatingRecoil = true;
+	}
 }
 
 
