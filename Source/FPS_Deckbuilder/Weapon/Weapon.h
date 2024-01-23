@@ -138,14 +138,21 @@ private:
 
 	UTextBlock* AmmoTextBlock; // Stored on weapon equip so weapon can update it's values
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+
+	// -- Recoil Properties -- //
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Recoil Properties")
 	float Recoil_Pitch;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Recoil Properties")
 	float Recoil_Yaw;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Recoil Properties")
+	float RecoilInterpolationSpeed;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Recoil Properties")
 	float RecoilResetSpeed;
+
+	
 
 
 
@@ -173,10 +180,12 @@ public:
 
 	FORCEINLINE bool IsFiring() { return bIsFiring; }
 
+	FORCEINLINE float GetRecoilPitch() { return Recoil_Pitch; }
+
+	FORCEINLINE float GetRecoilYaw() { return Recoil_Yaw; }
+
 	FORCEINLINE float GetRecoilResetSpeed() { return RecoilResetSpeed; }
 
-	FORCEINLINE float GetRecoilPitch() { return RecoilResetSpeed; }
-
-	FORCEINLINE float GetRecoilYaw() { return RecoilResetSpeed; }
-
+	FORCEINLINE float GetRecoilInterpolationSpeed() { return RecoilInterpolationSpeed; }
 };
+

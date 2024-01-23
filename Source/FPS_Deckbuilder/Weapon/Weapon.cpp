@@ -196,7 +196,7 @@ bool AWeapon::Fire()
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
 	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
 	
-	EquippedPlayerCharacter->AddRecoil(Recoil_Pitch, Recoil_Yaw);
+	EquippedPlayerCharacter->AddWeaponRecoil();
 
 	return true;
 }

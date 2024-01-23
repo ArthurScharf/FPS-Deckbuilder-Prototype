@@ -114,7 +114,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
 	// -- Character Look -- //
 	CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0)); // Up and down is camera rotation
 	GetCapsuleComponent()->SetWorldRotation(FRotator(0, PlayerRotation.Yaw, 0)); // Player turn is the entire actor. -90 to set facing to be the same as the actors forward vector  
@@ -192,7 +191,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	// -- Target Interactable -- // 
 	FHitResult HitResult;
 	FVector Start = GetActorLocation() + FVector(0.f, 0.f, BaseEyeHeight);
-	FVector End = Start + GetController()->GetDesiredRotation().Vector() * InteractionDistance;
+	FVector End = Start + CameraComponent->GetForwardVector() * InteractionDistance;
 	GetWorld()->LineTraceSingleByChannel(
 		HitResult,
 		Start,
@@ -316,9 +315,6 @@ void APlayerCharacter::MoveRight(float AxisValue)
 
 void APlayerCharacter::LookUp(float AxisValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%f"), AxisValue);
-
-
 	// AxisValue < 0 --> Looking up
 	float DeltaPitch = AxisValue * MouseSensitivity;
 	if (bIsFiring && AxisValue > 0) AccumulatedPulldown += DeltaPitch;
@@ -477,9 +473,15 @@ void APlayerCharacter::Die()
 void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 {
 	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, EAttachmentRule::KeepRelative, EAttachmentRule::SnapToTarget, true);
-
+	TargetInterpolatedRecoil = 2.5;
+	RecoilResetSpeed = 0.3;
+	RecoilInterpolationSpeed = 25;
 	if (EquippedWeapon)
 	{ 
+
+		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, "TEST");
+
+
 		EquippedWeapon->StopFire(); 
 		EquippedWeapon->DetachFromActor(FDetachmentTransformRules(AttachmentRules, false));
 		EquippedWeapon->SetActorLocation(Weapon->GetActorLocation());
@@ -487,8 +489,13 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 		EquippedWeapon->SetActorEnableCollision(true);
 		EquippedWeapon->SetEquippedPlayerCharacter(nullptr);
 		EquippedWeapon->SetAmmoTextBlock(nullptr);
-		RecoilResetSpeed = EquippedWeapon->GetRecoilResetSpeed();
+		TargetInterpolatedRecoil = 0;
+		RecoilResetSpeed = 0.3;
+		RecoilInterpolationSpeed = 25;
+		// GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Orange, FString::Printf(TEXT("%f, %f, %f"), TargetInterpolatedRecoil, RecoilResetSpeed, RecoilInterpolationSpeed));
 	}
+
+	if (!Weapon) return;
 
 	Weapon->SetActorEnableCollision(false);
 	Weapon->SetActorRelativeLocation(FVector(0.f));
@@ -496,25 +503,25 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 	Weapon->AttachToComponent(SpringArmComponent, AttachmentRules);
 	Weapon->SetEquippedPlayerCharacter(this);
 	Weapon->SetAmmoTextBlock(HUDWidget->GetCurrentAmmoText());
+
+	UE_LOG(LogTemp, Error, TEXT("Target Interpolated Recoil: %f"), Weapon->GetRecoilPitch());
+	TargetInterpolatedRecoil = Weapon->GetRecoilPitch();
+	
+	UE_LOG(LogTemp, Error, TEXT("Recoil Reset Speed: %f"), Weapon->GetRecoilResetSpeed());
+	RecoilResetSpeed = Weapon->GetRecoilResetSpeed();
+	
+	UE_LOG(LogTemp, Error, TEXT("Recoil Interpolation Speed: %f"), Weapon->GetRecoilInterpolationSpeed());
+	RecoilInterpolationSpeed = Weapon->GetRecoilInterpolationSpeed();
+	
 	EquippedWeapon = Weapon;
 }
 
 
-void APlayerCharacter::AddRecoil(float Pitch, float Yaw)
+void APlayerCharacter::AddWeaponRecoil()
 {
-
-	// UE_LOG(LogTemp, Warning, TEXT("%f"), Pitch);
-	// NOTE: We don't care about yaw correction
-	// AccumulatedRecoil_Pitch += (Pitch > 0 ? Pitch : 0.f); // Positive is rotating to face down for some reason. 
-	// AccumulatedRecoil_Yaw += (Pitch < 0 ? Pitch : 0.f);
-
 	AccumulatedRecoil_Pitch += InterpolatedRecoil; // Interpolated Recoil MUST be set from the weapon
 	InterpolatedRecoil = 0;
 	bIsInterpolatingRecoil = true;
-	// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::AddRecoil -- %f"), AccumulatedRecoil_Pitch);
-
-	// AddControllerPitchInput(-Pitch);
-	// AddControllerYawInput(Yaw);
 }
 
 
@@ -634,12 +641,12 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 	}
 
 	bIsFiring = EquippedWeapon->Fire();
-	if (bIsFiring) // Did the weapon successfully start firing?
-	{
-		AccumulatedRecoil_Pitch += InterpolatedRecoil;
-		InterpolatedRecoil = 0;
-		bIsInterpolatingRecoil = true;
-	}
+	//if (bIsFiring) // Did the weapon successfully start firing?
+	//{
+	//	AccumulatedRecoil_Pitch += InterpolatedRecoil;
+	//	InterpolatedRecoil = 0;
+	//	bIsInterpolatingRecoil = true;
+	//}
 }
 
 

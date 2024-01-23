@@ -56,7 +56,7 @@ public:
 	//virtual void NotifyOfDamageDealt(FDamageStruct& DamageStruct) override;
 
 	void EquipWeapon(AWeapon* Weapon);
-	void AddRecoil(float Pitch, float Yaw);
+	void AddWeaponRecoil();
 	void ShakeCamera(TSubclassOf<UMatineeCameraShake> CameraShakeClass);
 	virtual void Stun(float StunSeconds) override;
 
@@ -206,22 +206,25 @@ private:
 	// Interpolated Recoil MUST be set from the weapon
 	float InterpolatedRecoil; 
 
-	/* The goal amount InterpolatedRecoil is meant to reach */
+	/* Following 3 members are set when equipping a weapon
+		TargetInterpolatedRecoil : The goal amount InterpolatedRecoil is meant to reach
+		RecoilInterpolationSpeed : Speed at which recoil reaches TargetInterpolationRecoil
+		RecoilResetSpeed         : Speed at which the recoil difference stored in the two AccumulatedRecoil members is incremented toward 0.
+	*/
 	float TargetInterpolatedRecoil;
-
-	/* Set by EquippedWeapon */
 	float RecoilInterpolationSpeed;
+	float RecoilResetSpeed;
 
-
-
+	/* Recoil accumulated from firing a weapon or other effects. */
 	float AccumulatedRecoil_Pitch;
 	float AccumulatedRecoil_Yaw;
 
-	/* Speed at which the recoil difference stored in the two AccumulatedRecoil members is incremented toward 0.*/
-	float RecoilResetSpeed;
-
-	/* */
+	/* Accumulated during firing of weapon. Used to offset the PlayerRotation correctly such that
+	* Recoil resetting never rotates beyond the initial angle where firing began
+	*/
 	float AccumulatedPulldown;
+
+
 
 
 
