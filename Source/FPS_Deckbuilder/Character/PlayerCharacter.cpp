@@ -114,62 +114,52 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// -- Character Look -- //
+	// -- Recoil -- //
 	CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0)); // Up and down is camera rotation
 	GetCapsuleComponent()->SetWorldRotation(FRotator(0, PlayerRotation.Yaw, 0)); // Player turn is the entire actor. -90 to set facing to be the same as the actors forward vector  
 	if (bIsInterpolatingRecoil)
 	{
-		// Interpolating Recoil 
-		InterpolatedRecoil = FMath::FInterpTo(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
-	
-		// Have we finished interpolating recoil?
-		if (InterpolatedRecoil >= (TargetInterpolatedRecoil * 0.98)) // Hardcoded to avoid asymptotic-like approach that never reaches desired value
+		//InterpolatedRecoil = FMath::FInterpTo(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
+		InterpolatedRecoil = FMath::InterpEaseIn(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
+		if (InterpolatedRecoil >= TargetInterpolatedRecoil * 0.98) //- Completed interpolation
 		{
-			// We're finished interpolating. Accumulating recoil for reset 
-			bIsInterpolatingRecoil = false;
+			UE_LOG(LogTemp, Warning, TEXT("Completed interpolation"));
+
+			//- Accumulating & Updating for frame
 			AccumulatedRecoil_Pitch += TargetInterpolatedRecoil;
 			InterpolatedRecoil = 0;
-
-			if (AccumulatedPulldown < AccumulatedRecoil_Pitch)
-			{
-				CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
-				AccumulatedRecoil_Pitch -= AccumulatedPulldown;
-			}
-			else
-			{
-				PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
-
-				// Duplicate call avoids single frame of incorrect pitch. Poor optimization, but oh well
-				CameraComponent->SetRelativeRotation(FRotator(PlayerRotation.Pitch, 0, 0));
-				AccumulatedRecoil_Pitch = AccumulatedPulldown = 0;
-			}
+			bIsInterpolatingRecoil = false;
+			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0));
 		}
-		else // NOT finished interpolating
+		else //- Incomplete interpolation
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Incomplete interpolation"));
+
+			//- Updating for frame
 			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + InterpolatedRecoil, 0, 0));
 		}
 	}
-	else if (AccumulatedRecoil_Pitch > 0 && !bIsFiring)
+	else if ((AccumulatedRecoil_Pitch + PlayerRotation.Pitch) <= StoredPitch) //- Player has pulled down further than where firing started
 	{
-		AccumulatedRecoil_Pitch -= 0.3;
-		if (AccumulatedRecoil_Pitch < 0)
-		{
-			PlayerRotation.Pitch += AccumulatedPulldown;
+		UE_LOG(LogTemp, Warning, TEXT("Pulled down far enough"));
 
-			CameraComponent->AddRelativeRotation(FRotator(AccumulatedPulldown, 0, 0)); 
-
-			AccumulatedRecoil_Pitch = 0;
-			AccumulatedPulldown = 0;
-		}
-		else
-		{
-			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + AccumulatedPulldown, 0, 0));
-		}
+		//- Decay is stopped and Player rotation is adjusted
+		PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
+		CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0)); // Needed for this frame
+		AccumulatedRecoil_Pitch = 0;
+	}
+	else //- Decaying AccumulatedRecoil
+	{
+		AccumulatedRecoil_Pitch -= RecoilResetSpeed;
+		UE_LOG(LogTemp, Warning, TEXT("Decaying: %f"), RecoilResetSpeed);
+		CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0)); // Needed for this frame
 	}
 
 
 
-	// -- Weapon Spread & Recoil -- //
+
+
+	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 	/* -- OLD implementation of recoil -- */
 	//float DeltaPitch = (EquippedWeapon ? EquippedWeapon->GetRecoilResetSpeed() : 10.f) * DeltaTime;
@@ -186,6 +176,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 	//		AccumulatedRecoil_Pitch = 0;
 	//	}
 	//}
+
+
+
+
 
 
 	// -- Target Interactable -- // 
@@ -317,15 +311,14 @@ void APlayerCharacter::LookUp(float AxisValue)
 {
 	// AxisValue < 0 --> Looking up
 	float DeltaPitch = AxisValue * MouseSensitivity;
-	if (bIsFiring && AxisValue > 0) AccumulatedPulldown += DeltaPitch;
+	if (DeltaPitch < 0) StoredPitch -= DeltaPitch;
+	
 	PlayerRotation.Pitch -= DeltaPitch;
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
 {
 	PlayerRotation.Yaw += AxisValue * MouseSensitivity;
-	
-	// GetCapsuleComponent()->AddRelativeRotation(FRotator(0, AxisValue * MouseSensitivity, 0));
 }
 
 void APlayerCharacter::LeftMouseButton_Pressed()
@@ -634,19 +627,8 @@ void APlayerCharacter::FireWeapon(bool bTriggersStatusEffects)
 		}
 	}
 
-	if (!bIsInterpolatingRecoil)
-	{
-		PlayerRotation.Pitch += AccumulatedPulldown;
-		AccumulatedPulldown = 0;
-	}
-
 	bIsFiring = EquippedWeapon->Fire();
-	//if (bIsFiring) // Did the weapon successfully start firing?
-	//{
-	//	AccumulatedRecoil_Pitch += InterpolatedRecoil;
-	//	InterpolatedRecoil = 0;
-	//	bIsInterpolatingRecoil = true;
-	//}
+	if (AccumulatedRecoil_Pitch == 0) StoredPitch = PlayerRotation.Pitch;
 }
 
 

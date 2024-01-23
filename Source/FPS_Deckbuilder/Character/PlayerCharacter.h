@@ -176,34 +176,24 @@ private:
 	UPROPERTY(EditAnywhere)
 	float MouseSensitivity;
 
-	// -- Player Look, Recoil & Weapon -- //
-	/* I'm using FInterp style recoil. This approach prevents the use of Add_Input for looking around. We use this rotation
-	*  To represent the rotation of the character 
-	*/
-	FRotator PlayerRotation;
-
+	// -- Weapon -- //
 	UPROPERTY(VisibleAnywhere) 
 	AWeapon* EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bWeaponEnabled = true;
 
-	/*
-	* While firing, the weapon calls add recoil, adding yaw and pitch input to the controller.
-	* Additionally while firing, the player's yaw and pitch input that are against the recoil (negative)
-	* are added to these values as well.
-	* While not firing, tick consumes the stored numbers to add yaw and pitch input in the negative direction
-	* to reset the camera.
-	* 
-	* These values can never be negative. If the player
-	*/
 	bool bIsFiring;
+
+
+	// -- Player Look -- //
+	/* Used each frame to set player rotation */
+	FRotator PlayerRotation;
 
 	/* true --> Weapon is recoiling each tick using FInterp */
 	bool bIsInterpolatingRecoil; 
 
 	/* The amount of recoil currently interpolated for this frame */
-	// Interpolated Recoil MUST be set from the weapon
 	float InterpolatedRecoil; 
 
 	/* Following 3 members are set when equipping a weapon
@@ -219,14 +209,8 @@ private:
 	float AccumulatedRecoil_Pitch;
 	float AccumulatedRecoil_Yaw;
 
-	/* Accumulated during firing of weapon. Used to offset the PlayerRotation correctly such that
-	* Recoil resetting never rotates beyond the initial angle where firing began
-	*/
-	float AccumulatedPulldown;
-
-
-
-
+	/* Set upon firing of the weapon. PlayerRotation.Pitch + AccumulatedRecoil never exceeds this value */
+	float StoredPitch; 
 
 
 	// -- Dashing -- //
