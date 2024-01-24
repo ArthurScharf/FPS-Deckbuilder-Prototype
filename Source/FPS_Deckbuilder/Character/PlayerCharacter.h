@@ -187,7 +187,7 @@ private:
 
 
 	// -- Player Look -- //
-	/* Used each frame to set player rotation */
+	/* Used each frame to set player orientation */
 	FRotator PlayerRotation;
 
 	/* true --> Weapon is recoiling each tick using FInterp */

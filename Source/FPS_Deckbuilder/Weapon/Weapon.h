@@ -23,9 +23,6 @@ class USphereComponent;
 
 
 
-
-
-
 UCLASS()
 class FPS_DECKBUILDER_API AWeapon : public AActor, public IInteractable
 {
@@ -78,6 +75,15 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	bool bIsAutomatic;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	bool bIsShotgun;
+
+	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bIsShotgun", EditConditionHides), Category = "Weapon|Firing Properties")
+	uint8 NumRadialLines;
+
+	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bIsShotgun", EditConditionHides), Category = "Weapon|Firing Properties")
+	uint8 NumShotsPerRadialLine;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float RateOfFireSeconds;

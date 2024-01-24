@@ -4,6 +4,7 @@
 #include "DamagePackage.generated.h"
 
 class AGameCharacter;
+class AProjectile;
 
 UENUM(BlueprintType)
 enum EDamageType
@@ -49,6 +50,16 @@ public:
 
 	UPROPERTY(BlueprintReadWrite)
 	FHitResult HitResult;
+
+	/*
+	* We don't always want to treat each individual projectile as it's own attack (Shotguns are an example of this).
+	* Projectiles have an AttackID properties that AWeapon::ApplyDamage can use to determine wich Enemies were hit by a single 
+	* multi-projectile or multi-hitscan attack.
+	* There are also potentially other ways to interact with a projectile that's been spawned from another source (Enemy or Card).
+	* As such, it's necassary to store a pointer to a projectile.
+	*/
+	UPROPERTY(BlueprintReadWrite)
+	AProjectile* DamagingProjectile;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bWasPostureDamage = false;

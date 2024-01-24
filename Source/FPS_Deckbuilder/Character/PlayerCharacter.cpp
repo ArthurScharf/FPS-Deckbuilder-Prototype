@@ -121,10 +121,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		//InterpolatedRecoil = FMath::FInterpTo(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
 		InterpolatedRecoil = FMath::InterpEaseIn(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
+		//InterpolatedRecoil = FMath::InterpEaseInOut(InterpolatedRecoil, TargetInterpolatedRecoil, DeltaTime, RecoilInterpolationSpeed);
+
 		if (InterpolatedRecoil >= TargetInterpolatedRecoil * 0.98) //- Completed interpolation
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Completed interpolation"));
-
 			//- Accumulating & Updating for frame
 			AccumulatedRecoil_Pitch += TargetInterpolatedRecoil;
 			InterpolatedRecoil = 0;
@@ -133,16 +133,12 @@ void APlayerCharacter::Tick(float DeltaTime)
 		}
 		else //- Incomplete interpolation
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Incomplete interpolation"));
-
 			//- Updating for frame
 			CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch + InterpolatedRecoil, 0, 0));
 		}
 	}
 	else if ((AccumulatedRecoil_Pitch + PlayerRotation.Pitch) <= StoredPitch) //- Player has pulled down further than where firing started
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Pulled down far enough"));
-
 		//- Decay is stopped and Player rotation is adjusted
 		PlayerRotation.Pitch += AccumulatedRecoil_Pitch;
 		CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0)); // Needed for this frame
@@ -151,7 +147,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	else //- Decaying AccumulatedRecoil
 	{
 		AccumulatedRecoil_Pitch -= RecoilResetSpeed;
-		UE_LOG(LogTemp, Warning, TEXT("Decaying: %f"), RecoilResetSpeed);
 		CameraComponent->AddRelativeRotation(FRotator(AccumulatedRecoil_Pitch, 0, 0)); // Needed for this frame
 	}
 
@@ -512,7 +507,7 @@ void APlayerCharacter::EquipWeapon(AWeapon* Weapon)
 
 void APlayerCharacter::AddWeaponRecoil()
 {
-	AccumulatedRecoil_Pitch += InterpolatedRecoil; // Interpolated Recoil MUST be set from the weapon
+	AccumulatedRecoil_Pitch += InterpolatedRecoil + FMath::RandRange(0, .5);//(InterpolatedRecoil + FMath::FRandRange(0, 2)); // Interpolated Recoil MUST be set from the weapon
 	InterpolatedRecoil = 0;
 	bIsInterpolatingRecoil = true;
 }

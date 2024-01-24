@@ -90,8 +90,7 @@ bool AWeapon::Fire()
 	FRotator Rotation;
 	EquippedPlayerCharacter->GetCameraViewPoint(Start, EyeRotation);
 
-	// Firing projectile, or performing line trace & applying damage
-	// TODO: Clean this up
+
 	if (ProjectileClass)
 	{
 		End = Start + EyeRotation.Vector() * 100000.f; // A large enough number that a player couldn't pheasibly aim at something at that distance
@@ -100,10 +99,11 @@ bool AWeapon::Fire()
 		// FVector Location = GetActorLocation() + GetActorForwardVector() * 50.f; // TODO: MilitaryWeaponsSilver and Dark have weapons misaligned and can't reimport to fix. Reimplement once we have out own weapon meshes
 		FVector Location = SkeletalMeshComponent->GetSocketLocation(FName("MuzzleFlash"));
 		if (HitResult.bBlockingHit) { Rotation = (HitResult.ImpactPoint - Location).Rotation(); }
-		else						{ Rotation = (End				    - Location).Rotation(); }
+		else { Rotation = (End - Location).Rotation(); }
 
 		float Spread = GetSpread();
 		// TODO: Change spread to a circle instead of a square
+
 		Rotation = Rotation + FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		FTransform Transform = FTransform(Rotation, Location);
 		AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, Transform);
@@ -117,7 +117,7 @@ bool AWeapon::Fire()
 		// TODO: Change spread to a circle instead of a square
 		Rotation = FRotator(FMath::RandRange(-Spread, Spread), FMath::RandRange(-Spread, Spread), 0.f);
 		End = Start + (Rotation + EyeRotation).Vector() * 10000.f;
-		
+
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(EquippedPlayerCharacter);
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
@@ -128,7 +128,7 @@ bool AWeapon::Fire()
 			FHitResult UnusedHitResult;
 			HitResult.Actor->ReceiveHit(nullptr, nullptr, nullptr, false, FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), HitResult);
 		}
-		
+
 		// -- Applying Damage to hit EnemyCharacter -- //
 		AEnemyCharacter* HitEnemyCharacter = Cast<AEnemyCharacter>(HitResult.Actor);
 		if (HitEnemyCharacter)
@@ -184,6 +184,7 @@ bool AWeapon::Fire()
 			}
 		}
 	}//~ HitScan
+
 
 	// -- Sound & Animation -- //
 	// NOTE: Sounds are notifies on the animation.
