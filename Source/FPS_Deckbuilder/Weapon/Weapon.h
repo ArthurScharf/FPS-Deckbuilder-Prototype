@@ -48,6 +48,10 @@ public:
 
 
 private:
+	void DoShotgunHitscan();
+
+
+private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"), Category = "Weapon")
 	USkeletalMeshComponent* SkeletalMeshComponent;
 
