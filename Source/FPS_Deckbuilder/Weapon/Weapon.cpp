@@ -42,6 +42,7 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentAmmo = MagazineCapacity;
+	bCanFire = true;
 }
 
 
@@ -72,12 +73,18 @@ void AWeapon::Tick(float DeltaTime)
 
 bool AWeapon::Fire()
 {
+	if (!bCanFire) return false; // Attempting to pull the trigger on a weapon exceeding it's firing rate 
+
 	if (CurrentAmmo == 0)
 	{
 		// play sound and auto reload
 		return StopFire(); // returns false
 	}
-	bIsFiring = true;
+
+
+	GetWorldTimerManager().ClearTimer(ReloadHandle);
+	bCanFire = false;
+	if (bIsAutomatic) bIsFiring = true;
 	CurrentAmmo--;
 	
 	// -- Updating HUD -- //
@@ -203,7 +210,26 @@ bool AWeapon::Fire()
 	// Accumulating Spread & Adding Recoil to the PlayerCharacter
 	AccumulatedSpread += SpreadGrowth;
 	if (AccumulatedSpread + BaseSpread >= MaxSpread) AccumulatedSpread = MaxSpread - BaseSpread;
-	bIsAutomatic ? GetWorldTimerManager().SetTimer(WeaponHandle, [&]() {Fire();}, RateOfFireSeconds, true) : bIsFiring = false;
+	
+	// If else makes sure 0 means that weapon can be fired as quickly as the player can click
+	if (RateOfFireSeconds != 0)
+	{
+		GetWorldTimerManager().SetTimer(
+			WeaponHandle,
+			[&]()
+			{
+				bCanFire = true;
+				if (bIsAutomatic) Fire();
+			},
+			RateOfFireSeconds,
+			true
+		);
+	}
+	else
+	{
+		bCanFire = true;
+	}
+
 
 	EquippedPlayerCharacter->AddWeaponRecoil();
 
@@ -215,8 +241,36 @@ bool AWeapon::Fire()
 bool AWeapon::StopFire()
 {
 	bIsFiring = false;
-	GetWorldTimerManager().ClearTimer(WeaponHandle);
+	GetWorldTimerManager().SetTimer(
+		WeaponHandle,
+		[&]()
+		{
+			bCanFire = true;
+		},
+		GetWorldTimerManager().GetTimerRemaining(WeaponHandle),
+		false
+	);
 	return false;
+}
+
+
+void AWeapon::Reload()
+{
+	//- TODO: Animation and Sound
+
+
+	if (GetWorldTimerManager().IsTimerActive(ReloadHandle)) return;
+
+	GetWorldTimerManager().SetTimer(
+		ReloadHandle,
+		[&]() {
+			CurrentAmmo = MagazineCapacity;
+			if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
+		},
+		ReloadSeconds,
+		false
+	);
+
 }
 
 

@@ -38,7 +38,7 @@ class FPS_DECKBUILDER_API APlayerCharacter : public AGameCharacter
 	GENERATED_BODY()
 
 	DECLARE_DELEGATE_OneParam(FInputUseCardInTrayDelegate, const int32) // For using card's in slots
-
+	 
 public:
 	APlayerCharacter();
 	// APlayerCharacter(const FObjectInitializer& ObjectInitializer);

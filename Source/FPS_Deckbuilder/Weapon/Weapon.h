@@ -40,6 +40,10 @@ public:
 
 	bool StopFire();
 
+	/* Placeholder until we do a better reload system */
+	void Reload();
+	
+
 	/* Equips the Weapon */
 	void Interact(APlayerCharacter* PlayerCharacter);
 
@@ -94,6 +98,9 @@ private:
 
 	bool bIsFiring;
 
+	/* Used by semi-auto weapons to gate how quickly the weapon can be fired */
+	bool bCanFire;
+
 // -- Spread -- //	Spread is the angle between the line being aimed down and the cone whose center is colinear to that line 
 	// The amount of spread the weapon always has
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
@@ -135,13 +142,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	UCurveFloat* SpreadGrowthCurve; // TODO: Implement or remove
 	
-
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	int MagazineCapacity;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon|Firing Properties")
 	int CurrentAmmo;
 
+	/* Used for reloading */
+	FTimerHandle ReloadHandle;
+
+	/* Seconds upon initiating reload that reloading is successful*/
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
+	float ReloadSeconds;
+
+	/* Used for firing the weapon when it's automatic */
 	FTimerHandle WeaponHandle;
 
 	APlayerCharacter* EquippedPlayerCharacter;	// PlayerCharacter the weapon is equipped to
@@ -178,13 +192,6 @@ public:
 	FORCEINLINE void SetAmmoTextBlock(UTextBlock* _AmmoTextBlock) 
 	{  
 		AmmoTextBlock = _AmmoTextBlock; 
-		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
-	}
-
-	/* Placeholder until we do a better reload system */
-	FORCEINLINE void Reload() 
-	{ 
-		CurrentAmmo = MagazineCapacity; 
 		if (AmmoTextBlock) AmmoTextBlock->SetText(FText::FromString(FString::FromInt(CurrentAmmo)));
 	}
 

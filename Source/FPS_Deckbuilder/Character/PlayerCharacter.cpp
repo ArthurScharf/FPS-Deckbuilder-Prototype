@@ -151,9 +151,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 
 
-
-
-
 	// -- Weapon Spread -- //
 	HUDWidget->UpdateCrosshairsSpread(EquippedWeapon ? EquippedWeapon->GetSpread() : 0.f);
 	/* -- OLD implementation of recoil -- */
@@ -171,10 +168,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	//		AccumulatedRecoil_Pitch = 0;
 	//	}
 	//}
-
-
-
-
 
 
 	// -- Target Interactable -- // 
@@ -203,7 +196,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 	}
 
 
-
 	// -- Dash Recharge -- //
 	if (DashCharges < MaxDashCharges)
 	{
@@ -215,8 +207,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 			// UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter:Tick -- Adding Dash Charge"));
 		}
 	}
-
-
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
