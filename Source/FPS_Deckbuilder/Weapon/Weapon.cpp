@@ -337,9 +337,8 @@ void AWeapon::DoShotgunHitscan()
 	* 3. Add transformed vector to end vector
 	*/
 	FVector PelletSpread;
-	float Theta;
+	float Theta = 360.f / NumShotsPerRing;
 	float Spread = GetSpread();
-	uint8 NumRings = 2.f;
 	float RingSpread = Spread / NumRings;
 
 	for (int ring = 1; ring <= NumRings; ring++) // Starts at 1 bc no ring-pellets exist in the center 

@@ -84,10 +84,10 @@ private:
 	bool bIsShotgun;
 
 	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bIsShotgun", EditConditionHides), Category = "Weapon|Firing Properties")
-	uint8 NumRadialLines;
+	uint8 NumRings;
 
 	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "bIsShotgun", EditConditionHides), Category = "Weapon|Firing Properties")
-	uint8 NumShotsPerRadialLine;
+	uint8 NumShotsPerRing;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon|Firing Properties")
 	float RateOfFireSeconds;

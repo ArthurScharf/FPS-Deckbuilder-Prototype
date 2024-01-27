@@ -307,8 +307,7 @@ void APlayerCharacter::LookUp(float AxisValue)
 	// AxisValue < 0 --> Looking up
 	float DeltaPitch = AxisValue * MouseSensitivity;
 	if (DeltaPitch < 0) StoredPitch -= DeltaPitch;
-	
-	PlayerRotation.Pitch -= DeltaPitch;
+	PlayerRotation.Pitch = FMath::Clamp(PlayerRotation.Pitch - DeltaPitch, -90.f, 90.f);
 }
 
 void APlayerCharacter::LookRight(float AxisValue)
